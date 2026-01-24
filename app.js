@@ -1,5 +1,18 @@
-// Инициализация Telegram WebApp
-const tg = window.Telegram.WebApp;
+// Инициализация Telegram WebApp (с безопасным fallback)
+const tg = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : {
+    ready: () => {},
+    expand: () => {},
+    setHeaderColor: () => {},
+    setBackgroundColor: () => {},
+    initDataUnsafe: {},
+    sendData: () => {},
+    BackButton: {
+        show: () => {},
+        hide: () => {},
+        onClick: () => {},
+        offClick: () => {}
+    }
+};
 tg.ready();
 tg.expand();
 
@@ -130,11 +143,17 @@ async function loadExchangeRates() {
 }
 
 function updateRatesDisplay() {
+    if (!elements.buyRate || !elements.sellRate) {
+        return;
+    }
     elements.buyRate.textContent = `${state.buyRate} ₽`;
     elements.sellRate.textContent = `${state.sellRate} ₽`;
 }
 
 function setUpdateStatus(text, isError = false) {
+    if (!elements.updateTime) {
+        return;
+    }
     elements.updateTime.textContent = text;
     elements.updateTime.style.color = isError ? '#ff6b6b' : '';
 }
