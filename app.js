@@ -69,8 +69,8 @@ function initApp() {
     updateRatesDisplay();
 }
 
-// Прокси (Cloudflare Worker). Заполни своим URL.
-const PROXY_URL = '';
+// Прокси (Cloudflare Worker)
+const PROXY_URL = 'https://crypto-exchange-miniapp.syedwang789.workers.dev';
 
 // Источник курсов: Центральный банк РФ (USD/RUB)
 const CBR_SOURCES = [
