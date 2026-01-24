@@ -102,8 +102,21 @@ npm start
 
 ## 📡 API курсов валют
 
-Приложение использует CurrencyAPI для получения актуальных курсов:
-- API ключ: `cur_live_VmyyauP81CCSzzsjStHpSHnKkrEJ1bs7zCSi0DUl`
+Приложение использует данные ЦБ РФ (USD/RUB). Если в Telegram WebView
+есть блокировки, рекомендуется добавить прокси (Cloudflare Worker).
+
+### Прокси для Telegram (Cloudflare Worker)
+
+1. Создайте Worker в Cloudflare.
+2. Вставьте содержимое файла `proxy-worker.js`.
+3. Опубликуйте Worker и получите URL вида:
+   `https://your-worker.yourname.workers.dev`
+4. В `app.js` и `standalone.html` задайте:
+
+```js
+const PROXY_URL = 'https://your-worker.yourname.workers.dev';
+```
+
 - Обновление: каждую минуту
 - Маржа: покупка -0.5%, продажа +0.5%
 

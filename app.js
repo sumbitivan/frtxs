@@ -69,6 +69,9 @@ function initApp() {
     updateRatesDisplay();
 }
 
+// Прокси (Cloudflare Worker). Заполни своим URL.
+const PROXY_URL = '';
+
 // Источник курсов: Центральный банк РФ (USD/RUB)
 const CBR_SOURCES = [
     {
@@ -97,6 +100,13 @@ function normalizeRate(value) {
 
 async function fetchUsdToRub() {
     try {
+        if (PROXY_URL) {
+            const proxyData = await fetchJsonNoCache(PROXY_URL);
+            const normalizedProxy = normalizeRate(proxyData && proxyData.rate);
+            if (normalizedProxy !== null) {
+                return { rate: normalizedProxy, source: 'proxy' };
+            }
+        }
         for (const source of CBR_SOURCES) {
             const data = await fetchJsonNoCache(source.url);
             const normalized = normalizeRate(source.parse(data));
@@ -125,7 +135,7 @@ async function loadExchangeRates() {
         state.sellRate = (usdToRub * 1.005).toFixed(2); // Продажа USD (отдаем USD)
         
         updateRatesDisplay();
-        const labelSuffix = rateResult.source === 'cbr' ? ' (ЦБ РФ)' : '';
+        const labelSuffix = rateResult.source === 'proxy' ? ' (прокси)' : ' (ЦБ РФ)';
         updateTime(labelSuffix);
         
         // Если модальное окно открыто, пересчитываем сумму
