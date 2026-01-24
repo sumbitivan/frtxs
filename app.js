@@ -55,6 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function initApp() {
+    setUpdateStatus('Загрузка курса...');
     // Загрузка курсов валют
     loadExchangeRates();
     
@@ -68,20 +69,8 @@ function initApp() {
     updateRatesDisplay();
 }
 
-// API ключ для курсов валют
-const CURRENCY_API_KEY = 'cur_live_VmyyauP81CCSzzsjStHpSHnKkrEJ1bs7zCSi0DUl';
-const CURRENCY_API_URL = 'https://api.currencyapi.com/v3/latest';
-const FALLBACK_SOURCES = [
-    {
-        // Центральный банк РФ, USD/RUB
-        url: 'https://www.cbr-xml-daily.ru/daily_json.js',
-        parse: (data) => data && data.Valute && data.Valute.USD && data.Valute.USD.Value
-    },
-    {
-        url: 'https://open.er-api.com/v6/latest/USD',
-        parse: (data) => data && data.rates && data.rates.RUB
-    }
-];
+// Источник курсов: Центральный банк РФ (USD/RUB)
+const CBR_API_URL = 'https://www.cbr-xml-daily.ru/daily_json.js';
 
 async function fetchJsonNoCache(url) {
     const response = await fetch(url, { cache: 'no-store' });
@@ -97,46 +86,36 @@ function normalizeRate(value) {
 }
 
 async function fetchUsdToRub() {
-    const primaryUrl = `${CURRENCY_API_URL}?base_currency=USD&currencies=RUB&apikey=${CURRENCY_API_KEY}`;
     try {
-        const data = await fetchJsonNoCache(primaryUrl);
-        if (data.data && data.data.RUB) {
-            const normalized = normalizeRate(data.data.RUB.value);
-            if (normalized !== null) {
-                return { rate: normalized, source: 'primary' };
-            }
+        const data = await fetchJsonNoCache(CBR_API_URL);
+        const normalized = normalizeRate(
+            data && data.Valute && data.Valute.USD && data.Valute.USD.Value
+        );
+        if (normalized !== null) {
+            return { rate: normalized, source: 'cbr' };
         }
     } catch (error) {
-        console.warn('Primary rates API failed, trying fallbacks.', error);
+        console.warn('CBR API failed.', error);
     }
 
-    for (const source of FALLBACK_SOURCES) {
-        try {
-            const fallbackData = await fetchJsonNoCache(source.url);
-            const fallbackRate = normalizeRate(source.parse(fallbackData));
-            if (fallbackRate !== null) {
-                return { rate: fallbackRate, source: 'fallback' };
-            }
-        } catch (error) {
-            console.warn('Fallback source failed.', error);
-        }
-    }
-
-    throw new Error('All rate sources failed.');
+    throw new Error('CBR API returned invalid data.');
 }
 
 // Загрузка курсов валют из API
 async function loadExchangeRates() {
     try {
         const rateResult = await fetchUsdToRub();
-        const usdToRub = rateResult.rate;
+        const usdToRub = Number(rateResult.rate);
+        if (!Number.isFinite(usdToRub)) {
+            throw new Error('Invalid rate value');
+        }
         
         // Устанавливаем курсы с маржой (покупка немного ниже, продажа немного выше)
         state.buyRate = (usdToRub * 0.995).toFixed(2);  // Покупка USD (отдаем RUB)
         state.sellRate = (usdToRub * 1.005).toFixed(2); // Продажа USD (отдаем USD)
         
         updateRatesDisplay();
-        const labelSuffix = rateResult.source === 'fallback' ? ' (резерв)' : '';
+        const labelSuffix = rateResult.source === 'cbr' ? ' (ЦБ РФ)' : '';
         updateTime(labelSuffix);
         
         // Если модальное окно открыто, пересчитываем сумму
@@ -153,6 +132,7 @@ async function loadExchangeRates() {
 
 function updateRatesDisplay() {
     if (!elements.buyRate || !elements.sellRate) {
+        setUpdateStatus('Ошибка DOM: нет buy/sell', true);
         return;
     }
     const buy = Number.isFinite(Number(state.buyRate)) ? `${state.buyRate} ₽` : '—';
