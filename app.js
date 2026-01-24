@@ -58,45 +58,64 @@ function initApp() {
 // API ключ для курсов валют
 const CURRENCY_API_KEY = 'cur_live_VmyyauP81CCSzzsjStHpSHnKkrEJ1bs7zCSi0DUl';
 const CURRENCY_API_URL = 'https://api.currencyapi.com/v3/latest';
-const FALLBACK_API_URL = 'https://open.er-api.com/v6/latest/USD';
+const FALLBACK_SOURCES = [
+    {
+        url: 'https://open.er-api.com/v6/latest/USD',
+        parse: (data) => data && data.rates && data.rates.RUB
+    },
+    {
+        url: 'https://api.exchangerate.host/latest?base=USD&symbols=RUB',
+        parse: (data) => data && data.rates && data.rates.RUB
+    }
+];
+
+async function fetchJsonNoCache(url) {
+    const response = await fetch(url, { cache: 'no-store' });
+    if (!response.ok) {
+        throw new Error(`Request failed: ${response.status}`);
+    }
+    return response.json();
+}
 
 async function fetchUsdToRub() {
     const primaryUrl = `${CURRENCY_API_URL}?base_currency=USD&currencies=RUB&apikey=${CURRENCY_API_KEY}`;
     try {
-        const response = await fetch(primaryUrl);
-        if (!response.ok) {
-            throw new Error(`Primary API error: ${response.status}`);
-        }
-        const data = await response.json();
+        const data = await fetchJsonNoCache(primaryUrl);
         if (data.data && data.data.RUB) {
-            return parseFloat(data.data.RUB.value);
+            return { rate: parseFloat(data.data.RUB.value), source: 'primary' };
         }
     } catch (error) {
-        console.warn('Primary rates API failed, using fallback.', error);
+        console.warn('Primary rates API failed, trying fallbacks.', error);
     }
 
-    const fallbackResponse = await fetch(FALLBACK_API_URL);
-    if (!fallbackResponse.ok) {
-        throw new Error(`Fallback API error: ${fallbackResponse.status}`);
+    for (const source of FALLBACK_SOURCES) {
+        try {
+            const fallbackData = await fetchJsonNoCache(source.url);
+            const fallbackRate = source.parse(fallbackData);
+            if (fallbackRate) {
+                return { rate: parseFloat(fallbackRate), source: 'fallback' };
+            }
+        } catch (error) {
+            console.warn('Fallback source failed.', error);
+        }
     }
-    const fallbackData = await fallbackResponse.json();
-    if (fallbackData && fallbackData.rates && fallbackData.rates.RUB) {
-        return parseFloat(fallbackData.rates.RUB);
-    }
-    throw new Error('Fallback API returned invalid data.');
+
+    throw new Error('All rate sources failed.');
 }
 
 // Загрузка курсов валют из API
 async function loadExchangeRates() {
     try {
-        const usdToRub = await fetchUsdToRub();
+        const rateResult = await fetchUsdToRub();
+        const usdToRub = rateResult.rate;
         
         // Устанавливаем курсы с маржой (покупка немного ниже, продажа немного выше)
         state.buyRate = (usdToRub * 0.995).toFixed(2);  // Покупка USD (отдаем RUB)
         state.sellRate = (usdToRub * 1.005).toFixed(2); // Продажа USD (отдаем USD)
         
         updateRatesDisplay();
-        updateTime();
+        const labelSuffix = rateResult.source === 'fallback' ? ' (резерв)' : '';
+        updateTime(labelSuffix);
         
         // Если модальное окно открыто, пересчитываем сумму
         if (elements.exchangeModal.classList.contains('active')) {
@@ -106,6 +125,7 @@ async function loadExchangeRates() {
         console.error('Ошибка загрузки курсов:', error);
         // Используем последние известные курсы при ошибке
         updateRatesDisplay();
+        setUpdateStatus('Курс недоступен', true);
     }
 }
 
@@ -114,13 +134,18 @@ function updateRatesDisplay() {
     elements.sellRate.textContent = `${state.sellRate} ₽`;
 }
 
-function updateTime() {
+function setUpdateStatus(text, isError = false) {
+    elements.updateTime.textContent = text;
+    elements.updateTime.style.color = isError ? '#ff6b6b' : '';
+}
+
+function updateTime(extraLabel = '') {
     const now = new Date();
     const timeString = now.toLocaleTimeString('ru-RU', { 
         hour: '2-digit', 
         minute: '2-digit' 
     });
-    elements.updateTime.textContent = `Обновлено: ${timeString}`;
+    setUpdateStatus(`Обновлено: ${timeString}${extraLabel}`);
 }
 
 // Настройка обработчиков событий

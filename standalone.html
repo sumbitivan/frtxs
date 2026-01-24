@@ -790,7 +790,50 @@ tg.expand();
 // API ключ для курсов валют
 const CURRENCY_API_KEY = 'cur_live_VmyyauP81CCSzzsjStHpSHnKkrEJ1bs7zCSi0DUl';
 const CURRENCY_API_URL = 'https://api.currencyapi.com/v3/latest';
-const FALLBACK_API_URL = 'https://open.er-api.com/v6/latest/USD';
+const FALLBACK_SOURCES = [
+    {
+        url: 'https://open.er-api.com/v6/latest/USD',
+        parse: (data) => data && data.rates && data.rates.RUB
+    },
+    {
+        url: 'https://api.exchangerate.host/latest?base=USD&symbols=RUB',
+        parse: (data) => data && data.rates && data.rates.RUB
+    }
+];
+
+async function fetchJsonNoCache(url) {
+    const response = await fetch(url, { cache: 'no-store' });
+    if (!response.ok) {
+        throw new Error(`Request failed: ${response.status}`);
+    }
+    return response.json();
+}
+
+async function fetchUsdToRub() {
+    const primaryUrl = `${CURRENCY_API_URL}?base_currency=USD&currencies=RUB&apikey=${CURRENCY_API_KEY}`;
+    try {
+        const data = await fetchJsonNoCache(primaryUrl);
+        if (data.data && data.data.RUB) {
+            return { rate: parseFloat(data.data.RUB.value), source: 'primary' };
+        }
+    } catch (error) {
+        console.warn('Primary rates API failed, trying fallbacks.', error);
+    }
+
+    for (const source of FALLBACK_SOURCES) {
+        try {
+            const fallbackData = await fetchJsonNoCache(source.url);
+            const fallbackRate = source.parse(fallbackData);
+            if (fallbackRate) {
+                return { rate: parseFloat(fallbackRate), source: 'fallback' };
+            }
+        } catch (error) {
+            console.warn('Fallback source failed.', error);
+        }
+    }
+
+    throw new Error('All rate sources failed.');
+}
 
 // Переводы
 const translations = {
@@ -1002,14 +1045,16 @@ async function fetchUsdToRub() {
 // Загрузка курсов валют из API
 async function loadExchangeRates() {
     try {
-        const usdToRub = await fetchUsdToRub();
+        const rateResult = await fetchUsdToRub();
+        const usdToRub = rateResult.rate;
         
         // Устанавливаем курсы с маржой (покупка немного ниже, продажа немного выше)
         state.buyRate = (usdToRub * 0.995).toFixed(2);  // Покупка USDT (отдаем RUB)
         state.sellRate = (usdToRub * 1.005).toFixed(2); // Продажа USDT (отдаем USDT)
         
         updateRatesDisplay();
-        updateTime();
+        const labelSuffix = rateResult.source === 'fallback' ? ' (резерв)' : '';
+        updateTime(labelSuffix);
         
         if (elements.exchangeModal.classList.contains('active')) {
             calculateResult();
@@ -1018,6 +1063,7 @@ async function loadExchangeRates() {
         console.error('Ошибка загрузки курсов:', error);
         // Используем последние известные курсы при ошибке
         updateRatesDisplay();
+        setUpdateStatus('Курс недоступен', true);
     }
 }
 
@@ -1026,14 +1072,19 @@ function updateRatesDisplay() {
     elements.sellRate.textContent = `${state.sellRate} ₽`;
 }
 
-function updateTime() {
+function setUpdateStatus(text, isError = false) {
+    elements.updateTime.textContent = text;
+    elements.updateTime.style.color = isError ? '#ff6b6b' : '';
+}
+
+function updateTime(extraLabel = '') {
     const now = new Date();
     const timeString = now.toLocaleTimeString(state.language === 'zh' ? 'zh-CN' : state.language === 'en' ? 'en-US' : 'ru-RU', { 
         hour: '2-digit', 
         minute: '2-digit' 
     });
     const updatedText = translations[state.language]['updated'] || 'Обновлено';
-    elements.updateTime.textContent = `${updatedText}: ${timeString}`;
+    setUpdateStatus(`${updatedText}: ${timeString}${extraLabel}`);
 }
 
 // Применение темы
