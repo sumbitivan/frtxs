@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест Mini App (Браузер)</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div style="background: #ff6b6b; color: white; padding: 12px; border-radius: 8px; margin-bottom: 16px; text-align: center;">
+            ⚠️ Режим тестирования в браузере. Для полноценной работы нужен Telegram бот.
+        </div>
+    </div>
+
+    <script>
+        // Мок Telegram WebApp API для тестирования в браузере
+        window.Telegram = {
+            WebApp: {
+                ready: () => console.log('Telegram WebApp ready'),
+                expand: () => console.log('Telegram WebApp expanded'),
+                setHeaderColor: (color) => console.log('Header color set:', color),
+                setBackgroundColor: (color) => console.log('Background color set:', color),
+                initDataUnsafe: {
+                    user: {
+                        id: 123456789,
+                        first_name: 'Test',
+                        last_name: 'User',
+                        username: 'test_user',
+                        language_code: 'ru'
+                    }
+                },
+                sendData: (data) => {
+                    console.log('Data sent to bot:', JSON.parse(data));
+                    alert('Данные отправлены в бот (см. консоль):\n' + data);
+                },
+                BackButton: {
+                    show: () => console.log('Back button shown'),
+                    hide: () => console.log('Back button hidden'),
+                    onClick: (callback) => {
+                        console.log('Back button callback registered');
+                        // Симуляция нажатия кнопки "Назад" через 5 секунд (для теста)
+                        // setTimeout(() => callback(), 5000);
+                    },
+                    offClick: (callback) => console.log('Back button callback unregistered')
+                }
+            }
+        };
+    </script>
+    <script src="app.js"></script>
+</body>
+</html>

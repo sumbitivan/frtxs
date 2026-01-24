@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Обмен валют</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Баннер с курсами валют -->
+        <div class="rates-banner">
+            <div class="rates-header">
+                <h2>Курсы валют</h2>
+                <span class="update-time" id="updateTime">Обновлено: только что</span>
+            </div>
+            <div class="rates-grid">
+                <!-- Колонка покупки USD за RUB -->
+                <div class="rate-column">
+                    <div class="rate-label">Покупка USD</div>
+                    <div class="rate-value" id="buyRate">—</div>
+                    <div class="rate-subtitle">рублей за доллар</div>
+                </div>
+                <!-- Колонка продажи USD за RUB -->
+                <div class="rate-column">
+                    <div class="rate-label">Продажа USD</div>
+                    <div class="rate-value" id="sellRate">—</div>
+                    <div class="rate-subtitle">рублей за доллар</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Кнопка обмена -->
+        <button class="exchange-btn" id="exchangeBtn">
+            <span class="btn-icon">💱</span>
+            <span>Обменять валюту</span>
+        </button>
+
+        <!-- Информационный блок -->
+        <div class="info-block">
+            <div class="info-item">
+                <span class="info-icon">⚡</span>
+                <span>Мгновенный обмен</span>
+            </div>
+            <div class="info-item">
+                <span class="info-icon">🔒</span>
+                <span>Безопасно</span>
+            </div>
+            <div class="info-item">
+                <span class="info-icon">💬</span>
+                <span>Поддержка 24/7</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно обмена -->
+    <div class="modal" id="exchangeModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Обмен валюты</h3>
+                <button class="close-btn" id="closeModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="exchangeForm">
+                    <!-- Выбор направления обмена -->
+                    <div class="form-group">
+                        <label>Направление обмена</label>
+                        <div class="exchange-direction">
+                            <button type="button" class="direction-btn active" data-direction="buy">
+                                <span>Покупка USD</span>
+                                <small>Отдаете RUB, получаете USD</small>
+                            </button>
+                            <button type="button" class="direction-btn" data-direction="sell">
+                                <span>Продажа USD</span>
+                                <small>Отдаете USD, получаете RUB</small>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Сумма от клиента -->
+                    <div class="form-group">
+                        <label for="clientAmount">Сумма, которую отдаете</label>
+                        <div class="input-wrapper">
+                            <input 
+                                type="number" 
+                                id="clientAmount" 
+                                placeholder="0.00" 
+                                min="0" 
+                                step="0.01"
+                                required
+                            >
+                            <span class="currency-label" id="clientCurrency">USD</span>
+                        </div>
+                    </div>
+
+                    <!-- Итоговая сумма к получению -->
+                    <div class="form-group">
+                        <label>Сумма к получению</label>
+                        <div class="result-amount" id="resultAmount">
+                            <span class="result-value">0.00</span>
+                            <span class="result-currency" id="resultCurrency">RUB</span>
+                        </div>
+                        <div class="rate-info" id="rateInfo">
+                            Курс: <span id="currentRate">—</span>
+                        </div>
+                    </div>
+
+                    <!-- Контактная информация -->
+                    <div class="form-group">
+                        <label for="clientName">Ваше имя</label>
+                        <input 
+                            type="text" 
+                            id="clientName" 
+                            placeholder="Введите ваше имя"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="clientPhone">Телефон</label>
+                        <input 
+                            type="tel" 
+                            id="clientPhone" 
+                            placeholder="+7 (999) 123-45-67"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="clientComment">Комментарий (необязательно)</label>
+                        <textarea 
+                            id="clientComment" 
+                            rows="3" 
+                            placeholder="Дополнительная информация..."
+                        ></textarea>
+                    </div>
+
+                    <!-- Кнопка отправки -->
+                    <button type="submit" class="submit-btn">
+                        <span>Отправить заявку</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Уведомление об успехе -->
+    <div class="toast" id="toast">
+        <span id="toastMessage"></span>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

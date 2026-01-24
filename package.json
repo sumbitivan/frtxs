@@ -1,0 +1,27 @@
+{
+  "name": "crypto-exchange-miniapp",
+  "version": "1.0.0",
+  "description": "Telegram Mini App для обмена валют",
+  "main": "bot-example.js",
+  "scripts": {
+    "start": "node bot-example.js",
+    "dev": "nodemon bot-example.js",
+    "check": "node check-config.js"
+  },
+  "keywords": [
+    "telegram",
+    "miniapp",
+    "exchange",
+    "crypto",
+    "currency"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "telegraf": "^4.15.0",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  }
+}

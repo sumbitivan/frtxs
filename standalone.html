@@ -1,0 +1,1294 @@
+<!DOCTYPE html>
+<html lang="ru" id="htmlRoot">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title id="pageTitle">Обмен валют</title>
+    <style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --primary-color: #3390ec;
+    --primary-dark: #2a7bc8;
+    --secondary-color: #ff6b6b;
+    --success-color: #51cf66;
+    --bg-color: #f5f5f5;
+    --card-bg: #ffffff;
+    --text-primary: #1a1a1a;
+    --text-secondary: #666666;
+    --border-color: #e0e0e0;
+    --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    --shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+[data-theme="dark"] {
+    --bg-color: #1a1a1a;
+    --card-bg: #2d2d2d;
+    --text-primary: #ffffff;
+    --text-secondary: #b0b0b0;
+    --border-color: #404040;
+    --shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    --shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background: var(--bg-color);
+    color: var(--text-primary);
+    line-height: 1.6;
+    padding: 0;
+    margin: 0;
+    min-height: 100vh;
+    transition: background 0.3s, color 0.3s;
+}
+
+.container {
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 16px;
+    padding-bottom: 80px;
+    position: relative;
+}
+
+.rates-banner {
+    background: #e0e0e0;
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .rates-banner {
+    background: #3a3a3a;
+    color: white;
+}
+
+.rates-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.rates-header h2 {
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.update-time {
+    font-size: 12px;
+    opacity: 0.9;
+}
+
+.rates-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.rate-column {
+    background: rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(10px);
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+}
+
+[data-theme="dark"] .rate-column {
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.rate-label {
+    font-size: 14px;
+    opacity: 0.9;
+    margin-bottom: 8px;
+}
+
+.rate-value {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.rate-subtitle {
+    font-size: 12px;
+    opacity: 0.8;
+}
+
+.exchange-btn {
+    width: 100%;
+    background: var(--card-bg);
+    border: none;
+    border-radius: 16px;
+    padding: 18px 24px;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+    cursor: pointer;
+    box-shadow: var(--shadow);
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.exchange-btn:active {
+    transform: scale(0.98);
+    box-shadow: var(--shadow-hover);
+}
+
+.btn-icon {
+    font-size: 24px;
+}
+
+.info-block {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    background: var(--card-bg);
+    border-radius: 16px;
+    padding: 16px;
+    box-shadow: var(--shadow);
+}
+
+.info-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.3s;
+    padding: 8px;
+    border-radius: 8px;
+}
+
+.info-item:hover {
+    background: var(--bg-color);
+    transform: translateY(-2px);
+}
+
+.info-item:active {
+    transform: translateY(0);
+}
+
+.info-icon {
+    font-size: 24px;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    overflow-y: auto;
+    animation: fadeIn 0.3s ease;
+}
+
+.modal.active {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 20px;
+}
+
+.modal-content {
+    background: var(--card-bg);
+    border-radius: 20px;
+    width: 100%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    animation: slideUp 0.3s ease;
+    margin-top: 20px;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid var(--border-color);
+    position: sticky;
+    top: 0;
+    background: var(--card-bg);
+    z-index: 10;
+}
+
+.modal-header h3 {
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 28px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s;
+}
+
+.close-btn:active {
+    background: var(--bg-color);
+}
+
+.modal-body {
+    padding: 20px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 8px;
+    color: var(--text-primary);
+}
+
+.exchange-direction {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.direction-btn {
+    background: var(--bg-color);
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.direction-btn span {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.direction-btn small {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.direction-btn.active {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+    color: white;
+}
+
+.direction-btn.active span,
+.direction-btn.active small {
+    color: white;
+}
+
+.input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-wrapper input {
+    width: 100%;
+    padding: 14px 80px 14px 16px;
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    font-size: 18px;
+    font-weight: 600;
+    transition: all 0.3s;
+    background: var(--card-bg);
+    color: var(--text-primary);
+}
+
+.input-wrapper input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(51, 144, 236, 0.1);
+}
+
+.currency-label {
+    position: absolute;
+    right: 16px;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    pointer-events: none;
+}
+
+input[type="text"],
+input[type="tel"],
+textarea {
+    width: 100%;
+    padding: 14px 16px;
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    font-size: 16px;
+    font-family: inherit;
+    transition: all 0.3s;
+    background: var(--card-bg);
+    color: var(--text-primary);
+}
+
+input[type="text"]:focus,
+input[type="tel"]:focus,
+textarea:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(51, 144, 236, 0.1);
+}
+
+textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.result-amount {
+    background: linear-gradient(135deg, var(--success-color) 0%, #40c057 100%);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    color: white;
+    margin-bottom: 8px;
+}
+
+.result-value {
+    font-size: 32px;
+    font-weight: 700;
+    display: block;
+    margin-bottom: 4px;
+}
+
+.result-currency {
+    font-size: 16px;
+    opacity: 0.9;
+}
+
+.rate-info {
+    font-size: 14px;
+    color: var(--text-secondary);
+    text-align: center;
+}
+
+.rate-info span {
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+.submit-btn {
+    width: 100%;
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+    border: none;
+    border-radius: 12px;
+    padding: 16px;
+    font-size: 18px;
+    font-weight: 600;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-top: 10px;
+}
+
+.submit-btn:active {
+    transform: scale(0.98);
+}
+
+.submit-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.setting-option {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    background: var(--bg-color);
+    border-radius: 12px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.setting-option:hover {
+    background: var(--border-color);
+}
+
+.setting-option-label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.setting-option-label strong {
+    font-size: 16px;
+    color: var(--text-primary);
+}
+
+.setting-option-label small {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.setting-option-value {
+    font-size: 14px;
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+.theme-selector,
+.language-selector {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.theme-btn,
+.language-btn {
+    flex: 1;
+    padding: 12px;
+    background: var(--bg-color);
+    border: 2px solid var(--border-color);
+    border-radius: 10px;
+    cursor: pointer;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    transition: all 0.3s;
+}
+
+.theme-btn.active,
+.language-btn.active {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+    color: white;
+}
+
+.toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: var(--text-primary);
+    color: white;
+    padding: 14px 24px;
+    border-radius: 12px;
+    box-shadow: var(--shadow-hover);
+    z-index: 2000;
+    opacity: 0;
+    transition: all 0.3s ease;
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@media (max-width: 480px) {
+    .container {
+        padding: 12px;
+    }
+    .rates-banner {
+        padding: 16px;
+    }
+    .rate-value {
+        font-size: 24px;
+    }
+    .exchange-btn {
+        font-size: 16px;
+        padding: 16px 20px;
+    }
+    .info-block {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .modal-content {
+        border-radius: 20px 20px 0 0;
+        margin-top: auto;
+        max-height: 95vh;
+    }
+}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="rates-banner">
+            <div class="rates-header">
+                <h2 data-i18n="rates.title">Курсы валют</h2>
+                <span class="update-time" id="updateTime">Обновлено: только что</span>
+            </div>
+            <div class="rates-grid">
+                <div class="rate-column">
+                    <div class="rate-label" data-i18n="rates.buy">Покупка USDT</div>
+                    <div class="rate-value" id="buyRate">—</div>
+                    <div class="rate-subtitle" data-i18n="rates.buySubtitle">рублей за USDT</div>
+                </div>
+                <div class="rate-column">
+                    <div class="rate-label" data-i18n="rates.sell">Продажа USDT</div>
+                    <div class="rate-value" id="sellRate">—</div>
+                    <div class="rate-subtitle" data-i18n="rates.sellSubtitle">рублей за USDT</div>
+                </div>
+            </div>
+        </div>
+
+        <button class="exchange-btn" id="exchangeBtn">
+            <span class="btn-icon">💱</span>
+            <span data-i18n="exchange.btn">Обменять валюту</span>
+        </button>
+
+        <div class="info-block">
+            <div class="info-item" id="aboutBtn">
+                <span class="info-icon">ℹ️</span>
+                <span data-i18n="info.about">О нас</span>
+            </div>
+            <div class="info-item" id="securityBtn">
+                <span class="info-icon">🔒</span>
+                <span data-i18n="info.secure">Безопасность</span>
+            </div>
+            <div class="info-item" id="supportBtn">
+                <span class="info-icon">💬</span>
+                <span data-i18n="info.support">Поддержка 24/7</span>
+            </div>
+            <div class="info-item" id="settingsBtn">
+                <span class="info-icon">⚙️</span>
+                <span data-i18n="info.settings">Настройки</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно обмена -->
+    <div class="modal" id="exchangeModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 data-i18n="exchange.title">Обмен валюты</h3>
+                <button class="close-btn" id="closeModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="exchangeForm">
+                    <div class="form-group">
+                        <label data-i18n="exchange.direction">Направление обмена</label>
+                        <div class="exchange-direction">
+                            <button type="button" class="direction-btn active" data-direction="buy">
+                                <span data-i18n="exchange.buy">Покупка USDT</span>
+                                <small data-i18n="exchange.buyDesc">Отдаете RUB, получаете USDT</small>
+                            </button>
+                            <button type="button" class="direction-btn" data-direction="sell">
+                                <span data-i18n="exchange.sell">Продажа USDT</span>
+                                <small data-i18n="exchange.sellDesc">Отдаете USDT, получаете RUB</small>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="clientAmount" data-i18n="exchange.amount">Сумма, которую отдаете</label>
+                        <div class="input-wrapper">
+                            <input 
+                                type="number" 
+                                id="clientAmount" 
+                                placeholder="0.00" 
+                                min="0" 
+                                step="0.01"
+                                required
+                            >
+                            <span class="currency-label" id="clientCurrency">USDT</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label data-i18n="exchange.result">Сумма к получению</label>
+                        <div class="result-amount" id="resultAmount">
+                            <span class="result-value">0.00</span>
+                            <span class="result-currency" id="resultCurrency">RUB</span>
+                        </div>
+                        <div class="rate-info" id="rateInfo">
+                            <span data-i18n="exchange.rate">Курс</span>: <span id="currentRate">—</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="clientName" data-i18n="exchange.name">Ваше имя</label>
+                        <input 
+                            type="text" 
+                            id="clientName" 
+                            placeholder=""
+                            data-i18n-placeholder="exchange.namePlaceholder"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="clientPhone" data-i18n="exchange.phone">Телефон</label>
+                        <input 
+                            type="tel" 
+                            id="clientPhone" 
+                            placeholder="+7 (999) 123-45-67"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="clientComment" data-i18n="exchange.comment">Комментарий (необязательно)</label>
+                        <textarea 
+                            id="clientComment" 
+                            rows="3" 
+                            placeholder=""
+                            data-i18n-placeholder="exchange.commentPlaceholder"
+                        ></textarea>
+                    </div>
+
+                    <button type="submit" class="submit-btn">
+                        <span data-i18n="exchange.submit">Отправить заявку</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно настроек -->
+    <div class="modal" id="settingsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 data-i18n="settings.title">Настройки</h3>
+                <button class="close-btn" id="closeSettingsModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label data-i18n="settings.theme">Тема приложения</label>
+                    <div class="theme-selector">
+                        <button type="button" class="theme-btn active" data-theme="light" data-i18n="settings.light">Светлая</button>
+                        <button type="button" class="theme-btn" data-theme="dark" data-i18n="settings.dark">Темная</button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label data-i18n="settings.language">Язык</label>
+                    <div class="language-selector">
+                        <button type="button" class="language-btn active" data-lang="ru" data-i18n="settings.russian">Русский</button>
+                        <button type="button" class="language-btn" data-lang="en" data-i18n="settings.english">English</button>
+                        <button type="button" class="language-btn" data-lang="zh" data-i18n="settings.chinese">中文</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно "О нас" -->
+    <div class="modal" id="aboutModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 data-i18n="about.title">О нас</h3>
+                <button class="close-btn" id="closeAboutModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p data-i18n="about.text" style="line-height: 1.8; color: var(--text-primary);">
+                    Мы — надежный сервис обмена криптовалюты на наличные деньги. 
+                    Наша команда работает для того, чтобы предоставить вам быстрый, 
+                    безопасный и удобный способ обмена валют. Мы гарантируем честные 
+                    курсы, мгновенные переводы и профессиональную поддержку 24/7.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно "Безопасность" -->
+    <div class="modal" id="securityModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 data-i18n="security.title">Безопасность</h3>
+                <button class="close-btn" id="closeSecurityModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p data-i18n="security.text" style="line-height: 1.8; color: var(--text-primary);">
+                    Мы гарантируем максимальный уровень безопасности при работе с нашим обменником. 
+                    Все операции проходят в полностью конфиденциальном режиме — мы не требуем документов, 
+                    не передаём данные третьим лицам и не храним историю транзакций. Полная анонимность 
+                    означает, что ваши финансовые операции остаются только между вами и нами.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Уведомление -->
+    <div class="toast" id="toast">
+        <span id="toastMessage"></span>
+    </div>
+
+    <script>
+// Мок Telegram WebApp API
+window.Telegram = window.Telegram || {
+    WebApp: {
+        ready: () => console.log('Telegram WebApp ready'),
+        expand: () => console.log('Telegram WebApp expanded'),
+        setHeaderColor: (color) => console.log('Header color:', color),
+        setBackgroundColor: (color) => console.log('Background color:', color),
+        initDataUnsafe: {
+            user: {
+                id: 123456789,
+                first_name: 'Test',
+                username: 'test_user'
+            }
+        },
+        sendData: (data) => {
+            console.log('Data sent:', JSON.parse(data));
+            alert('Данные отправлены (см. консоль):\n' + data);
+        },
+        BackButton: {
+            show: () => {},
+            hide: () => {},
+            onClick: (cb) => {},
+            offClick: (cb) => {}
+        }
+    }
+};
+
+const tg = window.Telegram.WebApp;
+tg.ready();
+tg.expand();
+
+// API ключ для курсов валют
+const CURRENCY_API_KEY = 'cur_live_VmyyauP81CCSzzsjStHpSHnKkrEJ1bs7zCSi0DUl';
+const CURRENCY_API_URL = 'https://api.currencyapi.com/v3/latest';
+
+// Переводы
+const translations = {
+    ru: {
+        'rates.title': 'Курсы валют',
+        'rates.buy': 'Покупка USDT',
+        'rates.sell': 'Продажа USDT',
+        'rates.buySubtitle': 'рублей за USDT',
+        'rates.sellSubtitle': 'рублей за USDT',
+        'exchange.btn': 'Обменять валюту',
+        'exchange.title': 'Обмен валюты',
+        'exchange.direction': 'Направление обмена',
+        'exchange.buy': 'Покупка USDT',
+        'exchange.buyDesc': 'Отдаете RUB, получаете USDT',
+        'exchange.sell': 'Продажа USDT',
+        'exchange.sellDesc': 'Отдаете USDT, получаете RUB',
+        'exchange.amount': 'Сумма, которую отдаете',
+        'exchange.result': 'Сумма к получению',
+        'exchange.rate': 'Курс',
+        'exchange.name': 'Ваше имя',
+        'exchange.namePlaceholder': 'Введите ваше имя',
+        'exchange.phone': 'Телефон',
+        'exchange.comment': 'Комментарий (необязательно)',
+        'exchange.commentPlaceholder': 'Дополнительная информация...',
+        'exchange.submit': 'Отправить заявку',
+        'settings.title': 'Настройки',
+        'settings.theme': 'Тема приложения',
+        'settings.light': 'Светлая',
+        'settings.dark': 'Темная',
+        'settings.language': 'Язык',
+        'settings.russian': 'Русский',
+        'settings.english': 'English',
+        'settings.chinese': '中文',
+        'info.about': 'О нас',
+        'info.secure': 'Безопасность',
+        'info.support': 'Поддержка 24/7',
+        'info.settings': 'Настройки',
+        'about.title': 'О нас',
+        'about.text': 'Мы — надежный сервис обмена криптовалюты на наличные деньги. Наша команда работает для того, чтобы предоставить вам быстрый, безопасный и удобный способ обмена валют. Мы гарантируем честные курсы, мгновенные переводы и профессиональную поддержку 24/7.',
+        'security.title': 'Безопасность',
+        'security.text': 'Мы гарантируем максимальный уровень безопасности при работе с нашим обменником. Все операции проходят в полностью конфиденциальном режиме — мы не требуем документов, не передаём данные третьим лицам и не храним историю транзакций. Полная анонимность означает, что ваши финансовые операции остаются только между вами и нами.',
+        'updated': 'Обновлено'
+    },
+    en: {
+        'rates.title': 'Exchange Rates',
+        'rates.buy': 'Buy USDT',
+        'rates.sell': 'Sell USDT',
+        'rates.buySubtitle': 'rubles per USDT',
+        'rates.sellSubtitle': 'rubles per USDT',
+        'exchange.btn': 'Exchange Currency',
+        'exchange.title': 'Currency Exchange',
+        'exchange.direction': 'Exchange Direction',
+        'exchange.buy': 'Buy USDT',
+        'exchange.buyDesc': 'You give RUB, receive USDT',
+        'exchange.sell': 'Sell USDT',
+        'exchange.sellDesc': 'You give USDT, receive RUB',
+        'exchange.amount': 'Amount you give',
+        'exchange.result': 'Amount to receive',
+        'exchange.rate': 'Rate',
+        'exchange.name': 'Your name',
+        'exchange.namePlaceholder': 'Enter your name',
+        'exchange.phone': 'Phone',
+        'exchange.comment': 'Comment (optional)',
+        'exchange.commentPlaceholder': 'Additional information...',
+        'exchange.submit': 'Submit Request',
+        'settings.title': 'Settings',
+        'settings.theme': 'App Theme',
+        'settings.light': 'Light',
+        'settings.dark': 'Dark',
+        'settings.language': 'Language',
+        'settings.russian': 'Русский',
+        'settings.english': 'English',
+        'settings.chinese': '中文',
+        'info.about': 'About Us',
+        'info.secure': 'Security',
+        'info.support': 'Support 24/7',
+        'info.settings': 'Settings',
+        'about.title': 'About Us',
+        'about.text': 'We are a reliable cryptocurrency to cash exchange service. Our team works to provide you with a fast, secure and convenient way to exchange currencies. We guarantee fair rates, instant transfers and professional 24/7 support.',
+        'security.title': 'Security',
+        'security.text': 'We guarantee the maximum level of security when working with our exchange. All operations are carried out in a completely confidential mode - we do not require documents, do not transfer data to third parties and do not store transaction history. Complete anonymity means that your financial transactions remain only between you and us.',
+        'updated': 'Updated'
+    },
+    zh: {
+        'rates.title': '汇率',
+        'rates.buy': '买入美元',
+        'rates.sell': '卖出美元',
+        'rates.buySubtitle': '每美元卢布',
+        'rates.sellSubtitle': '每美元卢布',
+        'exchange.btn': '兑换货币',
+        'exchange.title': '货币兑换',
+        'exchange.direction': '兑换方向',
+        'exchange.buy': '买入美元',
+        'exchange.buyDesc': '您支付卢布，获得美元',
+        'exchange.sell': '卖出美元',
+        'exchange.sellDesc': '您支付美元，获得卢布',
+        'exchange.amount': '您支付的金额',
+        'exchange.result': '将收到的金额',
+        'exchange.rate': '汇率',
+        'exchange.name': '您的姓名',
+        'exchange.namePlaceholder': '请输入您的姓名',
+        'exchange.phone': '电话',
+        'exchange.comment': '评论（可选）',
+        'exchange.commentPlaceholder': '附加信息...',
+        'exchange.submit': '提交申请',
+        'settings.title': '设置',
+        'settings.theme': '应用主题',
+        'settings.light': '浅色',
+        'settings.dark': '深色',
+        'settings.language': '语言',
+        'settings.russian': 'Русский',
+        'settings.english': 'English',
+        'settings.chinese': '中文',
+        'info.about': '关于我们',
+        'info.secure': '安全',
+        'info.support': '24/7支持',
+        'info.settings': '设置',
+        'about.title': '关于我们',
+        'about.text': '我们是一个可靠的加密货币兑换现金服务。我们的团队致力于为您提供快速、安全和便捷的货币兑换方式。我们保证公平的汇率、即时转账和专业的24/7支持。',
+        'security.title': '安全',
+        'security.text': '我们保证在使用我们的交易所时提供最高级别的安全性。所有操作都在完全保密的模式下进行 - 我们不要求文件，不向第三方传输数据，也不存储交易历史。完全匿名意味着您的金融交易仅保留在您和我们之间。',
+        'updated': '已更新'
+    }
+};
+
+// Состояние приложения
+const state = {
+    direction: 'buy',
+    buyRate: 95.50,
+    sellRate: 96.00,
+    clientAmount: 0,
+    resultAmount: 0,
+    theme: localStorage.getItem('theme') || 'light',
+    language: localStorage.getItem('language') || 'ru'
+};
+
+// Элементы DOM
+const elements = {
+    buyRate: document.getElementById('buyRate'),
+    sellRate: document.getElementById('sellRate'),
+    updateTime: document.getElementById('updateTime'),
+    exchangeBtn: document.getElementById('exchangeBtn'),
+    exchangeModal: document.getElementById('exchangeModal'),
+    closeModal: document.getElementById('closeModal'),
+    exchangeForm: document.getElementById('exchangeForm'),
+    clientAmount: document.getElementById('clientAmount'),
+    clientCurrency: document.getElementById('clientCurrency'),
+    resultAmount: document.getElementById('resultAmount'),
+    resultCurrency: document.getElementById('resultCurrency'),
+    currentRate: document.getElementById('currentRate'),
+    rateInfo: document.getElementById('rateInfo'),
+    directionBtns: document.querySelectorAll('.direction-btn'),
+    toast: document.getElementById('toast'),
+    toastMessage: document.getElementById('toastMessage'),
+    settingsBtn: document.getElementById('settingsBtn'),
+    settingsModal: document.getElementById('settingsModal'),
+    closeSettingsModal: document.getElementById('closeSettingsModal'),
+    themeBtns: document.querySelectorAll('.theme-btn'),
+    languageBtns: document.querySelectorAll('.language-btn'),
+    aboutBtn: document.getElementById('aboutBtn'),
+    aboutModal: document.getElementById('aboutModal'),
+    closeAboutModal: document.getElementById('closeAboutModal'),
+    securityBtn: document.getElementById('securityBtn'),
+    securityModal: document.getElementById('securityModal'),
+    closeSecurityModal: document.getElementById('closeSecurityModal'),
+    supportBtn: document.getElementById('supportBtn')
+};
+
+// Инициализация
+document.addEventListener('DOMContentLoaded', () => {
+    initApp();
+});
+
+function initApp() {
+    applyTheme(state.theme);
+    applyLanguage(state.language);
+    loadExchangeRates();
+    setInterval(loadExchangeRates, 60000); // Обновление каждую минуту
+    setupEventListeners();
+    updateRatesDisplay();
+}
+
+// Загрузка курсов валют из API
+async function loadExchangeRates() {
+    try {
+        const response = await fetch(`${CURRENCY_API_URL}?base_currency=USD&currencies=RUB&apikey=${CURRENCY_API_KEY}`);
+        const data = await response.json();
+        
+        if (data.data && data.data.RUB) {
+            const usdToRub = parseFloat(data.data.RUB.value);
+            
+            // Устанавливаем курсы с маржой (покупка немного ниже, продажа немного выше)
+            state.buyRate = (usdToRub * 0.995).toFixed(2);  // Покупка USDT (отдаем RUB)
+            state.sellRate = (usdToRub * 1.005).toFixed(2); // Продажа USDT (отдаем USDT)
+            
+            updateRatesDisplay();
+            updateTime();
+            
+            if (elements.exchangeModal.classList.contains('active')) {
+                calculateResult();
+            }
+        }
+    } catch (error) {
+        console.error('Ошибка загрузки курсов:', error);
+        // Используем последние известные курсы при ошибке
+        updateRatesDisplay();
+    }
+}
+
+function updateRatesDisplay() {
+    elements.buyRate.textContent = `${state.buyRate} ₽`;
+    elements.sellRate.textContent = `${state.sellRate} ₽`;
+}
+
+function updateTime() {
+    const now = new Date();
+    const timeString = now.toLocaleTimeString(state.language === 'zh' ? 'zh-CN' : state.language === 'en' ? 'en-US' : 'ru-RU', { 
+        hour: '2-digit', 
+        minute: '2-digit' 
+    });
+    const updatedText = translations[state.language]['updated'] || 'Обновлено';
+    elements.updateTime.textContent = `${updatedText}: ${timeString}`;
+}
+
+// Применение темы
+function applyTheme(theme) {
+    state.theme = theme;
+    const root = document.getElementById('htmlRoot');
+    if (theme === 'dark') {
+        root.setAttribute('data-theme', 'dark');
+    } else {
+        root.removeAttribute('data-theme');
+    }
+    localStorage.setItem('theme', theme);
+    
+    // Обновление активной кнопки темы
+    elements.themeBtns.forEach(btn => {
+        if (btn.dataset.theme === theme) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+}
+
+// Применение языка
+function applyLanguage(lang) {
+    state.language = lang;
+    document.documentElement.lang = lang;
+    localStorage.setItem('language', lang);
+    
+    // Обновление всех текстов
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (translations[lang] && translations[lang][key]) {
+            el.textContent = translations[lang][key];
+        }
+    });
+    
+    // Обновление placeholder
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+        const key = el.getAttribute('data-i18n-placeholder');
+        if (translations[lang] && translations[lang][key]) {
+            el.placeholder = translations[lang][key];
+        }
+    });
+    
+    // Обновление активной кнопки языка
+    elements.languageBtns.forEach(btn => {
+        if (btn.dataset.lang === lang) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+    
+    updateTime();
+}
+
+// Настройка обработчиков событий
+function setupEventListeners() {
+    elements.exchangeBtn.addEventListener('click', () => openModal());
+    elements.closeModal.addEventListener('click', closeModal);
+    elements.exchangeModal.addEventListener('click', (e) => {
+        if (e.target === elements.exchangeModal) closeModal();
+    });
+    
+    elements.settingsBtn.addEventListener('click', () => openSettingsModal());
+    elements.closeSettingsModal.addEventListener('click', closeSettingsModal);
+    elements.settingsModal.addEventListener('click', (e) => {
+        if (e.target === elements.settingsModal) closeSettingsModal();
+    });
+    
+    elements.aboutBtn.addEventListener('click', () => openAboutModal());
+    elements.closeAboutModal.addEventListener('click', closeAboutModal);
+    elements.aboutModal.addEventListener('click', (e) => {
+        if (e.target === elements.aboutModal) closeAboutModal();
+    });
+    
+    elements.securityBtn.addEventListener('click', () => openSecurityModal());
+    elements.closeSecurityModal.addEventListener('click', closeSecurityModal);
+    elements.securityModal.addEventListener('click', (e) => {
+        if (e.target === elements.securityModal) closeSecurityModal();
+    });
+    
+    elements.supportBtn.addEventListener('click', () => {
+        // Открываем Telegram менеджера
+        const managerUsername = 'vityapressf';
+        if (tg && tg.openLink) {
+            tg.openLink(`https://t.me/${managerUsername}`);
+        } else {
+            window.open(`https://t.me/${managerUsername}`, '_blank');
+        }
+    });
+    
+    elements.themeBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            applyTheme(btn.dataset.theme);
+        });
+    });
+    
+    elements.languageBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            applyLanguage(btn.dataset.lang);
+        });
+    });
+    
+    elements.directionBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            setDirection(btn.dataset.direction);
+        });
+    });
+    
+    elements.clientAmount.addEventListener('input', () => calculateResult());
+    elements.exchangeForm.addEventListener('submit', handleFormSubmit);
+}
+
+function openModal() {
+    elements.exchangeModal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    setTimeout(() => elements.clientAmount.focus(), 300);
+}
+
+function closeModal() {
+    elements.exchangeModal.classList.remove('active');
+    document.body.style.overflow = '';
+    resetForm();
+}
+
+function openSettingsModal() {
+    elements.settingsModal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeSettingsModal() {
+    elements.settingsModal.classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+function openAboutModal() {
+    elements.aboutModal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeAboutModal() {
+    elements.aboutModal.classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+function openSecurityModal() {
+    elements.securityModal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeSecurityModal() {
+    elements.securityModal.classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+function setDirection(direction) {
+    state.direction = direction;
+    elements.directionBtns.forEach(btn => {
+        if (btn.dataset.direction === direction) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+    if (direction === 'buy') {
+        elements.clientCurrency.textContent = 'RUB';
+        elements.resultCurrency.textContent = 'USDT';
+    } else {
+        elements.clientCurrency.textContent = 'USDT';
+        elements.resultCurrency.textContent = 'RUB';
+    }
+    calculateResult();
+}
+
+function calculateResult() {
+    const amount = parseFloat(elements.clientAmount.value) || 0;
+    state.clientAmount = amount;
+    if (amount <= 0) {
+        updateResultDisplay(0);
+        return;
+    }
+    let result = 0;
+    let rate = 0;
+    if (state.direction === 'buy') {
+        rate = parseFloat(state.buyRate);
+        result = amount / rate;
+    } else {
+        rate = parseFloat(state.sellRate);
+        result = amount * rate;
+    }
+    state.resultAmount = result;
+    updateResultDisplay(result);
+    updateRateInfo(rate);
+}
+
+function updateResultDisplay(amount) {
+    const resultValue = elements.resultAmount.querySelector('.result-value');
+    resultValue.textContent = formatAmount(amount);
+}
+
+function updateRateInfo(rate) {
+    const directionText = state.direction === 'buy' 
+        ? (translations[state.language]['exchange.buyDesc'] || 'покупки')
+        : (translations[state.language]['exchange.sellDesc'] || 'продажи');
+    const rateText = translations[state.language]['exchange.rate'] || 'Курс';
+    elements.currentRate.textContent = `${rate} ₽`;
+}
+
+function formatAmount(amount) {
+    if (amount === 0) return '0.00';
+    return amount.toFixed(2);
+}
+
+async function handleFormSubmit(e) {
+    e.preventDefault();
+    const formData = {
+        direction: state.direction,
+        clientAmount: state.clientAmount,
+        resultAmount: state.resultAmount,
+        rate: state.direction === 'buy' ? state.buyRate : state.sellRate,
+        clientName: document.getElementById('clientName').value,
+        clientPhone: document.getElementById('clientPhone').value,
+        clientComment: document.getElementById('clientComment').value,
+        timestamp: new Date().toISOString()
+    };
+    if (!validateForm(formData)) return;
+    try {
+        sendToTelegram(formData);
+        const successText = translations[state.language]['exchange.submit'] || 'Заявка отправлена';
+        showToast(successText + '!', 'success');
+        setTimeout(() => closeModal(), 1500);
+    } catch (error) {
+        console.error('Ошибка отправки:', error);
+        showToast('Произошла ошибка. Попробуйте еще раз.', 'error');
+    }
+}
+
+function validateForm(data) {
+    if (!data.clientName || data.clientName.trim().length < 2) {
+        showToast('Введите корректное имя', 'error');
+        return false;
+    }
+    if (!data.clientPhone || data.clientPhone.trim().length < 10) {
+        showToast('Введите корректный телефон', 'error');
+        return false;
+    }
+    if (data.clientAmount <= 0) {
+        showToast('Введите сумму больше нуля', 'error');
+        return false;
+    }
+    return true;
+}
+
+function sendToTelegram(data) {
+    const user = tg.initDataUnsafe?.user;
+    const message = `🔄 Новая заявка на обмен валюты\n\n📊 Направление: ${data.direction === 'buy' ? 'Покупка USDT' : 'Продажа USDT'}\n💰 Отдает: ${data.clientAmount} ${data.direction === 'buy' ? 'RUB' : 'USDT'}\n💵 Получает: ${data.resultAmount.toFixed(2)} ${data.direction === 'buy' ? 'USDT' : 'RUB'}\n📈 Курс: ${data.rate} ₽\n\n👤 Имя: ${data.clientName}\n📱 Телефон: ${data.clientPhone}${data.clientComment ? `\n💬 Комментарий: ${data.clientComment}` : ''}\n\n${user ? `👤 Telegram: @${user.username || user.first_name}` : ''}\n🕐 Время: ${new Date().toLocaleString('ru-RU')}`;
+    tg.sendData(JSON.stringify({ type: 'exchange_request', data: data }));
+    console.log('Отправка заявки:', message);
+}
+
+function showToast(message, type = 'success') {
+    elements.toastMessage.textContent = message;
+    elements.toast.className = 'toast show';
+    elements.toast.style.background = type === 'error' ? '#ff6b6b' : '#51cf66';
+    setTimeout(() => elements.toast.classList.remove('show'), 3000);
+}
+
+function resetForm() {
+    elements.exchangeForm.reset();
+    elements.clientAmount.value = '';
+    state.clientAmount = 0;
+    state.resultAmount = 0;
+    updateResultDisplay(0);
+    setDirection('buy');
+}
+    </script>
+</body>
+</html>
