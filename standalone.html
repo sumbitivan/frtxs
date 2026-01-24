@@ -805,11 +805,12 @@ const CURRENCY_API_KEY = 'cur_live_VmyyauP81CCSzzsjStHpSHnKkrEJ1bs7zCSi0DUl';
 const CURRENCY_API_URL = 'https://api.currencyapi.com/v3/latest';
 const FALLBACK_SOURCES = [
     {
-        url: 'https://open.er-api.com/v6/latest/USD',
-        parse: (data) => data && data.rates && data.rates.RUB
+        // Центральный банк РФ, USD/RUB
+        url: 'https://www.cbr-xml-daily.ru/daily_json.js',
+        parse: (data) => data && data.Valute && data.Valute.USD && data.Valute.USD.Value
     },
     {
-        url: 'https://api.exchangerate.host/latest?base=USD&symbols=RUB',
+        url: 'https://open.er-api.com/v6/latest/USD',
         parse: (data) => data && data.rates && data.rates.RUB
     }
 ];
