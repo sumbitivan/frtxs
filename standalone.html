@@ -1030,6 +1030,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function initApp() {
+    setUpdateStatus('Загрузка курса...');
     applyTheme(state.theme);
     applyLanguage(state.language);
     loadExchangeRates();
@@ -1041,34 +1042,40 @@ function initApp() {
 async function fetchUsdToRub() {
     const primaryUrl = `${CURRENCY_API_URL}?base_currency=USD&currencies=RUB&apikey=${CURRENCY_API_KEY}`;
     try {
-        const response = await fetch(primaryUrl);
-        if (!response.ok) {
-            throw new Error(`Primary API error: ${response.status}`);
-        }
-        const data = await response.json();
+        const data = await fetchJsonNoCache(primaryUrl);
         if (data.data && data.data.RUB) {
-            return parseFloat(data.data.RUB.value);
+            const normalized = normalizeRate(data.data.RUB.value);
+            if (normalized !== null) {
+                return { rate: normalized, source: 'primary' };
+            }
         }
     } catch (error) {
-        console.warn('Primary rates API failed, using fallback.', error);
+        console.warn('Primary rates API failed, trying fallbacks.', error);
     }
 
-    const fallbackResponse = await fetch(FALLBACK_API_URL);
-    if (!fallbackResponse.ok) {
-        throw new Error(`Fallback API error: ${fallbackResponse.status}`);
+    for (const source of FALLBACK_SOURCES) {
+        try {
+            const fallbackData = await fetchJsonNoCache(source.url);
+            const fallbackRate = normalizeRate(source.parse(fallbackData));
+            if (fallbackRate !== null) {
+                return { rate: fallbackRate, source: 'fallback' };
+            }
+        } catch (error) {
+            console.warn('Fallback source failed.', error);
+        }
     }
-    const fallbackData = await fallbackResponse.json();
-    if (fallbackData && fallbackData.rates && fallbackData.rates.RUB) {
-        return parseFloat(fallbackData.rates.RUB);
-    }
-    throw new Error('Fallback API returned invalid data.');
+
+    throw new Error('All rate sources failed.');
 }
 
 // Загрузка курсов валют из API
 async function loadExchangeRates() {
     try {
         const rateResult = await fetchUsdToRub();
-        const usdToRub = rateResult.rate;
+        const usdToRub = Number(rateResult.rate);
+        if (!Number.isFinite(usdToRub)) {
+            throw new Error('Invalid rate value');
+        }
         
         // Устанавливаем курсы с маржой (покупка немного ниже, продажа немного выше)
         state.buyRate = (usdToRub * 0.995).toFixed(2);  // Покупка USDT (отдаем RUB)
@@ -1091,6 +1098,7 @@ async function loadExchangeRates() {
 
 function updateRatesDisplay() {
     if (!elements.buyRate || !elements.sellRate) {
+        setUpdateStatus('Ошибка DOM: нет buy/sell', true);
         return;
     }
     const buy = Number.isFinite(Number(state.buyRate)) ? `${state.buyRate} ₽` : '—';
