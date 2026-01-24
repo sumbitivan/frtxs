@@ -90,12 +90,20 @@ async function fetchJsonNoCache(url) {
     return response.json();
 }
 
+function normalizeRate(value) {
+    const num = typeof value === 'string' ? parseFloat(value) : Number(value);
+    return Number.isFinite(num) ? num : null;
+}
+
 async function fetchUsdToRub() {
     const primaryUrl = `${CURRENCY_API_URL}?base_currency=USD&currencies=RUB&apikey=${CURRENCY_API_KEY}`;
     try {
         const data = await fetchJsonNoCache(primaryUrl);
         if (data.data && data.data.RUB) {
-            return { rate: parseFloat(data.data.RUB.value), source: 'primary' };
+            const normalized = normalizeRate(data.data.RUB.value);
+            if (normalized !== null) {
+                return { rate: normalized, source: 'primary' };
+            }
         }
     } catch (error) {
         console.warn('Primary rates API failed, trying fallbacks.', error);
@@ -104,9 +112,9 @@ async function fetchUsdToRub() {
     for (const source of FALLBACK_SOURCES) {
         try {
             const fallbackData = await fetchJsonNoCache(source.url);
-            const fallbackRate = source.parse(fallbackData);
-            if (fallbackRate) {
-                return { rate: parseFloat(fallbackRate), source: 'fallback' };
+            const fallbackRate = normalizeRate(source.parse(fallbackData));
+            if (fallbackRate !== null) {
+                return { rate: fallbackRate, source: 'fallback' };
             }
         } catch (error) {
             console.warn('Fallback source failed.', error);
@@ -146,8 +154,10 @@ function updateRatesDisplay() {
     if (!elements.buyRate || !elements.sellRate) {
         return;
     }
-    elements.buyRate.textContent = `${state.buyRate} ₽`;
-    elements.sellRate.textContent = `${state.sellRate} ₽`;
+    const buy = Number.isFinite(Number(state.buyRate)) ? `${state.buyRate} ₽` : '—';
+    const sell = Number.isFinite(Number(state.sellRate)) ? `${state.sellRate} ₽` : '—';
+    elements.buyRate.textContent = buy;
+    elements.sellRate.textContent = sell;
 }
 
 function setUpdateStatus(text, isError = false) {
@@ -290,7 +300,8 @@ function updateResultDisplay(amount) {
 // Обновление информации о курсе
 function updateRateInfo(rate) {
     const directionText = state.direction === 'buy' ? 'покупки' : 'продажи';
-    elements.currentRate.textContent = `${rate} ₽ (${directionText})`;
+    const numericRate = Number.isFinite(Number(rate)) ? `${rate} ₽` : '—';
+    elements.currentRate.textContent = `${numericRate} (${directionText})`;
 }
 
 // Форматирование суммы
