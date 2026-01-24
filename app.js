@@ -58,27 +58,49 @@ function initApp() {
 // API ключ для курсов валют
 const CURRENCY_API_KEY = 'cur_live_VmyyauP81CCSzzsjStHpSHnKkrEJ1bs7zCSi0DUl';
 const CURRENCY_API_URL = 'https://api.currencyapi.com/v3/latest';
+const FALLBACK_API_URL = 'https://open.er-api.com/v6/latest/USD';
+
+async function fetchUsdToRub() {
+    const primaryUrl = `${CURRENCY_API_URL}?base_currency=USD&currencies=RUB&apikey=${CURRENCY_API_KEY}`;
+    try {
+        const response = await fetch(primaryUrl);
+        if (!response.ok) {
+            throw new Error(`Primary API error: ${response.status}`);
+        }
+        const data = await response.json();
+        if (data.data && data.data.RUB) {
+            return parseFloat(data.data.RUB.value);
+        }
+    } catch (error) {
+        console.warn('Primary rates API failed, using fallback.', error);
+    }
+
+    const fallbackResponse = await fetch(FALLBACK_API_URL);
+    if (!fallbackResponse.ok) {
+        throw new Error(`Fallback API error: ${fallbackResponse.status}`);
+    }
+    const fallbackData = await fallbackResponse.json();
+    if (fallbackData && fallbackData.rates && fallbackData.rates.RUB) {
+        return parseFloat(fallbackData.rates.RUB);
+    }
+    throw new Error('Fallback API returned invalid data.');
+}
 
 // Загрузка курсов валют из API
 async function loadExchangeRates() {
     try {
-        const response = await fetch(`${CURRENCY_API_URL}?base_currency=USD&currencies=RUB&apikey=${CURRENCY_API_KEY}`);
-        const data = await response.json();
+        const usdToRub = await fetchUsdToRub();
         
-        if (data.data && data.data.RUB) {
-            const usdToRub = parseFloat(data.data.RUB.value);
-            
-            // Устанавливаем курсы с маржой (покупка немного ниже, продажа немного выше)
-            state.buyRate = (usdToRub * 0.995).toFixed(2);  // Покупка USD (отдаем RUB)
-            state.sellRate = (usdToRub * 1.005).toFixed(2); // Продажа USD (отдаем USD)
-            
-            updateRatesDisplay();
-            updateTime();
-            
-            // Если модальное окно открыто, пересчитываем сумму
-            if (elements.exchangeModal.classList.contains('active')) {
-                calculateResult();
-            }
+        // Устанавливаем курсы с маржой (покупка немного ниже, продажа немного выше)
+        state.buyRate = (usdToRub * 0.995).toFixed(2);  // Покупка USD (отдаем RUB)
+        state.sellRate = (usdToRub * 1.005).toFixed(2); // Продажа USD (отдаем USD)
+        
+        updateRatesDisplay();
+        updateTime();
+        
+        // Если модальное окно открыто, пересчитываем сумму
+        if (elements.exchangeModal.classList.contains('active')) {
+            calculateResult();
         }
     } catch (error) {
         console.error('Ошибка загрузки курсов:', error);
