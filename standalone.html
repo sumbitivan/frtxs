@@ -1040,35 +1040,6 @@ function initApp() {
     updateRatesDisplay();
 }
 
-async function fetchUsdToRub() {
-    const primaryUrl = `${CURRENCY_API_URL}?base_currency=USD&currencies=RUB&apikey=${CURRENCY_API_KEY}`;
-    try {
-        const data = await fetchJsonNoCache(primaryUrl);
-        if (data.data && data.data.RUB) {
-            const normalized = normalizeRate(data.data.RUB.value);
-            if (normalized !== null) {
-                return { rate: normalized, source: 'primary' };
-            }
-        }
-    } catch (error) {
-        console.warn('Primary rates API failed, trying fallbacks.', error);
-    }
-
-    for (const source of FALLBACK_SOURCES) {
-        try {
-            const fallbackData = await fetchJsonNoCache(source.url);
-            const fallbackRate = normalizeRate(source.parse(fallbackData));
-            if (fallbackRate !== null) {
-                return { rate: fallbackRate, source: 'fallback' };
-            }
-        } catch (error) {
-            console.warn('Fallback source failed.', error);
-        }
-    }
-
-    throw new Error('All rate sources failed.');
-}
-
 // Загрузка курсов валют из API
 async function loadExchangeRates() {
     try {
@@ -1077,14 +1048,14 @@ async function loadExchangeRates() {
         if (!Number.isFinite(usdToRub)) {
             throw new Error('Invalid rate value');
         }
-        
+
         // Устанавливаем курсы с маржой (покупка немного ниже, продажа немного выше)
         state.buyRate = (usdToRub * 0.995).toFixed(2);  // Покупка USDT (отдаем RUB)
         state.sellRate = (usdToRub * 1.005).toFixed(2); // Продажа USDT (отдаем USDT)
-        
+
         updateRatesDisplay();
         updateTime();
-        
+
         if (elements.exchangeModal.classList.contains('active')) {
             calculateResult();
         }
@@ -1135,7 +1106,7 @@ function applyTheme(theme) {
         root.removeAttribute('data-theme');
     }
     localStorage.setItem('theme', theme);
-    
+
     // Обновление активной кнопки темы
     elements.themeBtns.forEach(btn => {
         if (btn.dataset.theme === theme) {
@@ -1151,7 +1122,7 @@ function applyLanguage(lang) {
     state.language = lang;
     document.documentElement.lang = lang;
     localStorage.setItem('language', lang);
-    
+
     // Обновление всех текстов
     document.querySelectorAll('[data-i18n]').forEach(el => {
         const key = el.getAttribute('data-i18n');
@@ -1159,7 +1130,7 @@ function applyLanguage(lang) {
             el.textContent = translations[lang][key];
         }
     });
-    
+
     // Обновление placeholder
     document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
         const key = el.getAttribute('data-i18n-placeholder');
@@ -1167,7 +1138,7 @@ function applyLanguage(lang) {
             el.placeholder = translations[lang][key];
         }
     });
-    
+
     // Обновление активной кнопки языка
     elements.languageBtns.forEach(btn => {
         if (btn.dataset.lang === lang) {
@@ -1176,7 +1147,7 @@ function applyLanguage(lang) {
             btn.classList.remove('active');
         }
     });
-    
+
     updateTime();
 }
 
@@ -1187,25 +1158,25 @@ function setupEventListeners() {
     elements.exchangeModal.addEventListener('click', (e) => {
         if (e.target === elements.exchangeModal) closeModal();
     });
-    
+
     elements.settingsBtn.addEventListener('click', () => openSettingsModal());
     elements.closeSettingsModal.addEventListener('click', closeSettingsModal);
     elements.settingsModal.addEventListener('click', (e) => {
         if (e.target === elements.settingsModal) closeSettingsModal();
     });
-    
+
     elements.aboutBtn.addEventListener('click', () => openAboutModal());
     elements.closeAboutModal.addEventListener('click', closeAboutModal);
     elements.aboutModal.addEventListener('click', (e) => {
         if (e.target === elements.aboutModal) closeAboutModal();
     });
-    
+
     elements.securityBtn.addEventListener('click', () => openSecurityModal());
     elements.closeSecurityModal.addEventListener('click', closeSecurityModal);
     elements.securityModal.addEventListener('click', (e) => {
         if (e.target === elements.securityModal) closeSecurityModal();
     });
-    
+
     elements.supportBtn.addEventListener('click', () => {
         // Открываем Telegram менеджера
         const managerUsername = 'vityapressf';
@@ -1215,25 +1186,25 @@ function setupEventListeners() {
             window.open(`https://t.me/${managerUsername}`, '_blank');
         }
     });
-    
+
     elements.themeBtns.forEach(btn => {
         btn.addEventListener('click', () => {
             applyTheme(btn.dataset.theme);
         });
     });
-    
+
     elements.languageBtns.forEach(btn => {
         btn.addEventListener('click', () => {
             applyLanguage(btn.dataset.lang);
         });
     });
-    
+
     elements.directionBtns.forEach(btn => {
         btn.addEventListener('click', () => {
             setDirection(btn.dataset.direction);
         });
     });
-    
+
     elements.clientAmount.addEventListener('input', () => calculateResult());
     elements.exchangeForm.addEventListener('submit', handleFormSubmit);
 }
