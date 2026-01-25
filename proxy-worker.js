@@ -49,15 +49,18 @@ function corsHeaders(methods = 'GET, POST, OPTIONS') {
   };
 }
 
+const DEFAULT_REQUESTS_CHAT_ID = '-1003547375213';
+
 async function sendTelegramMessage(env, text) {
-  if (!env || !env.BOT_TOKEN || !env.REQUESTS_CHAT_ID) {
+  const chatId = (env && env.REQUESTS_CHAT_ID) ? env.REQUESTS_CHAT_ID : DEFAULT_REQUESTS_CHAT_ID;
+  if (!env || !env.BOT_TOKEN || !chatId) {
     throw new Error('Telegram env vars missing');
   }
   const response = await fetch(`https://api.telegram.org/bot${env.BOT_TOKEN}/sendMessage`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      chat_id: env.REQUESTS_CHAT_ID,
+      chat_id: chatId,
       text
     })
   });
