@@ -102,8 +102,8 @@ npm start
 
 ## 📡 API курсов валют
 
-Приложение использует CurrencyAPI для USD/RUB:
-`https://api.currencyapi.com/v3/latest?base_currency=USD&currencies=RUB`
+Приложение использует ЦБ РФ через JSONP (обходит CORS в Telegram WebView):
+`https://www.cbr-xml-daily.ru/daily_jsonp.js`
 
 - Обновление: каждую минуту
 - Маржа: покупка -0.5%, продажа +0.5%

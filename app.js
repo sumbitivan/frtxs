@@ -69,8 +69,8 @@ function initApp() {
     updateRatesDisplay();
 }
 
-// Источник курсов: CurrencyAPI (USD/RUB)
-const CURRENCY_API_URL = 'https://api.currencyapi.com/v3/latest?base_currency=USD&currencies=RUB&apikey=cur_live_VmyyauP81CCSzzsjStHpSHnKkrEJ1bs7zCSi0DUl';
+// Источник курсов: ЦБ РФ через JSONP (обходит CORS в WebView)
+const CBR_JSONP_URL = 'https://www.cbr-xml-daily.ru/daily_jsonp.js';
 
 async function fetchJsonNoCache(url) {
     const response = await fetch(url, { cache: 'no-store' });
@@ -85,18 +85,46 @@ function normalizeRate(value) {
     return Number.isFinite(num) ? num : null;
 }
 
+function loadCbrJsonp() {
+    return new Promise((resolve, reject) => {
+        const existing = document.getElementById('cbr-jsonp');
+        if (existing) {
+            existing.remove();
+        }
+
+        const timeoutId = setTimeout(() => {
+            reject(new Error('CBR JSONP timeout'));
+        }, 8000);
+
+        window.CBR_XML_Daily_Ru = (rates) => {
+            clearTimeout(timeoutId);
+            resolve(rates);
+        };
+
+        const script = document.createElement('script');
+        script.id = 'cbr-jsonp';
+        script.src = CBR_JSONP_URL;
+        script.async = true;
+        script.onerror = () => {
+            clearTimeout(timeoutId);
+            reject(new Error('CBR JSONP load failed'));
+        };
+        document.head.appendChild(script);
+    });
+}
+
 async function fetchUsdToRub() {
     try {
-        const data = await fetchJsonNoCache(CURRENCY_API_URL);
-        const normalized = normalizeRate(data && data.data && data.data.RUB && data.data.RUB.value);
+        const data = await loadCbrJsonp();
+        const normalized = normalizeRate(data && data.Valute && data.Valute.USD && data.Valute.USD.Value);
         if (normalized !== null) {
-            return { rate: normalized, source: 'currencyapi' };
+            return { rate: normalized, source: 'cbr' };
         }
     } catch (error) {
-        console.warn('CurrencyAPI failed.', error);
+        console.warn('CBR JSONP failed.', error);
     }
 
-    throw new Error('CurrencyAPI returned invalid data.');
+    throw new Error('CBR JSONP returned invalid data.');
 }
 
 // Загрузка курсов валют из API
@@ -113,7 +141,7 @@ async function loadExchangeRates() {
         state.sellRate = (usdToRub * 1.005).toFixed(2); // Продажа USD (отдаем USD)
         
         updateRatesDisplay();
-        const labelSuffix = ' (CurrencyAPI)';
+        const labelSuffix = ' (ЦБ РФ)';
         updateTime(labelSuffix);
         
         // Если модальное окно открыто, пересчитываем сумму
