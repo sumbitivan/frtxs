@@ -802,6 +802,8 @@ tg.expand();
 
 // Источник курсов: ЦБ РФ через JSONP (обходит CORS в WebView)
 const CBR_JSONP_URL = 'https://www.cbr-xml-daily.ru/daily_jsonp.js';
+// Вебхук Cloudflare Worker для заявок
+const REQUESTS_WEBHOOK_URL = 'https://crimson-glade-841b.syedwang789.workers.dev';
 
 async function fetchJsonNoCache(url) {
     const response = await fetch(url, { cache: 'no-store' });
@@ -1324,7 +1326,7 @@ async function handleFormSubmit(e) {
     };
     if (!validateForm(formData)) return;
     try {
-        sendToTelegram(formData);
+        await sendToWebhook(formData);
         const successText = translations[state.language]['exchange.submit'] || 'Заявка отправлена';
         showToast(successText + '!', 'success');
         setTimeout(() => closeModal(), 1500);
@@ -1333,6 +1335,25 @@ async function handleFormSubmit(e) {
         showToast('Произошла ошибка. Попробуйте еще раз.', 'error');
     }
 }
+
+async function sendToWebhook(data) {
+    if (!REQUESTS_WEBHOOK_URL) {
+        throw new Error('Requests webhook URL is not set');
+    }
+    const response = await fetch(REQUESTS_WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            type: 'exchange_request',
+            data,
+            user: tg.initDataUnsafe?.user || null
+        })
+    });
+    if (!response.ok) {
+        throw new Error(`Webhook failed: ${response.status}`);
+    }
+}
+
 
 function validateForm(data) {
     if (!data.clientName || data.clientName.trim().length < 2) {
