@@ -8,8 +8,8 @@ const http = require('http');
 
 const BOT_TOKEN = '8546224766:AAFGCYcSqnUzoKctSr9pqRWZZIbMSR3djKA';
 const API_URL = `https://api.telegram.org/bot${BOT_TOKEN}`;
-const CURRENCY_API_KEY = 'cur_live_VmyyauP81CCSzzsjStHpSHnKkrEJ1bs7zCSi0DUl';
-const CURRENCY_API_URL = 'https://api.currencyapi.com/v3/latest';
+const CBR_API_URL = 'https://www.cbr-xml-daily.ru/daily_json.js';
+const CBR_MARKUP = 0.015; // +1.5%
 
 // Кэш курсов
 let exchangeRates = {
@@ -21,16 +21,11 @@ let exchangeRates = {
 // Загрузка курсов валют
 function getExchangeRates() {
     return new Promise((resolve, reject) => {
-        const url = `${CURRENCY_API_URL}?base_currency=USD&currencies=RUB&apikey=${CURRENCY_API_KEY}`;
-        const urlObj = new URL(url);
-        
+        const urlObj = new URL(CBR_API_URL);
         const options = {
             hostname: urlObj.hostname,
             path: urlObj.pathname + urlObj.search,
-            method: 'GET',
-            headers: {
-                'apikey': CURRENCY_API_KEY
-            }
+            method: 'GET'
         };
 
         const req = https.request(options, (res) => {
@@ -39,10 +34,11 @@ function getExchangeRates() {
             res.on('end', () => {
                 try {
                     const data = JSON.parse(body);
-                    if (data.data && data.data.RUB) {
-                        const usdToRub = parseFloat(data.data.RUB.value);
-                        exchangeRates.buyRate = (usdToRub * 0.995).toFixed(2);  // Покупка USD
-                        exchangeRates.sellRate = (usdToRub * 1.005).toFixed(2); // Продажа USD
+                    if (data && data.Valute && data.Valute.USD && data.Valute.USD.Value) {
+                        const usdToRub = parseFloat(data.Valute.USD.Value);
+                        const adjustedRate = usdToRub * (1 + CBR_MARKUP);
+                        exchangeRates.buyRate = adjustedRate.toFixed(2);
+                        exchangeRates.sellRate = adjustedRate.toFixed(2);
                         exchangeRates.lastUpdate = Date.now();
                         resolve(exchangeRates);
                     } else {
@@ -167,8 +163,7 @@ async function handleUpdate(update) {
                 const ratesMessage = `
 📊 Текущие курсы валют:
 
-💰 Покупка USD: ${rates.buyRate} ₽
-💵 Продажа USD: ${rates.sellRate} ₽
+💰 Курс USD/RUB (ЦБ РФ +1.5%): ${rates.buyRate} ₽
 
 🕐 Обновлено: ${new Date(rates.lastUpdate).toLocaleString('ru-RU')}
 

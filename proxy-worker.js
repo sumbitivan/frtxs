@@ -41,6 +41,17 @@ async function getUsdRubRate() {
 
 export default {
   async fetch(request) {
+    if (request.method === 'OPTIONS') {
+      return new Response(null, {
+        status: 204,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type'
+        }
+      });
+    }
+
     try {
       const rate = await getUsdRubRate();
       const body = JSON.stringify({
@@ -54,13 +65,21 @@ export default {
         status: 200,
         headers: {
           'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type',
           'Cache-Control': 'public, max-age=60'
         }
       });
     } catch (error) {
       return new Response(JSON.stringify({ error: 'rate_unavailable' }), {
         status: 502,
-        headers: { 'Content-Type': 'application/json' }
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type'
+        }
       });
     }
   }
