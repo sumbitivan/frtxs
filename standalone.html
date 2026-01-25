@@ -46,6 +46,10 @@ body {
     transition: background 0.3s, color 0.3s;
 }
 
+:root {
+    --vh: 1vh;
+}
+
 .container {
     max-width: 100%;
     margin: 0 auto;
@@ -198,7 +202,7 @@ body {
     border-radius: 20px;
     width: 100%;
     max-width: 500px;
-    max-height: 90vh;
+    max-height: calc(var(--vh, 1vh) * 90);
     overflow-y: auto;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
     animation: slideUp 0.3s ease;
@@ -244,6 +248,10 @@ body {
 .modal-body {
     padding: 20px;
     padding-bottom: 80px;
+}
+
+.modal-content.keyboard-open {
+    max-height: calc(var(--vh, 1vh) * 70);
 }
 
 .form-group {
@@ -820,6 +828,29 @@ const tg = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp 
 tg.ready();
 tg.expand();
 
+function updateViewportHeight() {
+    const vh = (window.visualViewport ? window.visualViewport.height : window.innerHeight) * 0.01;
+    document.documentElement.style.setProperty('--vh', `${vh}px`);
+}
+
+function bindKeyboardHandlers() {
+    const modalContent = document.querySelector('.modal-content');
+    if (!modalContent || !window.visualViewport) {
+        return;
+    }
+    const onResize = () => {
+        updateViewportHeight();
+        const keyboardOpen = window.visualViewport.height < window.innerHeight * 0.8;
+        modalContent.classList.toggle('keyboard-open', keyboardOpen);
+    };
+    window.visualViewport.addEventListener('resize', onResize);
+    window.visualViewport.addEventListener('scroll', onResize);
+    onResize();
+}
+
+updateViewportHeight();
+window.addEventListener('resize', updateViewportHeight);
+
 // Источник курсов: ЦБ РФ через JSONP (обходит CORS в WebView)
 const CBR_JSONP_URL = 'https://www.cbr-xml-daily.ru/daily_jsonp.js';
 // Вебхук Cloudflare Worker для заявок
@@ -1081,6 +1112,7 @@ function initApp() {
     setUpdateStatus('Загрузка курса...');
     applyTheme(state.theme);
     applyLanguage(state.language);
+    bindKeyboardHandlers();
     loadExchangeRates();
     setInterval(loadExchangeRates, 60000); // Обновление каждую минуту
     setupEventListeners();
