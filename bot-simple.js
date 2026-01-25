@@ -10,7 +10,7 @@ const BOT_TOKEN = '8546224766:AAFGCYcSqnUzoKctSr9pqRWZZIbMSR3djKA';
 const API_URL = `https://api.telegram.org/bot${BOT_TOKEN}`;
 const CBR_API_URL = 'https://www.cbr-xml-daily.ru/daily_json.js';
 const CBR_MARKUP = 0.015; // +1.5%
-const REQUESTS_CHAT_ID = process.env.REQUESTS_CHAT_ID || '';
+const REQUESTS_CHAT_ID = process.env.REQUESTS_CHAT_ID || '-5262398049';
 
 // Кэш курсов
 let exchangeRates = {
