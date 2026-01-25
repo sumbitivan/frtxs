@@ -10,6 +10,7 @@ const BOT_TOKEN = '8546224766:AAFGCYcSqnUzoKctSr9pqRWZZIbMSR3djKA';
 const API_URL = `https://api.telegram.org/bot${BOT_TOKEN}`;
 const CBR_API_URL = 'https://www.cbr-xml-daily.ru/daily_json.js';
 const CBR_MARKUP = 0.015; // +1.5%
+const REQUESTS_CHAT_ID = process.env.REQUESTS_CHAT_ID || '';
 
 // Кэш курсов
 let exchangeRates = {
@@ -157,7 +158,8 @@ async function handleUpdate(update) {
 /start - Начать работу
 /help - Показать справку
 /rates - Показать курсы валют
-/app - Открыть Mini App`);
+/app - Открыть Mini App
+/groupid - Показать ID группы (только в группе)`);
         } else if (text === '/rates') {
             getExchangeRates().then(rates => {
                 const ratesMessage = `
@@ -192,6 +194,12 @@ async function handleUpdate(update) {
                     ]]
                 }
             });
+        } else if (text === '/groupid') {
+            if (message.chat.type === 'group' || message.chat.type === 'supergroup') {
+                await sendMessage(chatId, `🆔 ID этой группы: ${chatId}`);
+            } else {
+                await sendMessage(chatId, 'Эта команда работает только в группе.');
+            }
         }
     }
 
@@ -213,12 +221,17 @@ async function handleUpdate(update) {
 📈 Курс: ${request.rate} ₽
 
 👤 Имя: ${request.clientName}
-📱 Телефон: ${request.clientPhone}
+📱 Юзернейм: ${request.clientPhone}
 ${request.clientComment ? `💬 Комментарий: ${request.clientComment}` : ''}
 
 🕐 Время: ${new Date(request.timestamp).toLocaleString('ru-RU')}`;
 
+                const targetChatId = REQUESTS_CHAT_ID ? REQUESTS_CHAT_ID : chatId;
+                await sendMessage(targetChatId, adminMessage);
                 await sendMessage(chatId, '✅ Ваша заявка принята! Мы свяжемся с вами в ближайшее время.');
+                if (!REQUESTS_CHAT_ID) {
+                    console.warn('REQUESTS_CHAT_ID не задан, отправляю в текущий чат.');
+                }
                 console.log('\n' + adminMessage + '\n');
             }
         } catch (error) {
