@@ -463,6 +463,49 @@ textarea {
     transition: all 0.3s;
 }
 
+.toggle {
+    position: relative;
+    width: 44px;
+    height: 24px;
+    flex: 0 0 auto;
+}
+
+.toggle input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    inset: 0;
+    background: var(--border-color);
+    border-radius: 999px;
+    transition: 0.2s;
+}
+
+.toggle-slider::before {
+    content: '';
+    position: absolute;
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    top: 3px;
+    background: white;
+    border-radius: 50%;
+    transition: 0.2s;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.toggle input:checked + .toggle-slider {
+    background: var(--success-color);
+}
+
+.toggle input:checked + .toggle-slider::before {
+    transform: translateX(20px);
+}
+
 .setting-option.compact {
     padding: 10px 12px;
 }
@@ -477,6 +520,30 @@ textarea {
 
 .setting-option.compact .setting-option-value {
     font-size: 13px;
+}
+
+.privacy-section {
+    position: relative;
+    padding-left: 8px;
+    margin-left: 4px;
+    border-left: 1px solid var(--border-color);
+}
+
+.privacy-section .setting-option.compact {
+    padding: 6px 8px;
+    border-radius: 8px;
+}
+
+.privacy-section .setting-option-label strong {
+    font-size: 13px;
+}
+
+.privacy-section .setting-option-label small {
+    font-size: 10px;
+}
+
+.privacy-section .setting-option-value {
+    font-size: 12px;
 }
 .setting-option:hover {
     background: var(--border-color);
@@ -623,7 +690,7 @@ textarea {
             </div>
             <div class="info-item" id="requestsBtn">
                 <span class="info-icon">📋</span>
-                <span data-i18n="info.requests">Заявки</span>
+                <span data-i18n="info.requests">Операции</span>
             </div>
             <div class="info-item" id="settingsBtn">
                 <span class="info-icon">⚙️</span>
@@ -755,6 +822,36 @@ textarea {
                 </div>
 
                 <div class="form-group">
+                    <div class="setting-option compact" id="privacyBtn">
+                        <div class="setting-option-label">
+                            <strong data-i18n="settings.privacyTitle">Настройки приватности</strong>
+                            <small data-i18n="settings.privacyHint">Управление историей</small>
+                        </div>
+                        <div class="setting-option-value">🔒</div>
+                    </div>
+                </div>
+
+                <div class="form-group privacy-section" id="privacySection" style="display: none;">
+                    <div class="setting-option compact">
+                        <div class="setting-option-label">
+                            <strong data-i18n="settings.historyDisable">Отключить историю операций</strong>
+                            <small data-i18n="settings.historyHint">История не будет сохраняться</small>
+                        </div>
+                        <label class="toggle">
+                            <input type="checkbox" id="historyToggle">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div class="setting-option compact" id="clearHistoryBtn" style="margin-top: 8px;">
+                        <div class="setting-option-label">
+                            <strong data-i18n="settings.historyClear">Удалить историю транзакций</strong>
+                            <small data-i18n="settings.historyClearHint">Очистить все операции</small>
+                        </div>
+                        <div class="setting-option-value">🗑️</div>
+                    </div>
+                </div>
+
+                <div class="form-group">
                     <div class="setting-option compact" id="supportBtn">
                         <div class="setting-option-label">
                             <strong data-i18n="info.support">Задать вопрос</strong>
@@ -817,7 +914,7 @@ textarea {
     <div class="modal" id="requestsModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 data-i18n="requests.title">Заявки</h3>
+                <h3 data-i18n="requests.title">Последние транзакции</h3>
                 <button class="close-btn" id="closeRequestsModal">&times;</button>
             </div>
             <div class="modal-body" id="requestsBody">
@@ -829,6 +926,29 @@ textarea {
     <!-- Уведомление -->
     <div class="toast" id="toast">
         <span id="toastMessage"></span>
+    </div>
+
+    <!-- Модальное окно подтверждения очистки -->
+    <div class="modal" id="confirmClearModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 data-i18n="confirm.clearTitle">Подтверждение</h3>
+                <button class="close-btn" id="closeConfirmClear">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p data-i18n="confirm.clearText" style="line-height: 1.6; color: var(--text-primary);">
+                    Вы уверены что хотите удалить всю историю транзакций?
+                </p>
+                <div class="form-group" style="display: flex; gap: 10px; margin-top: 16px;">
+                    <button type="button" class="submit-btn" id="confirmClearYes" style="flex: 1;">
+                        <span data-i18n="confirm.yes">Да</span>
+                    </button>
+                    <button type="button" class="submit-btn" id="confirmClearNo" style="flex: 1; background: var(--border-color); color: var(--text-primary);">
+                        <span data-i18n="confirm.no">Нет</span>
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -1007,6 +1127,12 @@ const translations = {
         'settings.title': 'Настройки профиля',
         'settings.supportHint': 'Написать в поддержку',
         'settings.reviewsHint': 'Оставить отзыв',
+        'settings.privacyTitle': 'Настройки приватности',
+        'settings.privacyHint': 'Управление историей',
+        'settings.historyDisable': 'Отключить историю операций',
+        'settings.historyHint': 'История не будет сохраняться',
+        'settings.historyClear': 'Удалить историю транзакций',
+        'settings.historyClearHint': 'Очистить все операции',
         'settings.theme': 'Тема приложения',
         'settings.light': 'Светлая',
         'settings.dark': 'Темная',
@@ -1019,13 +1145,13 @@ const translations = {
         'info.support': 'Задать вопрос',
         'info.reviews': 'Отзывы клиентов',
         'info.settings': 'Профиль',
-        'info.requests': 'Заявки',
+        'info.requests': 'Операции',
         'about.title': 'О нас',
         'about.text': 'Мы — надежный сервис обмена криптовалюты на наличные деньги. Наша команда работает для того, чтобы предоставить вам быстрый, безопасный и удобный способ обмена валют. Мы гарантируем честные курсы, мгновенные переводы и профессиональную поддержку 24/7.',
         'security.title': 'Безопасность',
         'security.text': 'Мы гарантируем максимальный уровень безопасности при работе с нашим обменником. Все операции проходят в полностью конфиденциальном режиме — мы не требуем документов, не передаём данные третьим лицам и не храним историю транзакций. Полная анонимность означает, что ваши финансовые операции остаются только между вами и нами.',
-        'requests.title': 'Заявки',
-        'requests.empty': 'Заявок пока нет',
+        'requests.title': 'Последние транзакции',
+        'requests.empty': 'Операций пока нет',
         'requests.idLabel': 'Номер заявки',
         'requests.statusLabel': 'Статус',
         'requests.payLabel': 'Вы отдаете',
@@ -1033,6 +1159,11 @@ const translations = {
         'requests.support': 'Тех.Поддержка',
         'requests.confirm': 'Подтвердить получение',
         'requests.thanks': 'Благодарим за сделку, Fortexis',
+        'confirm.clearTitle': 'Подтверждение',
+        'confirm.clearText': 'Вы уверены что хотите удалить всю историю транзакций?',
+        'confirm.yes': 'Да',
+        'confirm.no': 'Нет',
+        'confirm.cleared': 'История удалена',
         'updated': 'Курс обновлен'
     },
     en: {
@@ -1064,6 +1195,12 @@ const translations = {
         'settings.title': 'Profile settings',
         'settings.supportHint': 'Contact support',
         'settings.reviewsHint': 'Leave a review',
+        'settings.privacyTitle': 'Privacy settings',
+        'settings.privacyHint': 'History control',
+        'settings.historyDisable': 'Disable operation history',
+        'settings.historyHint': 'History will not be saved',
+        'settings.historyClear': 'Delete transaction history',
+        'settings.historyClearHint': 'Clear all operations',
         'settings.theme': 'App Theme',
         'settings.light': 'Light',
         'settings.dark': 'Dark',
@@ -1076,13 +1213,13 @@ const translations = {
         'info.support': 'Ask a question',
         'info.reviews': 'Customer reviews',
         'info.settings': 'Profile',
-        'info.requests': 'Requests',
+        'info.requests': 'Operations',
         'about.title': 'About Us',
         'about.text': 'We are a reliable cryptocurrency to cash exchange service. Our team works to provide you with a fast, secure and convenient way to exchange currencies. We guarantee fair rates, instant transfers and professional 24/7 support.',
         'security.title': 'Security',
         'security.text': 'We guarantee the maximum level of security when working with our exchange. All operations are carried out in a completely confidential mode - we do not require documents, do not transfer data to third parties and do not store transaction history. Complete anonymity means that your financial transactions remain only between you and us.',
-        'requests.title': 'Requests',
-        'requests.empty': 'No requests yet',
+        'requests.title': 'Recent transactions',
+        'requests.empty': 'No operations yet',
         'requests.idLabel': 'Request ID',
         'requests.statusLabel': 'Status',
         'requests.payLabel': 'You give',
@@ -1090,6 +1227,11 @@ const translations = {
         'requests.support': 'Tech support',
         'requests.confirm': 'Confirm receipt',
         'requests.thanks': 'Thank you for the deal, Fortexis',
+        'confirm.clearTitle': 'Confirmation',
+        'confirm.clearText': 'Are you sure you want to delete all transaction history?',
+        'confirm.yes': 'Yes',
+        'confirm.no': 'No',
+        'confirm.cleared': 'History deleted',
         'updated': 'Курс обновлен'
     },
     zh: {
@@ -1121,6 +1263,12 @@ const translations = {
         'settings.title': '个人资料设置',
         'settings.supportHint': '联系支持',
         'settings.reviewsHint': '留下评价',
+        'settings.privacyTitle': '隐私设置',
+        'settings.privacyHint': '历史管理',
+        'settings.historyDisable': '关闭操作历史',
+        'settings.historyHint': '历史将不会保存',
+        'settings.historyClear': '删除交易历史',
+        'settings.historyClearHint': '清空所有操作',
         'settings.theme': '应用主题',
         'settings.light': '浅色',
         'settings.dark': '深色',
@@ -1133,13 +1281,13 @@ const translations = {
         'info.support': '提问',
         'info.reviews': '客户评价',
         'info.settings': '个人资料',
-        'info.requests': '申请',
+        'info.requests': '操作',
         'about.title': '关于我们',
         'about.text': '我们是一个可靠的加密货币兑换现金服务。我们的团队致力于为您提供快速、安全和便捷的货币兑换方式。我们保证公平的汇率、即时转账和专业的24/7支持。',
         'security.title': '安全',
         'security.text': '我们保证在使用我们的交易所时提供最高级别的安全性。所有操作都在完全保密的模式下进行 - 我们不要求文件，不向第三方传输数据，也不存储交易历史。完全匿名意味着您的金融交易仅保留在您和我们之间。',
-        'requests.title': '申请',
-        'requests.empty': '暂无申请',
+        'requests.title': '最近交易',
+        'requests.empty': '暂无操作',
         'requests.idLabel': '申请编号',
         'requests.statusLabel': '状态',
         'requests.payLabel': '您支付',
@@ -1147,6 +1295,11 @@ const translations = {
         'requests.support': '技术支持',
         'requests.confirm': '确认收款',
         'requests.thanks': '感谢合作, Fortexis',
+        'confirm.clearTitle': '确认',
+        'confirm.clearText': '确定要删除所有交易记录吗？',
+        'confirm.yes': '是',
+        'confirm.no': '否',
+        'confirm.cleared': '历史已删除',
         'updated': 'Курс обновлен'
     }
 };
@@ -1205,6 +1358,14 @@ const elements = {
     closeSecurityModal: document.getElementById('closeSecurityModal'),
     supportBtn: document.getElementById('supportBtn'),
     reviewsBtn: document.getElementById('reviewsBtn'),
+    historyToggle: document.getElementById('historyToggle'),
+    privacyBtn: document.getElementById('privacyBtn'),
+    privacySection: document.getElementById('privacySection'),
+    clearHistoryBtn: document.getElementById('clearHistoryBtn'),
+    confirmClearModal: document.getElementById('confirmClearModal'),
+    closeConfirmClear: document.getElementById('closeConfirmClear'),
+    confirmClearYes: document.getElementById('confirmClearYes'),
+    confirmClearNo: document.getElementById('confirmClearNo'),
     requestsBtn: document.getElementById('requestsBtn'),
     requestsModal: document.getElementById('requestsModal'),
     closeRequestsModal: document.getElementById('closeRequestsModal'),
@@ -1221,6 +1382,7 @@ function initApp() {
     applyTheme(state.theme);
     applyLanguage(state.language);
     bindKeyboardHandlers();
+    syncHistoryToggle();
     loadExchangeRates();
     setInterval(loadExchangeRates, 60000); // Обновление каждую минуту
     setupEventListeners();
@@ -1397,6 +1559,47 @@ function setupEventListeners() {
                 tg.openLink(reviewsUrl);
             } else {
                 window.open(reviewsUrl, '_blank');
+            }
+        });
+    }
+
+    if (elements.privacyBtn && elements.privacySection) {
+        elements.privacyBtn.addEventListener('click', () => {
+            const isHidden = elements.privacySection.style.display === 'none';
+            elements.privacySection.style.display = isHidden ? 'block' : 'none';
+        });
+    }
+
+    if (elements.clearHistoryBtn) {
+        elements.clearHistoryBtn.addEventListener('click', () => openConfirmClearModal());
+    }
+    if (elements.closeConfirmClear) {
+        elements.closeConfirmClear.addEventListener('click', () => closeConfirmClearModal());
+    }
+    if (elements.confirmClearNo) {
+        elements.confirmClearNo.addEventListener('click', () => closeConfirmClearModal());
+    }
+    if (elements.confirmClearYes) {
+        elements.confirmClearYes.addEventListener('click', () => {
+            clearHistory();
+            closeConfirmClearModal();
+            const clearedText = translations[state.language]['confirm.cleared'] || 'История удалена';
+            showToast(clearedText, 'success');
+        });
+    }
+    if (elements.confirmClearModal) {
+        elements.confirmClearModal.addEventListener('click', (e) => {
+            if (e.target === elements.confirmClearModal) closeConfirmClearModal();
+        });
+    }
+
+    if (elements.historyToggle) {
+        elements.historyToggle.addEventListener('change', () => {
+            const disabled = elements.historyToggle.checked;
+            try {
+                localStorage.setItem('historyDisabled', disabled ? 'true' : 'false');
+            } catch (error) {
+                console.warn('Failed to persist history setting', error);
             }
         });
     }
@@ -1611,7 +1814,24 @@ async function sendToWebhook(data) {
     }
 }
 
+function syncHistoryToggle() {
+    if (!elements.historyToggle) {
+        return;
+    }
+    elements.historyToggle.checked = isHistoryDisabled();
+    if (elements.privacySection && isHistoryDisabled()) {
+        elements.privacySection.style.display = 'block';
+    }
+}
+
+function isHistoryDisabled() {
+    return localStorage.getItem('historyDisabled') === 'true';
+}
+
 function saveLastRequest(data) {
+    if (isHistoryDisabled()) {
+        return;
+    }
     const requestId = data.requestId || generateRequestId();
     const payload = {
         requestId,
@@ -1621,7 +1841,9 @@ function saveLastRequest(data) {
         timestamp: data.timestamp || new Date().toISOString()
     };
     try {
-        localStorage.setItem('lastRequest', JSON.stringify(payload));
+        const existing = JSON.parse(localStorage.getItem('requestsHistory') || '[]');
+        existing.unshift(payload);
+        localStorage.setItem('requestsHistory', JSON.stringify(existing));
     } catch (error) {
         console.warn('Failed to save request', error);
     }
@@ -1632,13 +1854,13 @@ function updateRequestsModal() {
     if (!elements.requestsBody) {
         return;
     }
-    let payload = null;
+    let history = [];
     try {
-        payload = JSON.parse(localStorage.getItem('lastRequest') || 'null');
+        history = JSON.parse(localStorage.getItem('requestsHistory') || '[]');
     } catch (error) {
-        payload = null;
+        history = [];
     }
-    if (!payload) {
+    if (!history || history.length === 0) {
         elements.requestsBody.innerHTML = `<p data-i18n="requests.empty">${translations[state.language]['requests.empty'] || 'Заявок пока нет'}</p>`;
         return;
     }
@@ -1650,7 +1872,9 @@ function updateRequestsModal() {
     const supportLabel = translations[state.language]['requests.support'] || 'Тех.Поддержка';
     const confirmLabel = translations[state.language]['requests.confirm'] || 'Подтвердить получение';
 
-    elements.requestsBody.innerHTML = `
+    elements.requestsBody.innerHTML = history.map((payload) => {
+        const hidden = payload.status === 'Исполнено✅' ? 'none' : 'block';
+        return `
         <div class="form-group">
             <label>${idLabel}</label>
             <div class="setting-option compact">
@@ -1661,14 +1885,14 @@ function updateRequestsModal() {
         </div>
         <div class="form-group">
             <label>${statusLabel}</label>
-            <div class="setting-option compact" id="requestsStatusBtn">
+            <div class="setting-option compact" data-request-id="${payload.requestId}" data-role="status">
                 <div class="setting-option-label">
                     <strong>${payload.status}</strong>
                     <small>${new Date(payload.timestamp).toLocaleString('ru-RU')}</small>
                 </div>
             </div>
         </div>
-        <div class="form-group request-details" style="display: ${payload.status === 'Исполнено✅' ? 'none' : 'block'};">
+        <div class="form-group request-details" data-request-id="${payload.requestId}" style="display: ${hidden};">
             <label>${payLabel}</label>
             <div class="setting-option compact">
                 <div class="setting-option-label">
@@ -1676,7 +1900,7 @@ function updateRequestsModal() {
                 </div>
             </div>
         </div>
-        <div class="form-group request-details" style="display: ${payload.status === 'Исполнено✅' ? 'none' : 'block'};">
+        <div class="form-group request-details" data-request-id="${payload.requestId}" style="display: ${hidden};">
             <label>${receiveLabel}</label>
             <div class="setting-option compact">
                 <div class="setting-option-label">
@@ -1685,53 +1909,83 @@ function updateRequestsModal() {
             </div>
         </div>
         <div class="form-group">
-            <div class="setting-option compact" id="requestsSupportBtn">
+            <div class="setting-option compact" data-role="support">
                 <div class="setting-option-label">
                     <strong>${supportLabel}</strong>
                 </div>
                 <div class="setting-option-value">💬</div>
             </div>
         </div>
+        ${payload.status === 'Исполнено✅' ? '' : `
         <div class="form-group">
-            <button type="button" class="submit-btn" id="requestsConfirmBtn">${confirmLabel}</button>
+            <button type="button" class="submit-btn" data-role="confirm" data-request-id="${payload.requestId}">${confirmLabel}</button>
         </div>
-    `;
+        `}
+        <hr style="border: none; border-top: 1px solid var(--border-color); margin: 8px 0;">
+        `;
+    }).join('');
 
-    const supportBtn = document.getElementById('requestsSupportBtn');
-    if (supportBtn) {
-        supportBtn.addEventListener('click', () => openSupport());
-    }
+    elements.requestsBody.querySelectorAll('[data-role="support"]').forEach((btn) => {
+        btn.addEventListener('click', () => openSupport());
+    });
 
-    const confirmBtn = document.getElementById('requestsConfirmBtn');
-    if (confirmBtn) {
-        confirmBtn.addEventListener('click', () => confirmRequest());
-    }
+    elements.requestsBody.querySelectorAll('[data-role="confirm"]').forEach((btn) => {
+        btn.addEventListener('click', () => confirmRequest(btn.getAttribute('data-request-id')));
+    });
 
-    const statusBtn = document.getElementById('requestsStatusBtn');
-    if (statusBtn) {
-        statusBtn.addEventListener('click', () => toggleRequestDetails());
-    }
+    elements.requestsBody.querySelectorAll('[data-role="status"]').forEach((btn) => {
+        btn.addEventListener('click', () => toggleRequestDetails(btn.getAttribute('data-request-id')));
+    });
 }
 
-function confirmRequest() {
-    let payload = null;
+function confirmRequest(requestId) {
+    let history = [];
     try {
-        payload = JSON.parse(localStorage.getItem('lastRequest') || 'null');
+        history = JSON.parse(localStorage.getItem('requestsHistory') || '[]');
     } catch (error) {
-        payload = null;
+        history = [];
     }
-    if (!payload) {
+    if (!history || history.length === 0) {
         return;
     }
-    payload.status = 'Исполнено✅';
+    const idx = history.findIndex(item => item.requestId === requestId);
+    if (idx === -1) {
+        return;
+    }
+    history[idx].status = 'Исполнено✅';
     try {
-        localStorage.setItem('lastRequest', JSON.stringify(payload));
+        localStorage.setItem('requestsHistory', JSON.stringify(history));
     } catch (error) {
         console.warn('Failed to update request', error);
     }
     const thanksText = translations[state.language]['requests.thanks'] || 'Благодарим за сделку, Fortexis';
     showToast(thanksText, 'success');
     updateRequestsModal();
+}
+
+function clearHistory() {
+    try {
+        localStorage.removeItem('requestsHistory');
+    } catch (error) {
+        console.warn('Failed to clear history', error);
+    }
+    updateRequestsModal();
+}
+
+function openConfirmClearModal() {
+    if (!elements.confirmClearModal) {
+        return;
+    }
+    elements.confirmClearModal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeConfirmClearModal() {
+    if (!elements.confirmClearModal) {
+        return;
+    }
+    elements.confirmClearModal.classList.remove('active');
+    document.body.style.overflow = '';
 }
 
 function generateRequestId() {
@@ -1742,8 +1996,8 @@ function generateRequestId() {
     return `FTX-${stamp}-${rand}`;
 }
 
-function toggleRequestDetails() {
-    const detailBlocks = document.querySelectorAll('.request-details');
+function toggleRequestDetails(requestId) {
+    const detailBlocks = document.querySelectorAll(`.request-details[data-request-id="${requestId}"]`);
     detailBlocks.forEach(block => {
         const isHidden = block.style.display === 'none';
         block.style.display = isHidden ? 'block' : 'none';
