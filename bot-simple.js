@@ -10,7 +10,7 @@ const BOT_TOKEN = '8546224766:AAFGCYcSqnUzoKctSr9pqRWZZIbMSR3djKA';
 const API_URL = `https://api.telegram.org/bot${BOT_TOKEN}`;
 const CBR_API_URL = 'https://www.cbr-xml-daily.ru/daily_json.js';
 const CBR_MARKUP = 0.015; // +1.5%
-const REQUESTS_CHAT_ID = process.env.REQUESTS_CHAT_ID || '-5262398049';
+const REQUESTS_CHAT_ID = process.env.REQUESTS_CHAT_ID || '739191071';
 
 // Кэш курсов
 let exchangeRates = {
@@ -130,7 +130,7 @@ async function handleUpdate(update) {
         const chatId = message.chat.id;
         const text = message.text || '';
 
-        console.log(`Получено сообщение от ${message.from.first_name}: ${text}`);
+        console.log(`Получено сообщение от ${message.from.first_name} (${chatId}): ${text}`);
 
         if (text === '/start' || text === '/start@your_bot_username') {
             const welcomeMessage = `👋 Добро пожаловать в сервис обмена валют!
@@ -159,7 +159,8 @@ async function handleUpdate(update) {
 /help - Показать справку
 /rates - Показать курсы валют
 /app - Открыть Mini App
-/groupid - Показать ID группы (только в группе)`);
+/groupid - Показать ID группы (только в группе)
+/id - Показать ваш ID (в личке)`);
         } else if (text === '/rates') {
             getExchangeRates().then(rates => {
                 const ratesMessage = `
@@ -199,6 +200,12 @@ async function handleUpdate(update) {
                 await sendMessage(chatId, `🆔 ID этой группы: ${chatId}`);
             } else {
                 await sendMessage(chatId, 'Эта команда работает только в группе.');
+            }
+        } else if (text === '/id') {
+            if (message.chat.type === 'private') {
+                await sendMessage(chatId, `🆔 Ваш ID: ${chatId}`);
+            } else {
+                await sendMessage(chatId, 'Эта команда работает только в личке.');
             }
         }
     }
