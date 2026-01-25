@@ -463,6 +463,21 @@ textarea {
     transition: all 0.3s;
 }
 
+.setting-option.compact {
+    padding: 10px 12px;
+}
+
+.setting-option.compact .setting-option-label strong {
+    font-size: 14px;
+}
+
+.setting-option.compact .setting-option-label small {
+    font-size: 11px;
+}
+
+.setting-option.compact .setting-option-value {
+    font-size: 13px;
+}
 .setting-option:hover {
     background: var(--border-color);
 }
@@ -606,13 +621,9 @@ textarea {
                 <span class="info-icon">💱</span>
                 <span data-i18n="exchange.btn">Обмен</span>
             </div>
-            <div class="info-item" id="supportBtn">
-                <span class="info-icon">💬</span>
-                <span data-i18n="info.support">Поддержка 24/7</span>
-            </div>
             <div class="info-item" id="settingsBtn">
                 <span class="info-icon">⚙️</span>
-                <span data-i18n="info.settings">Настройки</span>
+                <span data-i18n="info.settings">Профиль</span>
             </div>
         </div>
     </div>
@@ -718,7 +729,7 @@ textarea {
     <div class="modal" id="settingsModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 data-i18n="settings.title">Настройки</h3>
+                <h3 data-i18n="settings.title">Настройки профиля</h3>
                 <button class="close-btn" id="closeSettingsModal">&times;</button>
             </div>
             <div class="modal-body">
@@ -736,6 +747,26 @@ textarea {
                         <button type="button" class="language-btn active" data-lang="ru" data-i18n="settings.russian">Русский</button>
                         <button type="button" class="language-btn" data-lang="en" data-i18n="settings.english">English</button>
                         <button type="button" class="language-btn" data-lang="zh" data-i18n="settings.chinese">中文</button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="setting-option compact" id="supportBtn">
+                        <div class="setting-option-label">
+                            <strong data-i18n="info.support">Задать вопрос</strong>
+                            <small data-i18n="settings.supportHint">Написать в поддержку</small>
+                        </div>
+                        <div class="setting-option-value">💬</div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="setting-option compact" id="reviewsBtn">
+                        <div class="setting-option-label">
+                            <strong data-i18n="info.reviews">Отзывы клиентов</strong>
+                            <small data-i18n="settings.reviewsHint">Оставить отзыв</small>
+                        </div>
+                        <div class="setting-option-value">⭐</div>
                     </div>
                 </div>
             </div>
@@ -956,7 +987,9 @@ const translations = {
         'exchange.comment': 'Комментарий (необязательно)',
         'exchange.commentPlaceholder': 'Дополнительная информация...',
         'exchange.submit': 'Отправить заявку',
-        'settings.title': 'Настройки',
+        'settings.title': 'Настройки профиля',
+        'settings.supportHint': 'Написать в поддержку',
+        'settings.reviewsHint': 'Оставить отзыв',
         'settings.theme': 'Тема приложения',
         'settings.light': 'Светлая',
         'settings.dark': 'Темная',
@@ -966,8 +999,9 @@ const translations = {
         'settings.chinese': '中文',
         'info.about': 'О нас',
         'info.secure': 'Безопасность',
-        'info.support': 'Поддержка 24/7',
-        'info.settings': 'Настройки',
+        'info.support': 'Задать вопрос',
+        'info.reviews': 'Отзывы клиентов',
+        'info.settings': 'Профиль',
         'about.title': 'О нас',
         'about.text': 'Мы — надежный сервис обмена криптовалюты на наличные деньги. Наша команда работает для того, чтобы предоставить вам быстрый, безопасный и удобный способ обмена валют. Мы гарантируем честные курсы, мгновенные переводы и профессиональную поддержку 24/7.',
         'security.title': 'Безопасность',
@@ -1000,7 +1034,9 @@ const translations = {
         'exchange.comment': 'Comment (optional)',
         'exchange.commentPlaceholder': 'Additional information...',
         'exchange.submit': 'Submit Request',
-        'settings.title': 'Settings',
+        'settings.title': 'Profile settings',
+        'settings.supportHint': 'Contact support',
+        'settings.reviewsHint': 'Leave a review',
         'settings.theme': 'App Theme',
         'settings.light': 'Light',
         'settings.dark': 'Dark',
@@ -1010,8 +1046,9 @@ const translations = {
         'settings.chinese': '中文',
         'info.about': 'About Us',
         'info.secure': 'Security',
-        'info.support': 'Support 24/7',
-        'info.settings': 'Settings',
+        'info.support': 'Ask a question',
+        'info.reviews': 'Customer reviews',
+        'info.settings': 'Profile',
         'about.title': 'About Us',
         'about.text': 'We are a reliable cryptocurrency to cash exchange service. Our team works to provide you with a fast, secure and convenient way to exchange currencies. We guarantee fair rates, instant transfers and professional 24/7 support.',
         'security.title': 'Security',
@@ -1044,7 +1081,9 @@ const translations = {
         'exchange.comment': '评论（可选）',
         'exchange.commentPlaceholder': '附加信息...',
         'exchange.submit': '提交申请',
-        'settings.title': '设置',
+        'settings.title': '个人资料设置',
+        'settings.supportHint': '联系支持',
+        'settings.reviewsHint': '留下评价',
         'settings.theme': '应用主题',
         'settings.light': '浅色',
         'settings.dark': '深色',
@@ -1054,8 +1093,9 @@ const translations = {
         'settings.chinese': '中文',
         'info.about': '关于我们',
         'info.secure': '安全',
-        'info.support': '24/7支持',
-        'info.settings': '设置',
+        'info.support': '提问',
+        'info.reviews': '客户评价',
+        'info.settings': '个人资料',
         'about.title': '关于我们',
         'about.text': '我们是一个可靠的加密货币兑换现金服务。我们的团队致力于为您提供快速、安全和便捷的货币兑换方式。我们保证公平的汇率、即时转账和专业的24/7支持。',
         'security.title': '安全',
@@ -1117,6 +1157,7 @@ const elements = {
     securityModal: document.getElementById('securityModal'),
     closeSecurityModal: document.getElementById('closeSecurityModal'),
     supportBtn: document.getElementById('supportBtn')
+    ,reviewsBtn: document.getElementById('reviewsBtn')
 };
 
 // Инициализация
@@ -1284,6 +1325,17 @@ function setupEventListeners() {
             window.open(`https://t.me/${managerUsername}`, '_blank');
         }
     });
+
+    if (elements.reviewsBtn) {
+        elements.reviewsBtn.addEventListener('click', () => {
+            const reviewsUrl = 'https://t.me/+MeAv_lC3O7M2ZmQy';
+            if (tg && tg.openLink) {
+                tg.openLink(reviewsUrl);
+            } else {
+                window.open(reviewsUrl, '_blank');
+            }
+        });
+    }
 
     elements.themeBtns.forEach(btn => {
         btn.addEventListener('click', () => {
