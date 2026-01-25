@@ -575,7 +575,7 @@ textarea {
 
         <button class="exchange-btn" id="exchangeBtn">
             <span class="btn-icon">💱</span>
-            <span data-i18n="exchange.btn">Обменять валюту</span>
+            <span data-i18n="exchange.btn">Обмен</span>
         </button>
 
         <div class="info-block">
@@ -659,11 +659,11 @@ textarea {
                     </div>
 
                     <div class="form-group">
-                        <label for="clientPhone" data-i18n="exchange.phone">Телефон</label>
+                        <label for="clientPhone" data-i18n="exchange.phone">Юзернейм</label>
                         <input 
                             type="tel" 
                             id="clientPhone" 
-                            placeholder="+7 (999) 123-45-67"
+                            placeholder="Пример: @admin"
                             required
                         >
                     </div>
@@ -866,7 +866,7 @@ const translations = {
         'rates.sell': 'Продажа USDT',
         'rates.buySubtitle': 'рублей за USDT',
         'rates.sellSubtitle': 'рублей за USDT',
-        'exchange.btn': 'Обменять валюту',
+        'exchange.btn': 'Обмен',
         'exchange.title': 'Обмен валюты',
         'exchange.direction': 'Направление обмена',
         'exchange.buy': 'Покупка USDT',
@@ -878,7 +878,7 @@ const translations = {
         'exchange.rate': 'Курс',
         'exchange.name': 'Ваше имя',
         'exchange.namePlaceholder': 'Введите ваше имя',
-        'exchange.phone': 'Телефон',
+        'exchange.phone': 'Юзернейм',
         'exchange.comment': 'Комментарий (необязательно)',
         'exchange.commentPlaceholder': 'Дополнительная информация...',
         'exchange.submit': 'Отправить заявку',
@@ -906,7 +906,7 @@ const translations = {
         'rates.sell': 'Sell USDT',
         'rates.buySubtitle': 'rubles per USDT',
         'rates.sellSubtitle': 'rubles per USDT',
-        'exchange.btn': 'Exchange Currency',
+        'exchange.btn': 'Exchange',
         'exchange.title': 'Currency Exchange',
         'exchange.direction': 'Exchange Direction',
         'exchange.buy': 'Buy USDT',
@@ -918,7 +918,7 @@ const translations = {
         'exchange.rate': 'Rate',
         'exchange.name': 'Your name',
         'exchange.namePlaceholder': 'Enter your name',
-        'exchange.phone': 'Phone',
+        'exchange.phone': 'Username',
         'exchange.comment': 'Comment (optional)',
         'exchange.commentPlaceholder': 'Additional information...',
         'exchange.submit': 'Submit Request',
@@ -946,7 +946,7 @@ const translations = {
         'rates.sell': '卖出美元',
         'rates.buySubtitle': '每美元卢布',
         'rates.sellSubtitle': '每美元卢布',
-        'exchange.btn': '兑换货币',
+        'exchange.btn': '兑换',
         'exchange.title': '货币兑换',
         'exchange.direction': '兑换方向',
         'exchange.buy': '买入美元',
@@ -958,7 +958,7 @@ const translations = {
         'exchange.rate': '汇率',
         'exchange.name': '您的姓名',
         'exchange.namePlaceholder': '请输入您的姓名',
-        'exchange.phone': '电话',
+        'exchange.phone': '用户名',
         'exchange.comment': '评论（可选）',
         'exchange.commentPlaceholder': '附加信息...',
         'exchange.submit': '提交申请',
@@ -1339,8 +1339,8 @@ function validateForm(data) {
         showToast('Введите корректное имя', 'error');
         return false;
     }
-    if (!data.clientPhone || data.clientPhone.trim().length < 10) {
-        showToast('Введите корректный телефон', 'error');
+    if (!data.clientPhone || data.clientPhone.trim().length < 2) {
+        showToast('Введите корректный юзернейм', 'error');
         return false;
     }
     if (data.clientAmount <= 0) {
@@ -1352,7 +1352,7 @@ function validateForm(data) {
 
 function sendToTelegram(data) {
     const user = tg.initDataUnsafe?.user;
-    const message = `🔄 Новая заявка на обмен валюты\n\n📊 Направление: ${data.direction === 'buy' ? 'Покупка USDT' : 'Продажа USDT'}\n💰 Отдает: ${data.clientAmount} ${data.direction === 'buy' ? 'RUB' : 'USDT'}\n💵 Получает: ${data.resultAmount.toFixed(2)} ${data.direction === 'buy' ? 'USDT' : 'RUB'}\n📈 Курс: ${data.rate} ₽\n\n👤 Имя: ${data.clientName}\n📱 Телефон: ${data.clientPhone}${data.clientComment ? `\n💬 Комментарий: ${data.clientComment}` : ''}\n\n${user ? `👤 Telegram: @${user.username || user.first_name}` : ''}\n🕐 Время: ${new Date().toLocaleString('ru-RU')}`;
+    const message = `🔄 Новая заявка на обмен валюты\n\n📊 Направление: ${data.direction === 'buy' ? 'Покупка USDT' : 'Продажа USDT'}\n💰 Отдает: ${data.clientAmount} ${data.direction === 'buy' ? 'RUB' : 'USDT'}\n💵 Получает: ${data.resultAmount.toFixed(2)} ${data.direction === 'buy' ? 'USDT' : 'RUB'}\n📈 Курс: ${data.rate} ₽\n\n👤 Имя: ${data.clientName}\n📱 Юзернейм: ${data.clientPhone}${data.clientComment ? `\n💬 Комментарий: ${data.clientComment}` : ''}\n\n${user ? `👤 Telegram: @${user.username || user.first_name}` : ''}\n🕐 Время: ${new Date().toLocaleString('ru-RU')}`;
     tg.sendData(JSON.stringify({ type: 'exchange_request', data: data }));
     console.log('Отправка заявки:', message);
 }
