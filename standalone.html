@@ -557,7 +557,7 @@ textarea {
         <div class="rates-banner">
             <div class="rates-header">
                 <h2 data-i18n="rates.title">Курсы валют</h2>
-                <span class="update-time" id="updateTime">Обновлено: только что</span>
+                <span class="update-time" id="updateTime">Курс обновлен: только что</span>
             </div>
             <div class="rates-grid">
                 <div class="rate-column">
@@ -898,7 +898,7 @@ const translations = {
         'about.text': 'Мы — надежный сервис обмена криптовалюты на наличные деньги. Наша команда работает для того, чтобы предоставить вам быстрый, безопасный и удобный способ обмена валют. Мы гарантируем честные курсы, мгновенные переводы и профессиональную поддержку 24/7.',
         'security.title': 'Безопасность',
         'security.text': 'Мы гарантируем максимальный уровень безопасности при работе с нашим обменником. Все операции проходят в полностью конфиденциальном режиме — мы не требуем документов, не передаём данные третьим лицам и не храним историю транзакций. Полная анонимность означает, что ваши финансовые операции остаются только между вами и нами.',
-        'updated': 'Обновлено'
+        'updated': 'Курс обновлен'
     },
     en: {
         'rates.title': 'Exchange Rates',
@@ -938,7 +938,7 @@ const translations = {
         'about.text': 'We are a reliable cryptocurrency to cash exchange service. Our team works to provide you with a fast, secure and convenient way to exchange currencies. We guarantee fair rates, instant transfers and professional 24/7 support.',
         'security.title': 'Security',
         'security.text': 'We guarantee the maximum level of security when working with our exchange. All operations are carried out in a completely confidential mode - we do not require documents, do not transfer data to third parties and do not store transaction history. Complete anonymity means that your financial transactions remain only between you and us.',
-        'updated': 'Updated'
+        'updated': 'Курс обновлен'
     },
     zh: {
         'rates.title': '汇率',
@@ -978,7 +978,7 @@ const translations = {
         'about.text': '我们是一个可靠的加密货币兑换现金服务。我们的团队致力于为您提供快速、安全和便捷的货币兑换方式。我们保证公平的汇率、即时转账和专业的24/7支持。',
         'security.title': '安全',
         'security.text': '我们保证在使用我们的交易所时提供最高级别的安全性。所有操作都在完全保密的模式下进行 - 我们不要求文件，不向第三方传输数据，也不存储交易历史。完全匿名意味着您的金融交易仅保留在您和我们之间。',
-        'updated': '已更新'
+        'updated': 'Курс обновлен'
     }
 };
 
@@ -1083,8 +1083,7 @@ async function loadExchangeRates() {
         state.sellRate = (usdToRub * 1.005).toFixed(2); // Продажа USDT (отдаем USDT)
         
         updateRatesDisplay();
-        const labelSuffix = ' (ЦБ РФ)';
-        updateTime(labelSuffix);
+        updateTime();
         
         if (elements.exchangeModal.classList.contains('active')) {
             calculateResult();
@@ -1116,14 +1115,14 @@ function setUpdateStatus(text, isError = false) {
     elements.updateTime.style.color = isError ? '#ff6b6b' : '';
 }
 
-function updateTime(extraLabel = '') {
+function updateTime() {
     const now = new Date();
     const timeString = now.toLocaleTimeString(state.language === 'zh' ? 'zh-CN' : state.language === 'en' ? 'en-US' : 'ru-RU', { 
         hour: '2-digit', 
         minute: '2-digit' 
     });
     const updatedText = translations[state.language]['updated'] || 'Обновлено';
-    setUpdateStatus(`${updatedText}: ${timeString}${extraLabel}`);
+    setUpdateStatus(`${updatedText}: ${timeString}`);
 }
 
 // Применение темы

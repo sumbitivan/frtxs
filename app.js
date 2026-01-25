@@ -141,8 +141,7 @@ async function loadExchangeRates() {
         state.sellRate = (usdToRub * 1.005).toFixed(2); // Продажа USD (отдаем USD)
         
         updateRatesDisplay();
-        const labelSuffix = ' (ЦБ РФ)';
-        updateTime(labelSuffix);
+        updateTime();
         
         // Если модальное окно открыто, пересчитываем сумму
         if (elements.exchangeModal.classList.contains('active')) {
@@ -175,13 +174,13 @@ function setUpdateStatus(text, isError = false) {
     elements.updateTime.style.color = isError ? '#ff6b6b' : '';
 }
 
-function updateTime(extraLabel = '') {
+function updateTime() {
     const now = new Date();
     const timeString = now.toLocaleTimeString('ru-RU', { 
         hour: '2-digit', 
         minute: '2-digit' 
     });
-    setUpdateStatus(`Обновлено: ${timeString}${extraLabel}`);
+    setUpdateStatus(`Курс обновлен: ${timeString}`);
 }
 
 // Настройка обработчиков событий
