@@ -50,21 +50,21 @@ body {
     max-width: 100%;
     margin: 0 auto;
     padding: 16px;
-    padding-bottom: 80px;
+    padding-bottom: 110px;
     position: relative;
 }
 
 .rates-banner {
-    background: #e0e0e0;
-    border-radius: 16px;
-    padding: 20px;
-    margin-bottom: 20px;
-    box-shadow: var(--shadow);
+    background: #f0f0f0;
+    border-radius: 12px;
+    padding: 12px 14px;
+    margin-bottom: 14px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
     color: var(--text-primary);
 }
 
 [data-theme="dark"] .rates-banner {
-    background: #3a3a3a;
+    background: #2f2f2f;
     color: white;
 }
 
@@ -76,26 +76,26 @@ body {
 }
 
 .rates-header h2 {
-    font-size: 20px;
+    font-size: 16px;
     font-weight: 600;
 }
 
 .update-time {
-    font-size: 12px;
-    opacity: 0.9;
+    font-size: 11px;
+    opacity: 0.8;
 }
 
 .rates-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 16px;
+    gap: 10px;
 }
 
 .rate-column {
-    background: rgba(255, 255, 255, 0.3);
-    backdrop-filter: blur(10px);
-    border-radius: 12px;
-    padding: 16px;
+    background: rgba(255, 255, 255, 0.35);
+    backdrop-filter: blur(6px);
+    border-radius: 10px;
+    padding: 10px;
     text-align: center;
 }
 
@@ -110,9 +110,9 @@ body {
 }
 
 .rate-value {
-    font-size: 28px;
+    font-size: 22px;
     font-weight: 700;
-    margin-bottom: 4px;
+    margin-bottom: 2px;
 }
 
 .rate-subtitle {
@@ -120,55 +120,44 @@ body {
     opacity: 0.8;
 }
 
-.exchange-btn {
-    width: 100%;
-    background: var(--card-bg);
-    border: none;
-    border-radius: 16px;
-    padding: 18px 24px;
-    font-size: 18px;
-    font-weight: 600;
-    color: var(--text-primary);
-    cursor: pointer;
-    box-shadow: var(--shadow);
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    margin-bottom: 20px;
-}
-
-.exchange-btn:active {
-    transform: scale(0.98);
-    box-shadow: var(--shadow-hover);
-}
-
-.btn-icon {
-    font-size: 24px;
-}
-
 .info-block {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 8px;
+    position: fixed;
+    left: 16px;
+    right: 16px;
+    bottom: 16px;
+    z-index: 1200;
+    display: flex;
+    gap: 0;
     background: var(--card-bg);
-    border-radius: 16px;
-    padding: 16px;
+    border-radius: 14px;
+    padding: 6px 10px;
     box-shadow: var(--shadow);
+    justify-content: space-between;
 }
 
 .info-item {
+    flex: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 8px;
-    font-size: 12px;
+    gap: 4px;
+    font-size: 11px;
     color: var(--text-secondary);
     cursor: pointer;
     transition: all 0.3s;
-    padding: 8px;
-    border-radius: 8px;
+    padding: 6px 8px;
+    border-radius: 6px;
+    white-space: nowrap;
+    min-width: 0;
+}
+
+.info-item.exchange-item {
+    background: var(--primary-color);
+    color: white;
+}
+
+.info-item.exchange-item:hover {
+    background: var(--primary-dark);
 }
 
 .info-item:hover {
@@ -181,7 +170,7 @@ body {
 }
 
 .info-icon {
-    font-size: 24px;
+    font-size: 18px;
 }
 
 .modal {
@@ -254,10 +243,15 @@ body {
 
 .modal-body {
     padding: 20px;
+    padding-bottom: 80px;
 }
 
 .form-group {
     margin-bottom: 20px;
+}
+
+.form-group.compact {
+    margin-bottom: 12px;
 }
 
 .form-group label {
@@ -272,6 +266,31 @@ body {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 10px;
+}
+
+.currency-selector {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+.currency-btn {
+    background: var(--bg-color);
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    padding: 12px;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.currency-btn.active {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+    color: white;
 }
 
 .direction-btn {
@@ -371,18 +390,18 @@ textarea {
 
 .result-amount {
     background: linear-gradient(135deg, var(--success-color) 0%, #40c057 100%);
-    border-radius: 12px;
-    padding: 20px;
+    border-radius: 10px;
+    padding: 12px 14px;
     text-align: center;
     color: white;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
 }
 
 .result-value {
-    font-size: 32px;
+    font-size: 26px;
     font-weight: 700;
     display: block;
-    margin-bottom: 4px;
+    margin-bottom: 2px;
 }
 
 .result-currency {
@@ -532,17 +551,10 @@ textarea {
         padding: 12px;
     }
     .rates-banner {
-        padding: 16px;
+        padding: 10px 12px;
     }
     .rate-value {
-        font-size: 24px;
-    }
-    .exchange-btn {
-        font-size: 16px;
-        padding: 16px 20px;
-    }
-    .info-block {
-        grid-template-columns: repeat(2, 1fr);
+        font-size: 20px;
     }
     .modal-content {
         border-radius: 20px 20px 0 0;
@@ -561,22 +573,17 @@ textarea {
             </div>
             <div class="rates-grid">
                 <div class="rate-column">
-                    <div class="rate-label" data-i18n="rates.buy">Покупка USDT</div>
+                    <div class="rate-label" id="buyLabel" data-i18n="rates.buy">Покупка USDT</div>
                     <div class="rate-value" id="buyRate">—</div>
-                    <div class="rate-subtitle" data-i18n="rates.buySubtitle">рублей за USDT</div>
+                    <div class="rate-subtitle" id="buySubtitle" data-i18n="rates.buySubtitle">рублей за USDT</div>
                 </div>
                 <div class="rate-column">
-                    <div class="rate-label" data-i18n="rates.sell">Продажа USDT</div>
+                    <div class="rate-label" id="sellLabel" data-i18n="rates.sell">Продажа USDT</div>
                     <div class="rate-value" id="sellRate">—</div>
-                    <div class="rate-subtitle" data-i18n="rates.sellSubtitle">рублей за USDT</div>
+                    <div class="rate-subtitle" id="sellSubtitle" data-i18n="rates.sellSubtitle">рублей за USDT</div>
                 </div>
             </div>
         </div>
-
-        <button class="exchange-btn" id="exchangeBtn">
-            <span class="btn-icon">💱</span>
-            <span data-i18n="exchange.btn">Обмен</span>
-        </button>
 
         <div class="info-block">
             <div class="info-item" id="aboutBtn">
@@ -586,6 +593,10 @@ textarea {
             <div class="info-item" id="securityBtn">
                 <span class="info-icon">🔒</span>
                 <span data-i18n="info.secure">Безопасность</span>
+            </div>
+            <div class="info-item exchange-item" id="exchangeBtn">
+                <span class="info-icon">💱</span>
+                <span data-i18n="exchange.btn">Обмен</span>
             </div>
             <div class="info-item" id="supportBtn">
                 <span class="info-icon">💬</span>
@@ -611,13 +622,22 @@ textarea {
                         <label data-i18n="exchange.direction">Направление обмена</label>
                         <div class="exchange-direction">
                             <button type="button" class="direction-btn active" data-direction="buy">
-                                <span data-i18n="exchange.buy">Покупка USDT</span>
-                                <small data-i18n="exchange.buyDesc">Отдаете RUB, получаете USDT</small>
+                                <span id="directionBuyLabel" data-i18n="exchange.buy">Покупка USDT</span>
+                                <small id="directionBuyDesc" data-i18n="exchange.buyDesc">Отдаете RUB, получаете USDT</small>
                             </button>
                             <button type="button" class="direction-btn" data-direction="sell">
-                                <span data-i18n="exchange.sell">Продажа USDT</span>
-                                <small data-i18n="exchange.sellDesc">Отдаете USDT, получаете RUB</small>
+                                <span id="directionSellLabel" data-i18n="exchange.sell">Продажа USDT</span>
+                                <small id="directionSellDesc" data-i18n="exchange.sellDesc">Отдаете USDT, получаете RUB</small>
                             </button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label data-i18n="exchange.currencyTitle">Выберите валюту к получению</label>
+                        <div class="currency-selector">
+                            <button type="button" class="currency-btn" data-currency="RUB" data-i18n="exchange.currencyRub">Рубль</button>
+                            <button type="button" class="currency-btn active" data-currency="USD" data-i18n="exchange.currencyUsd">Доллар</button>
+                            <button type="button" class="currency-btn" data-currency="EUR" data-i18n="exchange.currencyEur">Евро</button>
                         </div>
                     </div>
 
@@ -636,7 +656,7 @@ textarea {
                         </div>
                     </div>
 
-                    <div class="form-group">
+                    <div class="form-group compact">
                         <label data-i18n="exchange.result">Сумма к получению</label>
                         <div class="result-amount" id="resultAmount">
                             <span class="result-value">0.00</span>
@@ -849,9 +869,10 @@ function loadCbrJsonp() {
 async function fetchUsdToRub() {
     try {
         const data = await loadCbrJsonp();
-        const normalized = normalizeRate(data && data.Valute && data.Valute.USD && data.Valute.USD.Value);
-        if (normalized !== null) {
-            return { rate: normalized, source: 'cbr' };
+        const usd = normalizeRate(data && data.Valute && data.Valute.USD && data.Valute.USD.Value);
+        const eur = normalizeRate(data && data.Valute && data.Valute.EUR && data.Valute.EUR.Value);
+        if (usd !== null) {
+            return { rates: { USD: usd, EUR: eur || null, RUB: 1 }, source: 'cbr' };
         }
     } catch (error) {
         console.warn('CBR JSONP failed.', error);
@@ -870,6 +891,10 @@ const translations = {
         'rates.sellSubtitle': 'рублей за USDT',
         'exchange.btn': 'Обмен',
         'exchange.title': 'Обмен валюты',
+        'exchange.currencyTitle': 'Выберите валюту',
+        'exchange.currencyUsd': 'Доллар',
+        'exchange.currencyEur': 'Евро',
+        'exchange.currencyRub': 'Рубль',
         'exchange.direction': 'Направление обмена',
         'exchange.buy': 'Покупка USDT',
         'exchange.buyDesc': 'Отдаете RUB, получаете USDT',
@@ -910,6 +935,10 @@ const translations = {
         'rates.sellSubtitle': 'rubles per USDT',
         'exchange.btn': 'Exchange',
         'exchange.title': 'Currency Exchange',
+        'exchange.currencyTitle': 'Choose currency',
+        'exchange.currencyUsd': 'Dollar',
+        'exchange.currencyEur': 'Euro',
+        'exchange.currencyRub': 'Ruble',
         'exchange.direction': 'Exchange Direction',
         'exchange.buy': 'Buy USDT',
         'exchange.buyDesc': 'You give RUB, receive USDT',
@@ -950,6 +979,10 @@ const translations = {
         'rates.sellSubtitle': '每美元卢布',
         'exchange.btn': '兑换',
         'exchange.title': '货币兑换',
+        'exchange.currencyTitle': '选择货币',
+        'exchange.currencyUsd': '美元',
+        'exchange.currencyEur': '欧元',
+        'exchange.currencyRub': '卢布',
         'exchange.direction': '兑换方向',
         'exchange.buy': '买入美元',
         'exchange.buyDesc': '您支付卢布，获得美元',
@@ -987,6 +1020,9 @@ const translations = {
 // Состояние приложения
 const state = {
     direction: 'buy',
+    currency: 'USD',
+    baseRates: { USD: 95.50, EUR: 0, RUB: 1 },
+    currency: 'USD',
     buyRate: 95.50,
     sellRate: 96.00,
     clientAmount: 0,
@@ -999,6 +1035,10 @@ const state = {
 const elements = {
     buyRate: document.getElementById('buyRate'),
     sellRate: document.getElementById('sellRate'),
+    buyLabel: document.getElementById('buyLabel'),
+    sellLabel: document.getElementById('sellLabel'),
+    buySubtitle: document.getElementById('buySubtitle'),
+    sellSubtitle: document.getElementById('sellSubtitle'),
     updateTime: document.getElementById('updateTime'),
     exchangeBtn: document.getElementById('exchangeBtn'),
     exchangeModal: document.getElementById('exchangeModal'),
@@ -1011,6 +1051,11 @@ const elements = {
     currentRate: document.getElementById('currentRate'),
     rateInfo: document.getElementById('rateInfo'),
     directionBtns: document.querySelectorAll('.direction-btn'),
+    currencyBtns: document.querySelectorAll('.currency-btn'),
+    directionBuyLabel: document.getElementById('directionBuyLabel'),
+    directionSellLabel: document.getElementById('directionSellLabel'),
+    directionBuyDesc: document.getElementById('directionBuyDesc'),
+    directionSellDesc: document.getElementById('directionSellDesc'),
     toast: document.getElementById('toast'),
     toastMessage: document.getElementById('toastMessage'),
     settingsBtn: document.getElementById('settingsBtn'),
@@ -1046,16 +1091,18 @@ function initApp() {
 async function loadExchangeRates() {
     try {
         const rateResult = await fetchUsdToRub();
-        const usdToRub = Number(rateResult.rate);
+        const usdToRub = Number(rateResult.rates.USD);
+        const eurToRub = Number(rateResult.rates.EUR);
         if (!Number.isFinite(usdToRub)) {
             throw new Error('Invalid rate value');
         }
-
-        // Устанавливаем курсы с маржой (покупка немного ниже, продажа немного выше)
-        state.buyRate = (usdToRub * 0.995).toFixed(2);  // Покупка USDT (отдаем RUB)
-        state.sellRate = (usdToRub * 1.005).toFixed(2); // Продажа USDT (отдаем USDT)
+        state.baseRates.USD = usdToRub;
+        state.baseRates.EUR = Number.isFinite(eurToRub) ? eurToRub : state.baseRates.EUR;
+        state.baseRates.RUB = 1;
 
         updateRatesDisplay();
+        updateCurrencyTexts();
+
         updateTime();
 
         if (elements.exchangeModal.classList.contains('active')) {
@@ -1074,8 +1121,9 @@ function updateRatesDisplay() {
         setUpdateStatus('Ошибка DOM: нет buy/sell', true);
         return;
     }
-    const buy = Number.isFinite(Number(state.buyRate)) ? `${state.buyRate} ₽` : '—';
-    const sell = Number.isFinite(Number(state.sellRate)) ? `${state.sellRate} ₽` : '—';
+    const usdRub = getUsdRubRate();
+    const buy = Number.isFinite(Number(usdRub)) ? `${(usdRub * 0.995).toFixed(2)} ₽` : '—';
+    const sell = Number.isFinite(Number(usdRub)) ? `${(usdRub * 1.005).toFixed(2)} ₽` : '—';
     elements.buyRate.textContent = buy;
     elements.sellRate.textContent = sell;
 }
@@ -1207,6 +1255,12 @@ function setupEventListeners() {
         });
     });
 
+    elements.currencyBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            setCurrency(btn.dataset.currency);
+        });
+    });
+
     elements.clientAmount.addEventListener('input', () => calculateResult());
     elements.exchangeForm.addEventListener('submit', handleFormSubmit);
 }
@@ -1263,13 +1317,27 @@ function setDirection(direction) {
         }
     });
     if (direction === 'buy') {
-        elements.clientCurrency.textContent = 'RUB';
+        elements.clientCurrency.textContent = state.currency;
         elements.resultCurrency.textContent = 'USDT';
     } else {
         elements.clientCurrency.textContent = 'USDT';
-        elements.resultCurrency.textContent = 'RUB';
+        elements.resultCurrency.textContent = state.currency;
     }
     calculateResult();
+}
+
+function setCurrency(currency) {
+    state.currency = currency;
+    elements.currencyBtns.forEach(btn => {
+        if (btn.dataset.currency === currency) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+    updateCurrencyTexts();
+    updateRatesDisplay();
+    setDirection(state.direction);
 }
 
 function calculateResult() {
@@ -1281,12 +1349,19 @@ function calculateResult() {
     }
     let result = 0;
     let rate = 0;
+    const usdRub = getUsdRubRate();
+    const currencyRub = getCurrencyRubRate();
+    if (!Number.isFinite(usdRub) || !Number.isFinite(currencyRub)) {
+        updateResultDisplay(0);
+        updateRateInfo('—');
+        return;
+    }
     if (state.direction === 'buy') {
-        rate = parseFloat(state.buyRate);
-        result = amount / rate;
+        rate = parseFloat((usdRub / currencyRub).toFixed(4));
+        result = (amount * currencyRub) / usdRub;
     } else {
-        rate = parseFloat(state.sellRate);
-        result = amount * rate;
+        rate = parseFloat((usdRub / currencyRub).toFixed(4));
+        result = (amount * usdRub) / currencyRub;
     }
     state.resultAmount = result;
     updateResultDisplay(result);
@@ -1303,7 +1378,11 @@ function updateRateInfo(rate) {
         ? (translations[state.language]['exchange.buyDesc'] || 'покупки')
         : (translations[state.language]['exchange.sellDesc'] || 'продажи');
     const rateText = translations[state.language]['exchange.rate'] || 'Курс';
-    const numericRate = Number.isFinite(Number(rate)) ? `${rate} ₽` : '—';
+    let numericRate = '—';
+    if (Number.isFinite(Number(rate))) {
+        const suffix = state.currency === 'RUB' ? '₽' : state.currency;
+        numericRate = `${Number(rate).toFixed(4)} ${suffix}`;
+    }
     elements.currentRate.textContent = `${numericRate}`;
 }
 
@@ -1327,8 +1406,7 @@ async function handleFormSubmit(e) {
     if (!validateForm(formData)) return;
     try {
         await sendToWebhook(formData);
-        const successText = translations[state.language]['exchange.submit'] || 'Заявка отправлена';
-        showToast(successText + '!', 'success');
+        showToast('Заявка принята', 'success');
         setTimeout(() => closeModal(), 1500);
     } catch (error) {
         console.error('Ошибка отправки:', error);
@@ -1392,6 +1470,39 @@ function resetForm() {
     state.resultAmount = 0;
     updateResultDisplay(0);
     setDirection('buy');
+    setCurrency('USD');
+}
+
+function getUsdRubRate() {
+    const usdRub = Number(state.baseRates.USD);
+    return Number.isFinite(usdRub) ? usdRub : NaN;
+}
+
+function getCurrencyRubRate() {
+    const currencyRub = Number(state.baseRates[state.currency]);
+    return Number.isFinite(currencyRub) ? currencyRub : NaN;
+}
+
+function updateCurrencyTexts() {
+    const code = state.currency;
+    if (elements.buyLabel) {
+        elements.buyLabel.textContent = `Покупка ${code}`;
+    }
+    if (elements.sellLabel) {
+        elements.sellLabel.textContent = `Продажа ${code}`;
+    }
+    if (elements.buySubtitle) {
+        elements.buySubtitle.textContent = `рублей за ${code}`;
+    }
+    if (elements.sellSubtitle) {
+        elements.sellSubtitle.textContent = `рублей за ${code}`;
+    }
+    if (elements.directionBuyDesc) {
+        elements.directionBuyDesc.textContent = `Отдаете ${code}, получаете USDT`;
+    }
+    if (elements.directionSellDesc) {
+        elements.directionSellDesc.textContent = `Отдаете USDT, получаете ${code}`;
+    }
 }
     </script>
 </body>
