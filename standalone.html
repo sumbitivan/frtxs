@@ -1988,6 +1988,7 @@ function openConfirmClearModal() {
     if (!elements.confirmClearModal) {
         return;
     }
+    closeAllModals();
     elements.confirmClearModal.classList.add('active');
     document.body.style.overflow = 'hidden';
 }
