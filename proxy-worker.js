@@ -72,6 +72,7 @@ async function sendTelegramMessage(env, text) {
 
 function formatRequestMessage(payload) {
   const data = payload && payload.data ? payload.data : payload || {};
+  const requestId = data.requestId || '';
   const direction = data.direction === 'buy' ? 'Покупка USDT' : 'Продажа USDT';
   const giveCurrency = data.direction === 'buy' ? 'RUB' : 'USDT';
   const getCurrency = data.direction === 'buy' ? 'USDT' : 'RUB';
@@ -86,6 +87,8 @@ function formatRequestMessage(payload) {
   const ts = data.timestamp ? new Date(data.timestamp).toLocaleString('ru-RU') : new Date().toLocaleString('ru-RU');
 
   return `🔄 Новая заявка на обмен валюты
+
+🆔 Номер заявки: ${requestId}
 
 📊 Направление: ${direction}
 💰 Отдает: ${amount} ${giveCurrency}
