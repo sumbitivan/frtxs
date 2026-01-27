@@ -339,6 +339,7 @@ body {
     align-items: center;
     gap: 4px;
     font-size: 11px;
+    font-weight: 700;
     color: var(--text-secondary);
     cursor: pointer;
     transition: all 0.3s;
@@ -941,6 +942,26 @@ textarea {
         </div>
     </div>
 
+    <!-- Модальное окно выбора типа обмена -->
+    <div class="modal" id="exchangeTypeModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 data-i18n="exchange.typeTitle">Тип обмена:</h3>
+                <button class="close-btn" id="closeExchangeTypeModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="exchange-direction">
+                    <button type="button" class="direction-btn" id="cashTypeBtn">
+                        <span data-i18n="exchange.typeCash">Наличный</span>
+                    </button>
+                    <button type="button" class="direction-btn" id="cashlessTypeBtn">
+                        <span data-i18n="exchange.typeCashless">Безналичный</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Модальное окно обмена -->
     <div class="modal" id="exchangeModal">
         <div class="modal-content">
@@ -1374,9 +1395,12 @@ const translations = {
         'rates.cashless': 'Безналичный',
         'rates.buySubtitle': 'рублей за USDT',
         'rates.sellSubtitle': 'рублей за USDT',
-        'rates.countdown': 'Обновление через',
+        'rates.countdown': 'Курс обновится',
         'exchange.btn': 'Обмен',
         'exchange.title': 'Обмен валюты',
+        'exchange.typeTitle': 'Тип обмена:',
+        'exchange.typeCash': 'Наличный',
+        'exchange.typeCashless': 'Безналичный',
         'exchange.currencyTitle': 'Выберите валюту',
         'exchange.currencyUsd': 'Доллар',
         'exchange.currencyEur': 'Евро',
@@ -1453,6 +1477,9 @@ const translations = {
         'rates.countdown': 'Update in',
         'exchange.btn': 'Exchange',
         'exchange.title': 'Currency Exchange',
+        'exchange.typeTitle': 'Exchange type:',
+        'exchange.typeCash': 'Cash',
+        'exchange.typeCashless': 'Cashless',
         'exchange.currencyTitle': 'Choose currency',
         'exchange.currencyUsd': 'Dollar',
         'exchange.currencyEur': 'Euro',
@@ -1529,6 +1556,9 @@ const translations = {
         'rates.countdown': '更新倒计时',
         'exchange.btn': '兑换',
         'exchange.title': '货币兑换',
+        'exchange.typeTitle': '兑换类型：',
+        'exchange.typeCash': '现金',
+        'exchange.typeCashless': '无现金',
         'exchange.currencyTitle': '选择货币',
         'exchange.currencyUsd': '美元',
         'exchange.currencyEur': '欧元',
@@ -1597,6 +1627,7 @@ const translations = {
 // Состояние приложения
 const state = {
     direction: 'buy',
+    exchangeType: 'cash',
     currency: 'USD',
     baseRates: { USD: 95.50, EUR: 0, RUB: 1 },
     currentRate: 0,
@@ -1622,6 +1653,10 @@ const elements = {
     buySubtitle: document.getElementById('buySubtitle'),
     sellSubtitle: document.getElementById('sellSubtitle'),
     updateTime: document.getElementById('updateTime'),
+    exchangeTypeModal: document.getElementById('exchangeTypeModal'),
+    closeExchangeTypeModal: document.getElementById('closeExchangeTypeModal'),
+    cashTypeBtn: document.getElementById('cashTypeBtn'),
+    cashlessTypeBtn: document.getElementById('cashlessTypeBtn'),
     exchangeBtn: document.getElementById('exchangeBtn'),
     exchangeModal: document.getElementById('exchangeModal'),
     closeModal: document.getElementById('closeModal'),
@@ -1703,8 +1738,8 @@ async function loadExchangeRates() {
 
         updateRatesDisplay();
         updateCurrencyTexts();
-
         updateCountdownDisplay();
+        updateRateInfo(getSelectedRateValue());
 
         if (elements.exchangeModal.classList.contains('active')) {
             calculateResult();
@@ -1852,11 +1887,33 @@ function openSupport() {
 
 // Настройка обработчиков событий
 function setupEventListeners() {
-    elements.exchangeBtn.addEventListener('click', () => openModal());
+    elements.exchangeBtn.addEventListener('click', () => openExchangeTypeModal());
     elements.closeModal.addEventListener('click', closeModal);
     elements.exchangeModal.addEventListener('click', (e) => {
         if (e.target === elements.exchangeModal) closeModal();
     });
+    if (elements.closeExchangeTypeModal) {
+        elements.closeExchangeTypeModal.addEventListener('click', closeExchangeTypeModal);
+    }
+    if (elements.exchangeTypeModal) {
+        elements.exchangeTypeModal.addEventListener('click', (e) => {
+            if (e.target === elements.exchangeTypeModal) closeExchangeTypeModal();
+        });
+    }
+    if (elements.cashTypeBtn) {
+        elements.cashTypeBtn.addEventListener('click', () => {
+            setExchangeType('cash');
+            closeExchangeTypeModal();
+            openModal();
+        });
+    }
+    if (elements.cashlessTypeBtn) {
+        elements.cashlessTypeBtn.addEventListener('click', () => {
+            setExchangeType('cashless');
+            closeExchangeTypeModal();
+            openModal();
+        });
+    }
 
     elements.settingsBtn.addEventListener('click', () => openSettingsModal());
     elements.closeSettingsModal.addEventListener('click', closeSettingsModal);
@@ -1999,6 +2056,21 @@ function openModal() {
     setTimeout(() => elements.clientAmount.focus(), 300);
 }
 
+function openExchangeTypeModal() {
+    closeAllModals();
+    if (elements.exchangeTypeModal) {
+        elements.exchangeTypeModal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+function closeExchangeTypeModal() {
+    if (elements.exchangeTypeModal) {
+        elements.exchangeTypeModal.classList.remove('active');
+    }
+    document.body.style.overflow = '';
+}
+
 function closeModal() {
     elements.exchangeModal.classList.remove('active');
     document.body.style.overflow = '';
@@ -2047,6 +2119,9 @@ function openRequestsModal() {
 
 function closeAllModals() {
     elements.exchangeModal.classList.remove('active');
+    if (elements.exchangeTypeModal) {
+        elements.exchangeTypeModal.classList.remove('active');
+    }
     elements.settingsModal.classList.remove('active');
     elements.aboutModal.classList.remove('active');
     elements.securityModal.classList.remove('active');
@@ -2079,6 +2154,29 @@ function setDirection(direction) {
     calculateResult();
 }
 
+function setExchangeType(type) {
+    state.exchangeType = type;
+    updateRateInfo(getSelectedRateValue());
+    calculateResult();
+}
+
+function parseRateValue(text) {
+    if (!text) return NaN;
+    const normalized = text.replace(',', '.').replace(/[^\d.]/g, '');
+    return Number(normalized);
+}
+
+function getSelectedRateValue() {
+    if (state.exchangeType === 'cashless') {
+        const cashlessBuy = elements.buyRateCashless ? elements.buyRateCashless.textContent : '';
+        const cashlessSell = elements.sellRateCashless ? elements.sellRateCashless.textContent : '';
+        return state.direction === 'buy' ? parseRateValue(cashlessBuy) : parseRateValue(cashlessSell);
+    }
+    const cashBuy = elements.buyRate ? elements.buyRate.textContent : '';
+    const cashSell = elements.sellRate ? elements.sellRate.textContent : '';
+    return state.direction === 'buy' ? parseRateValue(cashBuy) : parseRateValue(cashSell);
+}
+
 function setCurrency(currency) {
     state.currency = currency;
     elements.currencyBtns.forEach(btn => {
@@ -2101,25 +2199,23 @@ function calculateResult() {
         return;
     }
     let result = 0;
-    let rate = 0;
-    const usdRub = getUsdRubRate();
+    const usdRubRate = getSelectedRateValue();
     const currencyRub = getCurrencyRubRate();
-    if (!Number.isFinite(usdRub) || !Number.isFinite(currencyRub)) {
+    if (!Number.isFinite(usdRubRate) || !Number.isFinite(currencyRub)) {
         updateResultDisplay(0);
         updateRateInfo('—');
         return;
     }
+    const pairRate = usdRubRate / currencyRub;
     if (state.direction === 'buy') {
-        rate = parseFloat((usdRub / currencyRub).toFixed(4));
-        result = (amount * currencyRub) / usdRub;
+        result = (amount * currencyRub) / usdRubRate;
     } else {
-        rate = parseFloat((usdRub / currencyRub).toFixed(4));
-        result = (amount * usdRub) / currencyRub;
+        result = (amount * usdRubRate) / currencyRub;
     }
-    state.currentRate = rate;
+    state.currentRate = pairRate;
     state.resultAmount = result;
     updateResultDisplay(result);
-    updateRateInfo(rate);
+    updateRateInfo(pairRate);
 }
 
 function updateResultDisplay(amount) {
@@ -2129,17 +2225,11 @@ function updateResultDisplay(amount) {
 
 function updateRateInfo(rate) {
     let numericRate = '—';
-    const buyText = elements.buyRate ? elements.buyRate.textContent : '';
-    const sellText = elements.sellRate ? elements.sellRate.textContent : '';
-    if (state.direction === 'buy' && buyText) {
-        numericRate = buyText;
-    } else if (state.direction === 'sell' && sellText) {
-        numericRate = sellText;
-    } else if (Number.isFinite(Number(rate))) {
+    if (Number.isFinite(Number(rate))) {
         const suffix = state.currency === 'RUB' ? '₽' : state.currency;
         numericRate = `${Number(rate).toFixed(4)} ${suffix}`;
     }
-    elements.currentRate.textContent = `${numericRate}`;
+    elements.currentRate.textContent = numericRate;
 }
 
 function formatAmount(amount) {
