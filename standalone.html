@@ -1958,7 +1958,14 @@ function setupEventListeners() {
     }
 
     if (elements.aboutSettingsOpen) {
-        elements.aboutSettingsOpen.addEventListener('click', () => openAboutModal());
+        elements.aboutSettingsOpen.addEventListener('click', () => {
+            const aboutUrl = 'https://t.me/FortexisExchange';
+            if (tg && tg.openLink) {
+                tg.openLink(aboutUrl);
+            } else {
+                window.open(aboutUrl, '_blank');
+            }
+        });
     }
 
     if (elements.securitySettingsBtn) {
@@ -1979,7 +1986,7 @@ function setupEventListeners() {
 
     if (elements.reviewsBtn) {
         elements.reviewsBtn.addEventListener('click', () => {
-            const reviewsUrl = 'https://t.me/+MeAv_lC3O7M2ZmQy';
+            const reviewsUrl = 'https://t.me/FortexisEx';
             if (tg && tg.openLink) {
                 tg.openLink(reviewsUrl);
             } else {
