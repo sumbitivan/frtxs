@@ -95,32 +95,174 @@ body {
     gap: 10px;
 }
 
-.rate-column {
+.rates-combined {
     background: rgba(255, 255, 255, 0.35);
     backdrop-filter: blur(6px);
     border-radius: 10px;
-    padding: 10px;
+    padding: 6px;
+}
+
+[data-theme="dark"] .rates-combined {
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.rates-combined .rate-column {
+    background: transparent;
+}
+
+.rates-grid--merged {
+    position: relative;
+    gap: 0;
+}
+
+.rates-grid--merged .rate-column {
+    border-radius: 0;
+}
+
+.rates-grid--merged .rate-column:first-child {
+    border-top-left-radius: 10px;
+    border-bottom-left-radius: 10px;
+}
+
+.rates-grid--merged .rate-column:last-child {
+    border-top-right-radius: 10px;
+    border-bottom-right-radius: 10px;
+}
+
+.rates-grid--joined-top {
+    margin-bottom: 0;
+}
+
+.rates-grid--joined-bottom {
+    margin-top: 0;
+}
+
+.rates-grid--joined-top .rate-column {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.rates-grid--joined-bottom .rate-column {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+}
+
+.rates-grid--compact-joined {
+    gap: 0;
+}
+
+.rates-grid--compact-joined .rate-column {
+    border-radius: 0;
+}
+
+.rates-grid--compact-joined .rate-column:first-child {
+    border-top-left-radius: 10px;
+    border-bottom-left-radius: 10px;
+}
+
+.rates-grid--compact-joined .rate-column:last-child {
+    border-top-right-radius: 10px;
+    border-bottom-right-radius: 10px;
+}
+
+
+.rates-merge-label {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 12px;
+    font-weight: 700;
+    opacity: 0.85;
     text-align: center;
+    width: 100%;
+    pointer-events: none;
+}
+
+.rates-grid--compact {
+    gap: 6px;
+    margin-top: 8px;
+}
+
+.rates-grid--compact .rate-column {
+    padding: 6px;
+    border-radius: 8px;
+}
+
+.rates-grid--compact .rate-label {
+    font-size: 12px;
+    margin-bottom: 6px;
+}
+
+.rates-grid--compact .rate-value {
+    font-size: 15px;
+}
+
+.rates-grid--compact .rate-subtitle {
+    font-size: 9px;
+}
+
+.rate-column {
+    position: relative;
+    background: rgba(255, 255, 255, 0.35);
+    backdrop-filter: blur(6px);
+    border-radius: 10px;
+    padding: 6px;
+    text-align: center;
+}
+
+.rates-combined .rate-column {
+    background: transparent;
+    backdrop-filter: none;
+}
+
+.rate-tag {
+    position: absolute;
+    top: 6px;
+    left: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1;
+    display: block;
+    opacity: 0.8;
 }
 
 [data-theme="dark"] .rate-column {
     background: rgba(0, 0, 0, 0.3);
 }
 
+[data-theme="dark"] .rates-combined .rate-column {
+    background: transparent;
+}
+
 .rate-label {
-    font-size: 14px;
+    font-size: 12px;
+    font-weight: 700;
     opacity: 0.9;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
+}
+
+.rate-label--buy {
+    color: #00d26a;
+}
+
+.rate-label--sell {
+    color: #ff2d20;
+}
+
+.rate-label--left {
+    text-align: left;
+    width: 100%;
 }
 
 .rate-value {
-    font-size: 22px;
+    font-size: 15px;
     font-weight: 700;
     margin-bottom: 2px;
 }
 
 .rate-subtitle {
-    font-size: 12px;
+    font-size: 9px;
     opacity: 0.8;
 }
 
@@ -685,39 +827,45 @@ textarea {
     <div class="container">
         <div class="rates-banner">
             <div class="rates-header">
-                <h2 data-i18n="rates.title">Курсы валют</h2>
+                <h2 data-i18n="rates.title">Текущий курс</h2>
                 <span class="update-time" id="updateTime">Курс обновлен: только что</span>
             </div>
-            <div class="rates-grid">
-                <div class="rate-column">
-                    <div class="rate-label" id="buyLabel" data-i18n="rates.buy">Покупка USDT</div>
-                    <div class="rate-value" id="buyRate">—</div>
-                    <div class="rate-subtitle" id="buySubtitle" data-i18n="rates.buySubtitle">рублей за USDT</div>
+            <div class="rates-combined">
+                <div class="rates-grid rates-grid--merged rates-grid--joined-top">
+                    <div class="rate-column">
+                    <div class="rate-tag" data-i18n="rates.cash">Наличный</div>
+                    <div class="rate-label rate-label--buy" data-i18n="rates.buyShort">Покупка</div>
+                        <div class="rate-value" id="buyRate">—</div>
+                        <div class="rate-subtitle" id="buySubtitle" data-i18n="rates.buySubtitle">рублей за USDT</div>
+                    </div>
+                    <div class="rate-column">
+                    <div class="rate-label rate-label--sell" data-i18n="rates.sellShort">Продажа</div>
+                        <div class="rate-value" id="sellRate">—</div>
+                        <div class="rate-subtitle" id="sellSubtitle" data-i18n="rates.sellSubtitle">рублей за USDT</div>
+                    </div>
                 </div>
-                <div class="rate-column">
-                    <div class="rate-label" id="sellLabel" data-i18n="rates.sell">Продажа USDT</div>
-                    <div class="rate-value" id="sellRate">—</div>
-                    <div class="rate-subtitle" id="sellSubtitle" data-i18n="rates.sellSubtitle">рублей за USDT</div>
+                <div class="rates-grid rates-grid--merged rates-grid--joined-bottom">
+                    <div class="rate-column">
+                    <div class="rate-tag" data-i18n="rates.cashless">Безналичный</div>
+                    <div class="rate-value" id="buyRateCashless">—</div>
+                        <div class="rate-subtitle" data-dup="buySubtitle">рублей за USDT</div>
+                    </div>
+                    <div class="rate-column">
+                    <div class="rate-value" id="sellRateCashless">—</div>
+                        <div class="rate-subtitle" data-dup="sellSubtitle">рублей за USDT</div>
+                    </div>
                 </div>
             </div>
         </div>
 
         <div class="info-block">
-            <div class="info-item" id="aboutBtn">
-                <span class="info-icon">ℹ️</span>
-                <span data-i18n="info.about">О нас</span>
-            </div>
-            <div class="info-item" id="securityBtn">
-                <span class="info-icon">🔒</span>
-                <span data-i18n="info.secure">Безопасность</span>
+            <div class="info-item" id="requestsBtn">
+                <span class="info-icon">🧾</span>
+                <span data-i18n="info.requests">Операции</span>
             </div>
             <div class="info-item exchange-item" id="exchangeBtn">
                 <span class="info-icon">💱</span>
                 <span data-i18n="exchange.btn">Обмен</span>
-            </div>
-            <div class="info-item" id="requestsBtn">
-                <span class="info-icon">🧾</span>
-                <span data-i18n="info.requests">Операции</span>
             </div>
             <div class="info-item" id="settingsBtn">
                 <span class="info-icon">⚒️</span>
@@ -895,6 +1043,33 @@ textarea {
                             <small data-i18n="settings.reviewsHint">Оставить отзыв</small>
                         </div>
                         <div class="setting-option-value">⭐</div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="setting-option compact" id="aboutSettingsBtn">
+                        <div class="setting-option-label">
+                            <strong data-i18n="info.about">О нас</strong>
+                            <small data-i18n="settings.aboutHint">Информация о сервисе</small>
+                        </div>
+                        <div class="setting-option-value">ℹ️</div>
+                    </div>
+                </div>
+
+                <div class="form-group privacy-section" id="aboutSettingsSection" style="display: none;">
+                    <div class="setting-option compact" id="aboutSettingsOpen">
+                        <div class="setting-option-label">
+                            <strong data-i18n="about.title">О нас</strong>
+                            <small data-i18n="about.openHint">Открыть подробности</small>
+                        </div>
+                        <div class="setting-option-value">➡️</div>
+                    </div>
+                    <div class="setting-option compact" id="securitySettingsBtn" style="margin-top: 8px;">
+                        <div class="setting-option-label">
+                            <strong data-i18n="info.secure">Безопасность</strong>
+                            <small data-i18n="settings.securityHint">Подробнее о безопасности</small>
+                        </div>
+                        <div class="setting-option-value">🔒</div>
                     </div>
                 </div>
             </div>
@@ -1123,11 +1298,16 @@ async function fetchUsdToRub() {
 // Переводы
 const translations = {
     ru: {
-        'rates.title': 'Курсы валют',
+        'rates.title': 'Текущий курс',
         'rates.buy': 'Покупка USDT',
         'rates.sell': 'Продажа USDT',
+        'rates.buyShort': 'Покупка',
+        'rates.sellShort': 'Продажа',
+        'rates.cash': 'Наличный',
+        'rates.cashless': 'Безналичный',
         'rates.buySubtitle': 'рублей за USDT',
         'rates.sellSubtitle': 'рублей за USDT',
+        'rates.countdown': 'Обновление через',
         'exchange.btn': 'Обмен',
         'exchange.title': 'Обмен валюты',
         'exchange.currencyTitle': 'Выберите валюту',
@@ -1151,6 +1331,9 @@ const translations = {
         'settings.title': 'Настройки профиля',
         'settings.supportHint': 'Написать в поддержку',
         'settings.reviewsHint': 'Оставить отзыв',
+        'settings.aboutHint': 'Информация о сервисе',
+        'settings.securityHint': 'Подробнее о безопасности',
+        'about.openHint': 'Открыть подробности',
         'settings.privacyTitle': 'Настройки приватности',
         'settings.privacyHint': 'Управление историей',
         'settings.historyDisable': 'Отключить историю операций',
@@ -1191,11 +1374,16 @@ const translations = {
         'updated': 'Курс обновлен'
     },
     en: {
-        'rates.title': 'Exchange Rates',
+        'rates.title': 'Current Rate',
         'rates.buy': 'Buy USDT',
         'rates.sell': 'Sell USDT',
+        'rates.buyShort': 'Buy',
+        'rates.sellShort': 'Sell',
+        'rates.cash': 'Cash',
+        'rates.cashless': 'Cashless',
         'rates.buySubtitle': 'rubles per USDT',
         'rates.sellSubtitle': 'rubles per USDT',
+        'rates.countdown': 'Update in',
         'exchange.btn': 'Exchange',
         'exchange.title': 'Currency Exchange',
         'exchange.currencyTitle': 'Choose currency',
@@ -1219,6 +1407,9 @@ const translations = {
         'settings.title': 'Profile settings',
         'settings.supportHint': 'Contact support',
         'settings.reviewsHint': 'Leave a review',
+        'settings.aboutHint': 'About the service',
+        'settings.securityHint': 'More about security',
+        'about.openHint': 'Open details',
         'settings.privacyTitle': 'Privacy settings',
         'settings.privacyHint': 'History control',
         'settings.historyDisable': 'Disable operation history',
@@ -1259,11 +1450,16 @@ const translations = {
         'updated': 'Курс обновлен'
     },
     zh: {
-        'rates.title': '汇率',
+        'rates.title': '当前汇率',
         'rates.buy': '买入美元',
         'rates.sell': '卖出美元',
+        'rates.buyShort': '买入',
+        'rates.sellShort': '卖出',
+        'rates.cash': '现金',
+        'rates.cashless': '无现金',
         'rates.buySubtitle': '每美元卢布',
         'rates.sellSubtitle': '每美元卢布',
+        'rates.countdown': '更新倒计时',
         'exchange.btn': '兑换',
         'exchange.title': '货币兑换',
         'exchange.currencyTitle': '选择货币',
@@ -1287,6 +1483,9 @@ const translations = {
         'settings.title': '个人资料设置',
         'settings.supportHint': '联系支持',
         'settings.reviewsHint': '留下评价',
+        'settings.aboutHint': '关于服务',
+        'settings.securityHint': '了解安全信息',
+        'about.openHint': '查看详情',
         'settings.privacyTitle': '隐私设置',
         'settings.privacyHint': '历史管理',
         'settings.historyDisable': '关闭操作历史',
@@ -1342,10 +1541,15 @@ const state = {
     language: localStorage.getItem('language') || 'ru'
 };
 
+let countdownTimer = null;
+let nextUpdateAt = null;
+
 // Элементы DOM
 const elements = {
     buyRate: document.getElementById('buyRate'),
     sellRate: document.getElementById('sellRate'),
+    buyRateCashless: document.getElementById('buyRateCashless'),
+    sellRateCashless: document.getElementById('sellRateCashless'),
     buyLabel: document.getElementById('buyLabel'),
     sellLabel: document.getElementById('sellLabel'),
     buySubtitle: document.getElementById('buySubtitle'),
@@ -1382,6 +1586,10 @@ const elements = {
     closeSecurityModal: document.getElementById('closeSecurityModal'),
     supportBtn: document.getElementById('supportBtn'),
     reviewsBtn: document.getElementById('reviewsBtn'),
+    aboutSettingsBtn: document.getElementById('aboutSettingsBtn'),
+    aboutSettingsSection: document.getElementById('aboutSettingsSection'),
+    aboutSettingsOpen: document.getElementById('aboutSettingsOpen'),
+    securitySettingsBtn: document.getElementById('securitySettingsBtn'),
     historyToggle: document.getElementById('historyToggle'),
     privacyBtn: document.getElementById('privacyBtn'),
     privacySection: document.getElementById('privacySection'),
@@ -1408,7 +1616,7 @@ function initApp() {
     bindKeyboardHandlers();
     syncHistoryToggle();
     loadExchangeRates();
-    setInterval(loadExchangeRates, 60000); // Обновление каждую минуту
+    startRateCountdown();
     setupEventListeners();
     updateRatesDisplay();
 }
@@ -1429,7 +1637,7 @@ async function loadExchangeRates() {
         updateRatesDisplay();
         updateCurrencyTexts();
 
-        updateTime();
+        updateCountdownDisplay();
 
         if (elements.exchangeModal.classList.contains('active')) {
             calculateResult();
@@ -1448,10 +1656,19 @@ function updateRatesDisplay() {
         return;
     }
     const usdRub = getUsdRubRate();
-    const buy = Number.isFinite(Number(usdRub)) ? `${(usdRub * 0.995).toFixed(2)} ₽` : '—';
-    const sell = Number.isFinite(Number(usdRub)) ? `${(usdRub * 1.005).toFixed(2)} ₽` : '—';
+    const buy = Number.isFinite(Number(usdRub)) ? `${(usdRub * 1.02).toFixed(2)} ₽` : '—';
+    const sell = Number.isFinite(Number(usdRub)) ? `${(usdRub * 0.98).toFixed(2)} ₽` : '—';
+    const buyCashless = Number.isFinite(Number(usdRub)) ? `${(usdRub * 1.025).toFixed(2)} ₽` : '—';
+    const sellCashless = Number.isFinite(Number(usdRub)) ? `${(usdRub * 0.975).toFixed(2)} ₽` : '—';
     elements.buyRate.textContent = buy;
     elements.sellRate.textContent = sell;
+    if (elements.buyRateCashless) {
+        elements.buyRateCashless.textContent = buyCashless;
+    }
+    if (elements.sellRateCashless) {
+        elements.sellRateCashless.textContent = sellCashless;
+    }
+    syncRateDuplicates();
 }
 
 function setUpdateStatus(text, isError = false) {
@@ -1462,14 +1679,43 @@ function setUpdateStatus(text, isError = false) {
     elements.updateTime.style.color = isError ? '#ff6b6b' : '';
 }
 
-function updateTime() {
-    const now = new Date();
-    const timeString = now.toLocaleTimeString(state.language === 'zh' ? 'zh-CN' : state.language === 'en' ? 'en-US' : 'ru-RU', { 
-        hour: '2-digit', 
-        minute: '2-digit' 
-    });
-    const updatedText = translations[state.language]['updated'] || 'Обновлено';
-    setUpdateStatus(`${updatedText}: ${timeString}`);
+function startRateCountdown() {
+    resetRateCountdown();
+    if (countdownTimer) {
+        clearInterval(countdownTimer);
+    }
+    countdownTimer = setInterval(tickRateCountdown, 1000);
+}
+
+function resetRateCountdown() {
+    nextUpdateAt = Date.now() + 5 * 60 * 1000;
+    updateCountdownDisplay();
+}
+
+function tickRateCountdown() {
+    if (!nextUpdateAt) {
+        return;
+    }
+    const diffMs = nextUpdateAt - Date.now();
+    if (diffMs <= 0) {
+        loadExchangeRates();
+        resetRateCountdown();
+        return;
+    }
+    updateCountdownDisplay();
+}
+
+function updateCountdownDisplay() {
+    if (!elements.updateTime || !nextUpdateAt) {
+        return;
+    }
+    const diffMs = Math.max(0, nextUpdateAt - Date.now());
+    const totalSeconds = Math.ceil(diffMs / 1000);
+    const minutes = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
+    const seconds = String(totalSeconds % 60).padStart(2, '0');
+    const label = translations[state.language]['rates.countdown'] || 'Обновление через';
+    elements.updateTime.textContent = `${label}: ${minutes}:${seconds}`;
+    elements.updateTime.style.color = '';
 }
 
 // Применение темы
@@ -1524,7 +1770,8 @@ function applyLanguage(lang) {
         }
     });
 
-    updateTime();
+    updateCountdownDisplay();
+    syncRateDuplicates();
 }
 
 function openSupport() {
@@ -1550,19 +1797,41 @@ function setupEventListeners() {
         if (e.target === elements.settingsModal) closeSettingsModal();
     });
 
-    elements.aboutBtn.addEventListener('click', () => openAboutModal());
+    if (elements.aboutBtn) {
+        elements.aboutBtn.addEventListener('click', () => openAboutModal());
+    }
     elements.closeAboutModal.addEventListener('click', closeAboutModal);
     elements.aboutModal.addEventListener('click', (e) => {
         if (e.target === elements.aboutModal) closeAboutModal();
     });
 
-    elements.securityBtn.addEventListener('click', () => openSecurityModal());
+    if (elements.securityBtn) {
+        elements.securityBtn.addEventListener('click', () => openSecurityModal());
+    }
     elements.closeSecurityModal.addEventListener('click', closeSecurityModal);
     elements.securityModal.addEventListener('click', (e) => {
         if (e.target === elements.securityModal) closeSecurityModal();
     });
 
     elements.supportBtn.addEventListener('click', () => openSupport());
+
+    if (elements.aboutSettingsBtn) {
+        elements.aboutSettingsBtn.addEventListener('click', () => {
+            if (!elements.aboutSettingsSection) {
+                return;
+            }
+            const isHidden = elements.aboutSettingsSection.style.display === 'none';
+            elements.aboutSettingsSection.style.display = isHidden ? 'block' : 'none';
+        });
+    }
+
+    if (elements.aboutSettingsOpen) {
+        elements.aboutSettingsOpen.addEventListener('click', () => openAboutModal());
+    }
+
+    if (elements.securitySettingsBtn) {
+        elements.securitySettingsBtn.addEventListener('click', () => openSecurityModal());
+    }
 
     if (elements.requestsBtn) {
         elements.requestsBtn.addEventListener('click', () => openRequestsModal());
@@ -1792,12 +2061,14 @@ function updateResultDisplay(amount) {
 }
 
 function updateRateInfo(rate) {
-    const directionText = state.direction === 'buy' 
-        ? (translations[state.language]['exchange.buyDesc'] || 'покупки')
-        : (translations[state.language]['exchange.sellDesc'] || 'продажи');
-    const rateText = translations[state.language]['exchange.rate'] || 'Курс';
     let numericRate = '—';
-    if (Number.isFinite(Number(rate))) {
+    const buyText = elements.buyRate ? elements.buyRate.textContent : '';
+    const sellText = elements.sellRate ? elements.sellRate.textContent : '';
+    if (state.direction === 'buy' && buyText) {
+        numericRate = buyText;
+    } else if (state.direction === 'sell' && sellText) {
+        numericRate = sellText;
+    } else if (Number.isFinite(Number(rate))) {
         const suffix = state.currency === 'RUB' ? '₽' : state.currency;
         numericRate = `${Number(rate).toFixed(4)} ${suffix}`;
     }
@@ -2097,12 +2368,6 @@ function getCurrencyRubRate() {
 
 function updateCurrencyTexts() {
     const code = state.currency;
-    if (elements.buyLabel) {
-        elements.buyLabel.textContent = 'Покупка USDT';
-    }
-    if (elements.sellLabel) {
-        elements.sellLabel.textContent = 'Продажа USDT';
-    }
     if (elements.buySubtitle) {
         elements.buySubtitle.textContent = 'рублей за USDT';
     }
@@ -2115,6 +2380,17 @@ function updateCurrencyTexts() {
     if (elements.directionSellDesc) {
         elements.directionSellDesc.textContent = `Отдаете USDT, получаете ${code}`;
     }
+    syncRateDuplicates();
+}
+
+function syncRateDuplicates() {
+    document.querySelectorAll('[data-dup]').forEach((el) => {
+        const sourceId = el.getAttribute('data-dup');
+        const source = sourceId ? document.getElementById(sourceId) : null;
+        if (source) {
+            el.textContent = source.textContent;
+        }
+    });
 }
     </script>
 </body>
