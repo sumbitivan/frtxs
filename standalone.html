@@ -1313,9 +1313,21 @@ function bindKeyboardHandlers() {
         const keyboardOpen = window.visualViewport.height < window.innerHeight * 0.9;
         modalContent.classList.toggle('keyboard-open', keyboardOpen);
         if (keyboardOpen) {
+            const keyboardHeight = Math.max(0, window.innerHeight - window.visualViewport.height);
             modalContent.style.maxHeight = `${Math.max(240, window.visualViewport.height - 24)}px`;
+            modalContent.style.paddingBottom = `${keyboardHeight + 24}px`;
+            if (lastFocusedInput && modalContent.contains(lastFocusedInput)) {
+                const modalRect = modalContent.getBoundingClientRect();
+                const targetRect = lastFocusedInput.getBoundingClientRect();
+                const offset = 12;
+                const below = targetRect.bottom - modalRect.bottom + offset;
+                if (below > 0) {
+                    modalContent.scrollTop += below;
+                }
+            }
         } else {
             modalContent.style.maxHeight = '';
+            modalContent.style.paddingBottom = '';
         }
     };
     window.visualViewport.addEventListener('resize', onResize);
@@ -1337,6 +1349,7 @@ document.addEventListener('focusin', (event) => {
     if (!modalContent) {
         return;
     }
+    lastFocusedInput = target;
     requestAnimationFrame(() => {
         const modalRect = modalContent.getBoundingClientRect();
         const targetRect = target.getBoundingClientRect();
@@ -1670,6 +1683,7 @@ const state = {
 
 let countdownTimer = null;
 let nextUpdateAt = null;
+let lastFocusedInput = null;
 
 // Элементы DOM
 const elements = {
