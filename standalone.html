@@ -130,11 +130,11 @@ body {
 }
 
 .rates-grid--joined-top {
-    margin-bottom: 0;
+    margin-bottom: -2px;
 }
 
 .rates-grid--joined-bottom {
-    margin-top: 0;
+    margin-top: -2px;
 }
 
 .rates-grid--joined-top .rate-column {
@@ -207,7 +207,7 @@ body {
     background: rgba(255, 255, 255, 0.35);
     backdrop-filter: blur(6px);
     border-radius: 10px;
-    padding: 6px;
+    padding: 10px 6px 6px;
     text-align: center;
 }
 
@@ -217,14 +217,33 @@ body {
 }
 
 .rate-tag {
-    position: absolute;
-    top: 6px;
-    left: 8px;
-    font-size: 13px;
+    position: static;
+    font-size: 12px;
     font-weight: 700;
-    line-height: 1;
+    line-height: 1.1;
     display: block;
     opacity: 0.8;
+    margin-bottom: 4px;
+    text-align: left;
+}
+
+.rate-tag--cash {
+    font-size: 12px;
+}
+
+.rate-tag--cashless {
+    font-size: 12px;
+}
+
+.rate-tag--placeholder {
+    visibility: hidden;
+}
+
+.rate-tag--spacer {
+    display: block;
+    height: 4px;
+    margin-bottom: 0;
+    opacity: 0;
 }
 
 [data-theme="dark"] .rate-column {
@@ -261,8 +280,40 @@ body {
     margin-bottom: 2px;
 }
 
+.rate-value-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.rate-arrow {
+    font-size: 12px;
+    line-height: 1;
+    opacity: 0.6;
+    animation: arrowBlink 2.2s ease-in-out infinite;
+}
+
+.rate-arrow--up {
+    color: #00d26a;
+}
+
+.rate-arrow--down {
+    color: #ff2d20;
+}
+
+@keyframes arrowBlink {
+    0%, 100% {
+        opacity: 0.35;
+    }
+    50% {
+        opacity: 1;
+    }
+}
+
 .rate-subtitle {
     font-size: 9px;
+    font-weight: 600;
     opacity: 0.8;
 }
 
@@ -833,26 +884,42 @@ textarea {
             <div class="rates-combined">
                 <div class="rates-grid rates-grid--merged rates-grid--joined-top">
                     <div class="rate-column">
-                    <div class="rate-tag" data-i18n="rates.cash">Наличный</div>
+                    <div class="rate-tag rate-tag--cash" data-i18n="rates.cash">Наличный</div>
                     <div class="rate-label rate-label--buy" data-i18n="rates.buyShort">Покупка</div>
+                    <div class="rate-value-row">
+                        <span class="rate-arrow rate-arrow--up">▲</span>
                         <div class="rate-value" id="buyRate">—</div>
-                        <div class="rate-subtitle" id="buySubtitle" data-i18n="rates.buySubtitle">рублей за USDT</div>
+                    </div>
+                    <div class="rate-subtitle" id="buySubtitle" data-i18n="rates.buySubtitle" style="display:none">рублей за USDT</div>
                     </div>
                     <div class="rate-column">
+                    <div class="rate-tag rate-tag--placeholder">Наличный</div>
                     <div class="rate-label rate-label--sell" data-i18n="rates.sellShort">Продажа</div>
+                    <div class="rate-value-row">
+                        <span class="rate-arrow rate-arrow--down">▼</span>
                         <div class="rate-value" id="sellRate">—</div>
-                        <div class="rate-subtitle" id="sellSubtitle" data-i18n="rates.sellSubtitle">рублей за USDT</div>
+                    </div>
+                    <div class="rate-subtitle" id="sellSubtitle" data-i18n="rates.sellSubtitle" style="display:none">рублей за USDT</div>
                     </div>
                 </div>
                 <div class="rates-grid rates-grid--merged rates-grid--joined-bottom">
                     <div class="rate-column">
-                    <div class="rate-tag" data-i18n="rates.cashless">Безналичный</div>
-                    <div class="rate-value" id="buyRateCashless">—</div>
-                        <div class="rate-subtitle" data-dup="buySubtitle">рублей за USDT</div>
+                    <div class="rate-tag rate-tag--cashless" data-i18n="rates.cashless">Безналичный</div>
+                    <div class="rate-tag rate-tag--spacer"></div>
+                    <div class="rate-value-row">
+                        <span class="rate-arrow rate-arrow--up">▲</span>
+                        <div class="rate-value" id="buyRateCashless">—</div>
+                    </div>
+                        <div class="rate-subtitle" data-dup="buySubtitle" style="display:none">рублей за USDT</div>
                     </div>
                     <div class="rate-column">
-                    <div class="rate-value" id="sellRateCashless">—</div>
-                        <div class="rate-subtitle" data-dup="sellSubtitle">рублей за USDT</div>
+                    <div class="rate-tag rate-tag--placeholder">Безналичный</div>
+                    <div class="rate-tag rate-tag--spacer"></div>
+                    <div class="rate-value-row">
+                        <span class="rate-arrow rate-arrow--down">▼</span>
+                        <div class="rate-value" id="sellRateCashless">—</div>
+                    </div>
+                        <div class="rate-subtitle" data-dup="sellSubtitle" style="display:none">рублей за USDT</div>
                     </div>
                 </div>
             </div>
