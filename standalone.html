@@ -330,13 +330,6 @@ body {
     padding: 6px 10px;
     box-shadow: var(--shadow);
     justify-content: space-between;
-    transition: transform 0.2s ease, opacity 0.2s ease;
-}
-
-body.modal-open .info-block {
-    transform: translateY(140%);
-    opacity: 0;
-    pointer-events: none;
 }
 
 .info-item {
@@ -1310,25 +1303,8 @@ function bindKeyboardHandlers() {
     }
     const onResize = () => {
         updateViewportHeight();
-        const keyboardOpen = window.visualViewport.height < window.innerHeight * 0.9;
+        const keyboardOpen = window.visualViewport.height < window.innerHeight * 0.8;
         modalContent.classList.toggle('keyboard-open', keyboardOpen);
-        if (keyboardOpen) {
-            const keyboardHeight = Math.max(0, window.innerHeight - window.visualViewport.height);
-            modalContent.style.maxHeight = `${Math.max(240, window.visualViewport.height - 24)}px`;
-            modalContent.style.paddingBottom = `${keyboardHeight + 24}px`;
-            if (lastFocusedInput && modalContent.contains(lastFocusedInput)) {
-                const modalRect = modalContent.getBoundingClientRect();
-                const targetRect = lastFocusedInput.getBoundingClientRect();
-                const offset = 12;
-                const below = targetRect.bottom - modalRect.bottom + offset;
-                if (below > 0) {
-                    modalContent.scrollTop += below;
-                }
-            }
-        } else {
-            modalContent.style.maxHeight = '';
-            modalContent.style.paddingBottom = '';
-        }
     };
     window.visualViewport.addEventListener('resize', onResize);
     window.visualViewport.addEventListener('scroll', onResize);
@@ -1349,18 +1325,8 @@ document.addEventListener('focusin', (event) => {
     if (!modalContent) {
         return;
     }
-    lastFocusedInput = target;
     requestAnimationFrame(() => {
-        const modalRect = modalContent.getBoundingClientRect();
-        const targetRect = target.getBoundingClientRect();
-        const offset = 12;
-        const below = targetRect.bottom - modalRect.bottom + offset;
-        const above = modalRect.top - targetRect.top + offset;
-        if (below > 0) {
-            modalContent.scrollTop += below;
-        } else if (above > 0) {
-            modalContent.scrollTop -= above;
-        }
+        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
     });
 });
 
@@ -1683,7 +1649,6 @@ const state = {
 
 let countdownTimer = null;
 let nextUpdateAt = null;
-let lastFocusedInput = null;
 
 // Элементы DOM
 const elements = {
@@ -2096,7 +2061,6 @@ function openModal() {
     closeAllModals();
     elements.exchangeModal.classList.add('active');
     document.body.style.overflow = 'hidden';
-    document.body.classList.add('modal-open');
     setTimeout(() => elements.clientAmount.focus(), 300);
 }
 
@@ -2105,7 +2069,6 @@ function openExchangeTypeModal() {
     if (elements.exchangeTypeModal) {
         elements.exchangeTypeModal.classList.add('active');
         document.body.style.overflow = 'hidden';
-        document.body.classList.add('modal-open');
     }
 }
 
@@ -2114,13 +2077,11 @@ function closeExchangeTypeModal() {
         elements.exchangeTypeModal.classList.remove('active');
     }
     document.body.style.overflow = '';
-    document.body.classList.remove('modal-open');
 }
 
 function closeModal() {
     elements.exchangeModal.classList.remove('active');
     document.body.style.overflow = '';
-    document.body.classList.remove('modal-open');
     resetForm();
 }
 
@@ -2128,39 +2089,33 @@ function openSettingsModal() {
     closeAllModals();
     elements.settingsModal.classList.add('active');
     document.body.style.overflow = 'hidden';
-    document.body.classList.add('modal-open');
 }
 
 function closeSettingsModal() {
     elements.settingsModal.classList.remove('active');
     document.body.style.overflow = '';
-    document.body.classList.remove('modal-open');
 }
 
 function openAboutModal() {
     closeAllModals();
     elements.aboutModal.classList.add('active');
     document.body.style.overflow = 'hidden';
-    document.body.classList.add('modal-open');
 }
 
 function closeAboutModal() {
     elements.aboutModal.classList.remove('active');
     document.body.style.overflow = '';
-    document.body.classList.remove('modal-open');
 }
 
 function openSecurityModal() {
     closeAllModals();
     elements.securityModal.classList.add('active');
     document.body.style.overflow = 'hidden';
-    document.body.classList.add('modal-open');
 }
 
 function closeSecurityModal() {
     elements.securityModal.classList.remove('active');
     document.body.style.overflow = '';
-    document.body.classList.remove('modal-open');
 }
 
 function openRequestsModal() {
@@ -2168,7 +2123,6 @@ function openRequestsModal() {
     updateRequestsModal();
     elements.requestsModal.classList.add('active');
     document.body.style.overflow = 'hidden';
-    document.body.classList.add('modal-open');
 }
 
 function closeAllModals() {
@@ -2182,13 +2136,11 @@ function closeAllModals() {
     elements.requestsModal.classList.remove('active');
     elements.confirmClearModal.classList.remove('active');
     document.body.style.overflow = '';
-    document.body.classList.remove('modal-open');
 }
 
 function closeRequestsModal() {
     elements.requestsModal.classList.remove('active');
     document.body.style.overflow = '';
-    document.body.classList.remove('modal-open');
 }
 
 function setDirection(direction) {
@@ -2502,7 +2454,6 @@ function openConfirmClearModal() {
     closeAllModals();
     elements.confirmClearModal.classList.add('active');
     document.body.style.overflow = 'hidden';
-    document.body.classList.add('modal-open');
 }
 
 function closeConfirmClearModal() {
@@ -2511,7 +2462,6 @@ function closeConfirmClearModal() {
     }
     elements.confirmClearModal.classList.remove('active');
     document.body.style.overflow = '';
-    document.body.classList.remove('modal-open');
 }
 
 function generateRequestId() {
