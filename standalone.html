@@ -1311,6 +1311,10 @@ function bindKeyboardHandlers() {
     onResize();
 }
 
+function isIOS() {
+    return /iPhone|iPad|iPod/i.test(navigator.userAgent);
+}
+
 updateViewportHeight();
 window.addEventListener('resize', updateViewportHeight);
 document.addEventListener('focusin', (event) => {
@@ -1325,9 +1329,40 @@ document.addEventListener('focusin', (event) => {
     if (!modalContent) {
         return;
     }
+    if (isIOS()) {
+        modalContent.classList.add('keyboard-open');
+    }
     requestAnimationFrame(() => {
-        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        const modalRect = modalContent.getBoundingClientRect();
+        const targetRect = target.getBoundingClientRect();
+        const offset = 24;
+        const below = targetRect.bottom - modalRect.bottom + offset;
+        const above = modalRect.top - targetRect.top + offset;
+        if (below > 0) {
+            modalContent.scrollTop += below;
+        } else if (above > 0) {
+            modalContent.scrollTop -= above;
+        }
     });
+});
+
+document.addEventListener('focusout', (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLElement)) {
+        return;
+    }
+    if (!target.matches('input, textarea, select')) {
+        return;
+    }
+    const modalContent = target.closest('.modal-content');
+    if (!modalContent) {
+        return;
+    }
+    if (isIOS()) {
+        setTimeout(() => {
+            modalContent.classList.remove('keyboard-open');
+        }, 300);
+    }
 });
 
 // Источник курсов: ЦБ РФ через JSONP (обходит CORS в WebView)
