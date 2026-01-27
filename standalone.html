@@ -175,7 +175,34 @@ body {
 
 .info-icon {
     font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
+
+.info-item#settingsBtn .info-icon {
+    color: #8a8a8a;
+    filter: none;
+    opacity: 1;
+}
+
+.info-icon svg {
+    width: 18px;
+    height: 18px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+
+.info-icon img {
+    width: 18px;
+    height: 18px;
+    display: block;
+}
+
 
 .modal {
     display: none;
@@ -689,11 +716,11 @@ textarea {
                 <span data-i18n="exchange.btn">Обмен</span>
             </div>
             <div class="info-item" id="requestsBtn">
-                <span class="info-icon">📋</span>
+                <span class="info-icon">🧾</span>
                 <span data-i18n="info.requests">Операции</span>
             </div>
             <div class="info-item" id="settingsBtn">
-                <span class="info-icon">⚙️</span>
+                <span class="info-icon">👤︎</span>
                 <span data-i18n="info.settings">Профиль</span>
             </div>
         </div>
