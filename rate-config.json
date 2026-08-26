@@ -13,7 +13,7 @@
     "buy_usdt": {
       "description": "Клиент покупает USDT за рубли",
       "source": "manual",
-      "manual_rate": 87,9,
+      "manual_rate": 88,
       "margin_percent": 3,
       "margin_direction": "up"
     }
