@@ -79,7 +79,7 @@ async function loadExchangeRates() {
     const DEAL_TYPE = 'cash';
 
     try {
-        const response = await fetch('/rate.json', { cache: 'no-store' });
+        const response = await fetch(`/rate.json?t=${Date.now()}`, { cache: 'no-store' });
         if (!response.ok) {
             throw new Error(`Request failed: ${response.status}`);
         }
