@@ -69,87 +69,38 @@ function initApp() {
     updateRatesDisplay();
 }
 
-// Источник курсов: ЦБ РФ через JSONP (обходит CORS в WebView)
-const CBR_JSONP_URL = 'https://www.cbr-xml-daily.ru/daily_jsonp.js';
 
-async function fetchJsonNoCache(url) {
-    const response = await fetch(url, { cache: 'no-store' });
-    if (!response.ok) {
-        throw new Error(`Request failed: ${response.status}`);
-    }
-    return response.json();
-}
-
-function normalizeRate(value) {
-    const num = typeof value === 'string' ? parseFloat(value) : Number(value);
-    return Number.isFinite(num) ? num : null;
-}
-
-function loadCbrJsonp() {
-    return new Promise((resolve, reject) => {
-        const existing = document.getElementById('cbr-jsonp');
-        if (existing) {
-            existing.remove();
-        }
-
-        const timeoutId = setTimeout(() => {
-            reject(new Error('CBR JSONP timeout'));
-        }, 8000);
-
-        window.CBR_XML_Daily_Ru = (rates) => {
-            clearTimeout(timeoutId);
-            resolve(rates);
-        };
-
-        const script = document.createElement('script');
-        script.id = 'cbr-jsonp';
-        script.src = CBR_JSONP_URL;
-        script.async = true;
-        script.onerror = () => {
-            clearTimeout(timeoutId);
-            reject(new Error('CBR JSONP load failed'));
-        };
-        document.head.appendChild(script);
-    });
-}
-
-async function fetchUsdToRub() {
-    try {
-        const data = await loadCbrJsonp();
-        const normalized = normalizeRate(data && data.Valute && data.Valute.USD && data.Valute.USD.Value);
-        if (normalized !== null) {
-            return { rate: normalized, source: 'cbr' };
-        }
-    } catch (error) {
-        console.warn('CBR JSONP failed.', error);
-    }
-
-    throw new Error('CBR JSONP returned invalid data.');
-}
 
 // Загрузка курсов валют из API
+// Загрузка курсов из rate.json (считается заранее через GitHub Actions)
 async function loadExchangeRates() {
+    // ⚠️ по умолчанию используется "cash" — если нужен "cashless" или
+    // переключатель между ними, поменяй здесь и добавь UI-тумблер отдельно
+    const DEAL_TYPE = 'cash';
+
     try {
-        const rateResult = await fetchUsdToRub();
-        const usdToRub = Number(rateResult.rate);
-        if (!Number.isFinite(usdToRub)) {
-            throw new Error('Invalid rate value');
+        const response = await fetch('/rate.json', { cache: 'no-store' });
+        if (!response.ok) {
+            throw new Error(`Request failed: ${response.status}`);
         }
-        
-        // Устанавливаем курсы с маржой (покупка немного ниже, продажа немного выше)
-        state.buyRate = (usdToRub * 0.995).toFixed(2);  // Покупка USD (отдаем RUB)
-        state.sellRate = (usdToRub * 1.005).toFixed(2); // Продажа USD (отдаем USD)
-        
+        const data = await response.json();
+
+        const dealRates = data[DEAL_TYPE];
+        if (!dealRates || !dealRates.buy_usdt || !dealRates.sell_usdt) {
+            throw new Error('rate.json не содержит нужных полей');
+        }
+
+        state.buyRate = Number(dealRates.buy_usdt).toFixed(2);
+        state.sellRate = Number(dealRates.sell_usdt).toFixed(2);
+
         updateRatesDisplay();
-        updateTime();
-        
-        // Если модальное окно открыто, пересчитываем сумму
+        updateTime(data.updated_at);
+
         if (elements.exchangeModal.classList.contains('active')) {
             calculateResult();
         }
     } catch (error) {
         console.error('Ошибка загрузки курсов:', error);
-        // Используем последние известные курсы при ошибке
         updateRatesDisplay();
         setUpdateStatus('Курс недоступен', true);
     }
@@ -174,11 +125,11 @@ function setUpdateStatus(text, isError = false) {
     elements.updateTime.style.color = isError ? '#ff6b6b' : '';
 }
 
-function updateTime() {
-    const now = new Date();
-    const timeString = now.toLocaleTimeString('ru-RU', { 
-        hour: '2-digit', 
-        minute: '2-digit' 
+function updateTime(updatedAtIso) {
+    const date = updatedAtIso ? new Date(updatedAtIso) : new Date();
+    const timeString = date.toLocaleTimeString('ru-RU', {
+        hour: '2-digit',
+        minute: '2-digit'
     });
     setUpdateStatus(`Курс обновлен: ${timeString}`);
 }
