@@ -1,0 +1,35 @@
+name: Update rate
+
+on:
+  schedule:
+    # каждые 15 минут — можно менять; чаще ~5 минут смысла нет, GitHub всё равно
+    # может задерживать запуск в моменты нагрузки
+    - cron: '*/15 * * * *'
+  workflow_dispatch: {}
+    # даёт возможность запустить обновление вручную кнопкой в GitHub —
+    # полезно сразу после того, как ты поправил rate-config.json и хочешь
+    # обновить курс немедленно, не дожидаясь расписания
+
+permissions:
+  contents: write
+
+jobs:
+  update-rate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Compute rate
+        run: node scripts/compute-rate.js
+
+      - name: Commit rate.json if changed
+        run: |
+          git config user.name "fortexis-rate-bot"
+          git config user.email "actions@github.com"
+          git add rate.json
+          git diff --quiet --cached || git commit -m "chore: update rate.json"
+          git push
