@@ -2451,7 +2451,15 @@ function validateForm(data) {
         showToast('Введите корректное имя', 'error');
         return false;
     }
-    // ... остальные проверки без изменений
+    if (!data.clientPhone || data.clientPhone.trim().length < 2) {
+        showToast('Введите корректный юзернейм', 'error');
+        return false;
+    }
+    if (data.clientAmount <= 0) {
+        showToast('Введите сумму больше нуля', 'error');
+        return false;
+    }
+    return true;
 }
 
 function sendToTelegram(data) {
