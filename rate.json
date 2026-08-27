@@ -1,11 +1,11 @@
 {
-  "updated_at": "2026-08-27T00:44:47.780Z",
+  "updated_at": "2026-08-27T01:17:38.271Z",
   "cash": {
-    "sell_usdt": 85.26,
-    "buy_usdt": 90.64
+    "sell_usdt": 83.3,
+    "buy_usdt": 88.58
   },
   "cashless": {
-    "sell_usdt": 81.7,
-    "buy_usdt": 91.35
+    "sell_usdt": 84.55,
+    "buy_usdt": 86.1
   }
 }
