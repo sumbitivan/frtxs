@@ -1692,8 +1692,12 @@ async function loadExchangeRates() {
 
         state.rates.cash.buy = Number(data.cash.buy_usdt);
         state.rates.cash.sell = Number(data.cash.sell_usdt);
-        state.rates.cashless.buy = Number(data.cashless.buy_usdt);
+                state.rates.cashless.buy = Number(data.cashless.buy_usdt);
         state.rates.cashless.sell = Number(data.cashless.sell_usdt);
+        if (data.usd) {
+            state.rates.usd.buy = Number(data.usd.buy_usdt);
+            state.rates.usd.sell = Number(data.usd.sell_usdt);
+        }
         state.lastUpdatedAt = data.updated_at;
 
         updateRatesDisplay();
@@ -2198,7 +2202,7 @@ function updateResultDisplay(amount) {
 function updateRateInfo(rate) {
     let numericRate = '—';
     if (rate === null) {
-        numericRate = t('result.tba');
+        numericRate = 'Скоро';
     } else if (Number.isFinite(Number(rate))) {
         if (state.currency === 'USD') {
             numericRate = `${Number(rate).toFixed(4)} USD`;
