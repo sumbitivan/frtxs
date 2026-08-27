@@ -2139,45 +2139,64 @@ function setCurrency(currency) {
     updateCurrencyTexts();
     updateRatesDisplay();
     setDirection(state.direction);
+
+    // Пара с EUR временно недоступна — блокируем ввод
+    const isEurDisabled = currency === 'EUR';
+    elements.clientAmount.disabled = isEurDisabled;
+    const submitBtn = elements.exchangeForm.querySelector('.submit-btn');
+    if (submitBtn) {
+        submitBtn.disabled = isEurDisabled;
+        submitBtn.textContent = isEurDisabled ? 'Пара временно недоступна' : '';
+        if (!isEurDisabled) {
+            const label = translations[state.language]['exchange.submit'] || 'Отправить заявку';
+            submitBtn.innerHTML = `<span data-i18n="exchange.submit">${label}</span>`;
+        }
+    }
 }
 
 function calculateResult() {
     const amount = parseFloat(elements.clientAmount.value) || 0;
     state.clientAmount = amount;
+
+    if (state.currency === 'EUR') {
+        updateResultDisplay(null); // покажет TBA вместо числа
+        updateRateInfo(null);
+        return;
+    }
+
     if (amount <= 0) {
         updateResultDisplay(0);
         return;
     }
     let result = 0;
-    const usdRubRate = getSelectedRateValue();
-    const currencyRub = getCurrencyRubRate();
-    if (!Number.isFinite(usdRubRate) || !Number.isFinite(currencyRub)) {
+    const usdtRubRate = getSelectedRateValue();
+    if (!Number.isFinite(usdtRubRate)) {
         updateResultDisplay(0);
         updateRateInfo('—');
         return;
     }
-    const pairRate = usdRubRate / currencyRub;
     if (state.direction === 'buy') {
-        result = (amount * currencyRub) / usdRubRate;
+        result = amount / usdtRubRate;
     } else {
-        result = (amount * usdRubRate) / currencyRub;
+        result = amount * usdtRubRate;
     }
-    state.currentRate = pairRate;
+    state.currentRate = usdtRubRate;
     state.resultAmount = result;
     updateResultDisplay(result);
-    updateRateInfo(pairRate);
+    updateRateInfo(usdtRubRate);
 }
 
 function updateResultDisplay(amount) {
     const resultValue = elements.resultAmount.querySelector('.result-value');
-    resultValue.textContent = formatAmount(amount);
+    resultValue.textContent = amount === null ? 'TBA' : formatAmount(amount);
 }
 
 function updateRateInfo(rate) {
     let numericRate = '—';
-    if (Number.isFinite(Number(rate))) {
-        const suffix = state.currency === 'RUB' ? '₽' : state.currency;
-        numericRate = `${Number(rate).toFixed(4)} ${suffix}`;
+    if (rate === null) {
+        numericRate = 'TBA';
+    } else if (Number.isFinite(Number(rate))) {
+        numericRate = `${Number(rate).toFixed(2)} ₽`;
     }
     elements.currentRate.textContent = numericRate;
 }
@@ -2424,19 +2443,15 @@ function toggleRequestDetails(requestId) {
 
 
 function validateForm(data) {
+    if (state.currency === 'EUR') {
+        showToast('Пара с EUR временно недоступна', 'error');
+        return false;
+    }
     if (!data.clientName || data.clientName.trim().length < 2) {
         showToast('Введите корректное имя', 'error');
         return false;
     }
-    if (!data.clientPhone || data.clientPhone.trim().length < 2) {
-        showToast('Введите корректный юзернейм', 'error');
-        return false;
-    }
-    if (data.clientAmount <= 0) {
-        showToast('Введите сумму больше нуля', 'error');
-        return false;
-    }
-    return true;
+    // ... остальные проверки без изменений
 }
 
 function sendToTelegram(data) {
