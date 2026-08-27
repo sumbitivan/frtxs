@@ -2124,6 +2124,9 @@ function setExchangeType(type) {
 }
 
 function getSelectedRateValue() {
+    if (state.currency === 'USD') {
+        return state.direction === 'buy' ? state.rates.usd.buy : state.rates.usd.sell;
+    }
     const bucket = state.exchangeType === 'cashless' ? state.rates.cashless : state.rates.cash;
     return state.direction === 'buy' ? bucket.buy : bucket.sell;
 }
@@ -2195,9 +2198,13 @@ function updateResultDisplay(amount) {
 function updateRateInfo(rate) {
     let numericRate = '—';
     if (rate === null) {
-        numericRate = 'Временно недоступен';
+        numericRate = t('result.tba');
     } else if (Number.isFinite(Number(rate))) {
-        numericRate = `${Number(rate).toFixed(2)} ₽`;
+        if (state.currency === 'USD') {
+            numericRate = `${Number(rate).toFixed(4)} USD`;
+        } else {
+            numericRate = `${Number(rate).toFixed(2)} ₽`;
+        }
     }
     elements.currentRate.textContent = numericRate;
 }
