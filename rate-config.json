@@ -6,14 +6,14 @@
     "sell_usdt": {
       "description": "Клиент продаёт USDT, получает рубли",
       "source": "manual",
-      "manual_rate": 85,
+      "manual_rate": 87,
       "margin_percent": 2,
       "margin_direction": "down"
     },
     "buy_usdt": {
       "description": "Клиент покупает USDT за рубли",
       "source": "manual",
-      "manual_rate": 86,
+      "manual_rate": 88,
       "margin_percent": 3,
       "margin_direction": "up"
     }
@@ -23,14 +23,14 @@
     "sell_usdt": {
       "description": "Клиент продаёт USDT, получает рубли (безнал/SEPA)",
       "source": "manual",
-      "manual_rate": 89,
+      "manual_rate": 86,
       "margin_percent": 5,
       "margin_direction": "down"
     },
     "buy_usdt": {
       "description": "Клиент покупает USDT за рубли (безнал/SEPA)",
       "source": "manual",
-      "manual_rate": 82,
+      "manual_rate": 87,
       "margin_percent": 5,
       "margin_direction": "up"
     }
