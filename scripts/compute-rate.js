@@ -55,12 +55,13 @@ async function processDealType(dealTypeName, dealType) {
 async function main() {
   const config = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf-8'));
 
-  const output = {
+    const output = {
     updated_at: new Date().toISOString(),
     cash: await processDealType('cash', config.cash),
     cashless: await processDealType('cashless', config.cashless),
+    usd: await processDealType('usd', config.usd),
   };
-
+  
   fs.writeFileSync(OUTPUT_PATH, JSON.stringify(output, null, 2));
   console.log('rate.json обновлён:', output);
 }
