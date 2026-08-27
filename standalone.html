@@ -2159,7 +2159,7 @@ function calculateResult() {
     state.clientAmount = amount;
 
     if (state.currency === 'EUR') {
-        updateResultDisplay(null); // покажет TBA вместо числа
+        updateResultDisplay(null); // покажет ,,Временно недоступен,, вместо числа
         updateRateInfo(null);
         return;
     }
@@ -2188,13 +2188,13 @@ function calculateResult() {
 
 function updateResultDisplay(amount) {
     const resultValue = elements.resultAmount.querySelector('.result-value');
-    resultValue.textContent = amount === null ? 'TBA' : formatAmount(amount);
+    resultValue.textContent = amount === null ? 'Временно недоступен' : formatAmount(amount);
 }
 
 function updateRateInfo(rate) {
     let numericRate = '—';
     if (rate === null) {
-        numericRate = 'TBA';
+        numericRate = 'Временно недоступен';
     } else if (Number.isFinite(Number(rate))) {
         numericRate = `${Number(rate).toFixed(2)} ₽`;
     }
