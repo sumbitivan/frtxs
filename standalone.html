@@ -1605,6 +1605,11 @@ const state = {
 
 let countdownTimer = null;
 let nextUpdateAt = null;
+        function t(key) {
+    return (translations[state.language] && translations[state.language][key])
+        || translations.ru[key]
+        || key;
+}
 
 // Элементы DOM
 const elements = {
@@ -1678,7 +1683,7 @@ document.addEventListener('DOMContentLoaded', () => {
 function initApp() {
     setUpdateStatus('Загрузка курса...');
     applyTheme(state.theme);
-    applyLanguage(state.language);
+    (state.language);
     bindKeyboardHandlers();
     syncHistoryToggle();
     loadExchangeRates();
@@ -1808,7 +1813,7 @@ function applyTheme(theme) {
 }
 
 // Применение языка
-function applyLanguage(lang) {
+function (lang) {
     state.language = lang;
     document.documentElement.lang = lang;
     localStorage.setItem('language', lang);
@@ -1840,6 +1845,12 @@ function applyLanguage(lang) {
 
     updateCountdownDisplay();
     syncRateDuplicates();
+    if (state.currency === 'EUR') {
+        setCurrency('EUR');
+    }
+    if (elements.exchangeModal.classList.contains('active')) {
+        calculateResult();
+    }
 }
 
 function openSupport() {
@@ -2002,7 +2013,7 @@ function setupEventListeners() {
 
     elements.languageBtns.forEach(btn => {
         btn.addEventListener('click', () => {
-            applyLanguage(btn.dataset.lang);
+            (btn.dataset.lang);
         });
     });
 
@@ -2160,7 +2171,7 @@ function setCurrency(currency) {
     const submitBtn = elements.exchangeForm.querySelector('.submit-btn');
     if (submitBtn) {
         submitBtn.disabled = isEurDisabled;
-        submitBtn.textContent = isEurDisabled ? 'Пара временно недоступна' : '';
+                submitBtn.textContent = isEurDisabled ? t('exchange.pairUnavailable') : '';
         if (!isEurDisabled) {
             const label = translations[state.language]['exchange.submit'] || 'Отправить заявку';
             submitBtn.innerHTML = `<span data-i18n="exchange.submit">${label}</span>`;
@@ -2172,7 +2183,7 @@ function calculateResult() {
     const amount = parseFloat(elements.clientAmount.value) || 0;
     state.clientAmount = amount;
 
-    if (state.currency === 'EUR') {
+     {
         updateResultDisplay(null); // покажет ,,Временно недоступен,, вместо числа
         updateRateInfo(null);
         return;
@@ -2202,13 +2213,13 @@ function calculateResult() {
 
 function updateResultDisplay(amount) {
     const resultValue = elements.resultAmount.querySelector('.result-value');
-    resultValue.textContent = amount === null ? 'Скоро появится узнавайте у менеджера' : formatAmount(amount);
+    resultValue.textContent = amount === null ? t('result.tba') : formatAmount(amount);
 }
 
 function updateRateInfo(rate) {
     let numericRate = '—';
-    if (rate === null) {
-        numericRate = 'Скоро';
+        if (rate === null) {
+        numericRate = t('result.tba');
     } else if (Number.isFinite(Number(rate))) {
         if (state.currency === 'USD') {
             numericRate = `${Number(rate).toFixed(4)} USD`;
@@ -2461,8 +2472,8 @@ function toggleRequestDetails(requestId) {
 
 
 function validateForm(data) {
-    if (state.currency === 'EUR') {
-        showToast('Пара с EUR временно недоступна', 'error');
+     {
+        showToast(t('exchange.pairUnavailable'), 'error');
         return false;
     }
     if (!data.clientName || data.clientName.trim().length < 2) {
