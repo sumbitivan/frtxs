@@ -1300,13 +1300,16 @@ function updateViewportHeight() {
 
 function bindKeyboardHandlers() {
     const modalContent = document.querySelector('.modal-content');
-    if (!modalContent || !window.visualViewport) {
-        return;
-    }
+    if (!modalContent || !window.visualViewport) { return; }
     const onResize = () => {
         updateViewportHeight();
         const keyboardOpen = window.visualViewport.height < window.innerHeight * 0.8;
         modalContent.classList.toggle('keyboard-open', keyboardOpen);
+        if (keyboardOpen && activeInputElement) {
+            requestAnimationFrame(() => {
+                activeInputElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            });
+        }
     };
     window.visualViewport.addEventListener('resize', onResize);
     window.visualViewport.addEventListener('scroll', onResize);
@@ -1317,19 +1320,15 @@ updateViewportHeight();
 window.addEventListener('resize', updateViewportHeight);
 document.addEventListener('focusin', (event) => {
     const target = event.target;
-    if (!(target instanceof HTMLElement)) {
-        return;
-    }
-    if (!target.matches('input, textarea, select')) {
-        return;
-    }
+    if (!(target instanceof HTMLElement)) { return; }
+    if (!target.matches('input, textarea, select')) { return; }
     const modalContent = target.closest('.modal-content');
-    if (!modalContent) {
-        return;
-    }
-    requestAnimationFrame(() => {
-        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    });
+    if (!modalContent) { return; }
+    activeInputElement = target;
+    requestAnimationFrame(() => { target.scrollIntoView({ behavior: 'smooth', block: 'center' }); });
+});
+document.addEventListener('focusout', (event) => {
+    if (event.target === activeInputElement) { activeInputElement = null; }
 });
 
 
