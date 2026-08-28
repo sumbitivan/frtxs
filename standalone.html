@@ -1846,7 +1846,8 @@ function (lang) {
     updateCountdownDisplay();
     syncRateDuplicates();
     if (state.currency === 'EUR') {
-        setCurrency('EUR');
+        showToast(t('exchange.pairUnavailable'), 'error');
+        return false;
     }
     if (elements.exchangeModal.classList.contains('active')) {
         calculateResult();
