@@ -1683,7 +1683,7 @@ document.addEventListener('DOMContentLoaded', () => {
 function initApp() {
     setUpdateStatus('Загрузка курса...');
     applyTheme(state.theme);
-    (state.language);
+    applyLanguage(state.language);
     bindKeyboardHandlers();
     syncHistoryToggle();
     loadExchangeRates();
@@ -1813,7 +1813,8 @@ function applyTheme(theme) {
 }
 
 // Применение языка
-function (lang) {
+// Применение языка
+function applyLanguage(lang) {
     state.language = lang;
     document.documentElement.lang = lang;
     localStorage.setItem('language', lang);
@@ -1845,10 +1846,6 @@ function (lang) {
 
     updateCountdownDisplay();
     syncRateDuplicates();
-    if (state.currency === 'EUR') {
-        showToast(t('exchange.pairUnavailable'), 'error');
-        return false;
-    }
     if (elements.exchangeModal.classList.contains('active')) {
         calculateResult();
     }
@@ -2014,7 +2011,7 @@ function setupEventListeners() {
 
     elements.languageBtns.forEach(btn => {
         btn.addEventListener('click', () => {
-            (btn.dataset.lang);
+            applyLanguage(btn.dataset.lang);
         });
     });
 
@@ -2179,17 +2176,15 @@ function setCurrency(currency) {
         }
     }
 }
-
 function calculateResult() {
     const amount = parseFloat(elements.clientAmount.value) || 0;
     state.clientAmount = amount;
 
-     {
-        updateResultDisplay(null); // покажет ,,Временно недоступен,, вместо числа
+    if (state.currency === 'EUR') {
+        updateResultDisplay(null);
         updateRateInfo(null);
         return;
     }
-
     if (amount <= 0) {
         updateResultDisplay(0);
         return;
@@ -2473,7 +2468,7 @@ function toggleRequestDetails(requestId) {
 
 
 function validateForm(data) {
-     {
+    if (state.currency === 'EUR') {
         showToast(t('exchange.pairUnavailable'), 'error');
         return false;
     }
