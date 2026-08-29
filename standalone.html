@@ -1305,15 +1305,22 @@ function bindKeyboardHandlers() {
         updateViewportHeight();
         const keyboardOpen = window.visualViewport.height < window.innerHeight * 0.8;
         modalContent.classList.toggle('keyboard-open', keyboardOpen);
-        if (keyboardOpen && activeInputElement) {
-            requestAnimationFrame(() => {
-                activeInputElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            });
+                if (keyboardOpen && activeInputElement) {
+            requestAnimationFrame(() => { scrollFieldIntoView(activeInputElement); });
         }
     };
     window.visualViewport.addEventListener('resize', onResize);
     window.visualViewport.addEventListener('scroll', onResize);
     onResize();
+}
+
+function scrollFieldIntoView(el) {
+    const container = el.closest('.modal-content');
+    if (!container) { return; }
+    const containerRect = container.getBoundingClientRect();
+    const elRect = el.getBoundingClientRect();
+    const offset = elRect.top - containerRect.top - (containerRect.height / 2) + (elRect.height / 2);
+    container.scrollTop += offset;
 }
 
 updateViewportHeight();
@@ -1325,7 +1332,14 @@ document.addEventListener('focusin', (event) => {
     const modalContent = target.closest('.modal-content');
     if (!modalContent) { return; }
     activeInputElement = target;
-    requestAnimationFrame(() => { target.scrollIntoView({ behavior: 'smooth', block: 'center' }); });
+    // Несколько попыток с разной задержкой — клавиатура на телефоне
+    // открывается не мгновенно, и точный момент её появления
+    // отличается на разных устройствах/браузерах.
+    [50, 200, 400, 600].forEach((delay) => {
+        setTimeout(() => {
+            if (activeInputElement === target) { scrollFieldIntoView(target); }
+        }, delay);
+    });
 });
 document.addEventListener('focusout', (event) => {
     if (event.target === activeInputElement) { activeInputElement = null; }
