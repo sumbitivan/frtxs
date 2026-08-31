@@ -2559,7 +2559,6 @@ function updateRequestsModal() {
                 <div class="setting-option-value">📋</div>
             </div>
         </div>
-        </div>
         <div class="form-group">
             <label>${statusLabel}</label>
             <div class="setting-option compact" data-request-id="${payload.requestId}" data-role="status">
@@ -2612,6 +2611,10 @@ function updateRequestsModal() {
 
     elements.requestsBody.querySelectorAll('[data-role="status"]').forEach((btn) => {
         btn.addEventListener('click', () => toggleRequestDetails(btn.getAttribute('data-request-id')));
+    });
+
+    elements.requestsBody.querySelectorAll('[data-role="copy-id"]').forEach((btn) => {
+        btn.addEventListener('click', () => copyRequestId(btn.getAttribute('data-request-id')));
     });
 }
 
