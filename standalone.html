@@ -1624,6 +1624,7 @@ const translations = {
         'requests.support': 'Тех.Поддержка',
         'requests.confirm': 'Подтвердить получение',
         'requests.thanks': 'Благодарим за сделку, Fortexis',
+        'requests.copied': 'Номер заявки скопирован',
         'confirm.clearTitle': 'Подтверждение',
         'confirm.clearText': 'Вы уверены что хотите удалить всю историю транзакций?',
         'confirm.yes': 'Да',
@@ -1706,6 +1707,7 @@ const translations = {
         'requests.support': 'Tech support',
         'requests.confirm': 'Confirm receipt',
         'requests.thanks': 'Thank you for the deal, Fortexis',
+        'requests.copied': 'Request ID copied',
         'confirm.clearTitle': 'Confirmation',
         'confirm.clearText': 'Are you sure you want to delete all transaction history?',
         'confirm.yes': 'Yes',
@@ -1788,6 +1790,7 @@ const translations = {
         'requests.support': '技术支持',
         'requests.confirm': '确认收款',
         'requests.thanks': '感谢合作, Fortexis',
+        'requests.copied': '申请编号已复制',
         'confirm.clearTitle': '确认',
         'confirm.clearText': '确定要删除所有交易记录吗？',
         'confirm.yes': '是',
@@ -2551,11 +2554,11 @@ function updateRequestsModal() {
         return `
         <div class="form-group">
             <label>${idLabel}</label>
-            <div class="setting-option compact">
-                <div class="setting-option-label">
-                    <strong>${payload.requestId}</strong>
-                </div>
+            <div class="setting-option compact" data-role="copy-id" data-request-id="${payload.requestId}" style="cursor: pointer;">
+                <div class="setting-option-label"><strong>${payload.requestId}</strong></div>
+                <div class="setting-option-value">📋</div>
             </div>
+        </div>
         </div>
         <div class="form-group">
             <label>${statusLabel}</label>
@@ -2679,6 +2682,39 @@ function toggleRequestDetails(requestId) {
     });
 }
 
+function copyRequestId(requestId) {
+    if (!requestId) { return; }
+
+    const showCopiedToast = () => {
+        const copiedText = translations[state.language]['requests.copied'] || 'Номер заявки скопирован';
+        showToast(copiedText, 'success');
+    };
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(requestId).then(showCopiedToast).catch(() => {
+            fallbackCopy(requestId, showCopiedToast);
+        });
+    } else {
+        fallbackCopy(requestId, showCopiedToast);
+    }
+}
+
+function fallbackCopy(text, onSuccess) {
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+    try {
+        document.execCommand('copy');
+        onSuccess();
+    } catch (error) {
+        console.warn('Copy failed', error);
+    }
+    document.body.removeChild(textarea);
+}
 
 function validateForm(data) {
     if (state.currency === 'EUR') {
