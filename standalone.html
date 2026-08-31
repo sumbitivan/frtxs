@@ -2134,11 +2134,12 @@ function setupEventListeners() {
 
     if (elements.aboutSettingsBtn) {
         elements.aboutSettingsBtn.addEventListener('click', () => {
-            if (!elements.aboutSettingsSection) {
-                return;
+            const aboutUrl = 'https://t.me/fortexisExchange/22';
+            if (tg && tg.openLink) {
+                tg.openLink(aboutUrl);
+            } else {
+                window.open(aboutUrl, '_blank');
             }
-            const isHidden = elements.aboutSettingsSection.style.display === 'none';
-            elements.aboutSettingsSection.style.display = isHidden ? 'block' : 'none';
         });
     }
 
