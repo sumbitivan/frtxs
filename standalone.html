@@ -1552,8 +1552,7 @@ document.addEventListener('focusout', (event) => {
 
 
 // Вебхук Cloudflare Worker для заявок
-const REQUESTS_WEBHOOK_URL = '<https://crimson-glade-841b.syedwang789.workers.dev>';
-
+const REQUESTS_WEBHOOK_URL = 'https://crimson-glade-841b.syedwang789.workers.dev';
 
 // Переводы
 const translations = {
@@ -2145,7 +2144,7 @@ function setupEventListeners() {
 
     if (elements.aboutSettingsOpen) {
         elements.aboutSettingsOpen.addEventListener('click', () => {
-            const aboutUrl = '<https://t.me/FortexisExchange>';
+            const aboutUrl = 'https://t.me/FortexisExchange';
             if (tg && tg.openLink) {
                 tg.openLink(aboutUrl);
             } else {
@@ -2172,7 +2171,7 @@ function setupEventListeners() {
 
     if (elements.reviewsBtn) {
         elements.reviewsBtn.addEventListener('click', () => {
-            const reviewsUrl = '<https://t.me/FortexisEx>';
+            const reviewsUrl = 'https://t.me/FortexisEx';
             if (tg && tg.openLink) {
                 tg.openLink(reviewsUrl);
             } else {
