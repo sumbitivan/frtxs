@@ -2623,7 +2623,7 @@ function updateRequestsModal() {
     });
 }
 
-function confirmRequest(requestId) {
+async function confirmRequest(requestId) {
     let history = [];
     try {
         history = JSON.parse(localStorage.getItem('requestsHistory') || '[]');
@@ -2643,9 +2643,32 @@ function confirmRequest(requestId) {
     } catch (error) {
         console.warn('Failed to update request', error);
     }
+
+    try {
+        await sendConfirmationToWebhook(requestId);
+    } catch (error) {
+        console.warn('Failed to notify manager about confirmation', error);
+    }
+
     const thanksText = translations[state.language]['requests.thanks'] || 'Благодарим за сделку, Fortexis';
     showToast(thanksText, 'success');
     updateRequestsModal();
+}
+
+async function sendConfirmationToWebhook(requestId) {
+    if (!REQUESTS_WEBHOOK_URL) { return; }
+    const response = await fetch(REQUESTS_WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            type: 'request_confirmed',
+            data: { requestId },
+            user: tg.initDataUnsafe?.user || null
+        })
+    });
+    if (!response.ok) {
+        throw new Error(`Confirmation webhook failed: ${response.status}`);
+    }
 }
 
 function clearHistory() {
