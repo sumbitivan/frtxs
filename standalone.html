@@ -2449,6 +2449,7 @@ async function handleFormSubmit(e) {
     const formData = {
         requestId,
         direction: state.direction,
+        dealType: state.exchangeType,
         clientAmount: state.clientAmount,
         resultAmount: state.resultAmount,
         rate: state.currentRate,
@@ -2701,7 +2702,8 @@ function validateForm(data) {
 
 function sendToTelegram(data) {
     const user = tg.initDataUnsafe?.user;
-    const message = `🔄 Новая заявка на обмен валюты\n\n📊 Направление: ${data.direction === 'buy' ? 'Покупка USDT' : 'Продажа USDT'}\n💰 Отдает: ${data.clientAmount} ${data.direction === 'buy' ? 'RUB' : 'USDT'}\n💵 Получает: ${data.resultAmount.toFixed(2)} ${data.direction === 'buy' ? 'USDT' : 'RUB'}\n📈 Курс: ${data.rate} ₽\n\n👤 Имя: ${data.clientName}\n📱 Юзернейм: ${data.clientPhone}${data.clientComment ? `\n💬 Комментарий: ${data.clientComment}` : ''}\n\n${user ? `👤 Telegram: @${user.username || user.first_name}` : ''}\n🕐 Время: ${new Date().toLocaleString('ru-RU')}`;
+    const dealTypeLabel = data.dealType === 'cashless' ? 'Безналичный' : 'Наличный';
+    const message = `🔄 Новая заявка на обмен валюты\n\n💼 Тип сделки: ${dealTypeLabel}\n📊 Направление: ${data.direction === 'buy' ? 'Покупка USDT' : 'Продажа USDT'}\n💰 Отдает: ${data.clientAmount} ${data.direction === 'buy' ? 'RUB' : 'USDT'}\n💵 Получает: ${data.resultAmount.toFixed(2)} ${data.direction === 'buy' ? 'USDT' : 'RUB'}\n📈 Курс: ${data.rate} ₽\n\n👤 Имя: ${data.clientName}\n📱 Юзернейм: ${data.clientPhone}${data.clientComment ? `\n💬 Комментарий: ${data.clientComment}` : ''}\n\n${user ? `👤 Telegram: @${user.username || user.first_name}` : ''}\n🕐 Время: ${new Date().toLocaleString('ru-RU')}`;
     tg.sendData(JSON.stringify({ type: 'exchange_request', data: data }));
     console.log('Отправка заявки:', message);
 }
