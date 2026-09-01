@@ -60,7 +60,11 @@ body {
     padding-bottom: 110px;
     position: relative;
 }
-
+        
+.currency-selector.single-option {
+    grid-template-columns: 1fr;
+}
+        
 .brand-header {
     display: flex;
     align-items: center;
@@ -2353,8 +2357,24 @@ function setDirection(direction) {
 
 function setExchangeType(type) {
     state.exchangeType = type;
+    toggleCurrencyOptions(type);
     updateRateInfo(getSelectedRateValue());
     calculateResult();
+}
+
+function toggleCurrencyOptions(type) {
+    const isCashless = type === 'cashless';
+    const selector = document.querySelector('.currency-selector');
+    if (selector) {
+        selector.classList.toggle('single-option', isCashless);
+    }
+    elements.currencyBtns.forEach(btn => {
+        const isRub = btn.dataset.currency === 'RUB';
+        btn.style.display = (isCashless && !isRub) ? 'none' : '';
+    });
+    if (isCashless && state.currency !== 'RUB') {
+        setCurrency('RUB');
+    }
 }
 
 function getSelectedRateValue() {
