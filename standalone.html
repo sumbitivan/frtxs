@@ -2526,9 +2526,6 @@ function isHistoryDisabled() {
 }
 
 function saveLastRequest(data) {
-    if (isHistoryDisabled()) {
-        return;
-    }
     const requestId = data.requestId || generateRequestId();
     const payload = {
         requestId,
@@ -2537,12 +2534,23 @@ function saveLastRequest(data) {
         receiveAmount: `${Number(data.resultAmount).toFixed(2)} ${elements.resultCurrency.textContent}`,
         timestamp: data.timestamp || new Date().toISOString()
     };
-    try {
-        const existing = JSON.parse(localStorage.getItem('requestsHistory') || '[]');
-        existing.unshift(payload);
-        localStorage.setItem('requestsHistory', JSON.stringify(existing));
-    } catch (error) {
-        console.warn('Failed to save request', error);
+
+    if (isHistoryDisabled()) {
+        // История отключена — сохраняем только активную (неподтверждённую)
+        // заявку отдельно, чтобы клиент видел её в "Операциях" до подтверждения
+        try {
+            localStorage.setItem('activeRequest', JSON.stringify(payload));
+        } catch (error) {
+            console.warn('Failed to save active request', error);
+        }
+    } else {
+        try {
+            const existing = JSON.parse(localStorage.getItem('requestsHistory') || '[]');
+            existing.unshift(payload);
+            localStorage.setItem('requestsHistory', JSON.stringify(existing));
+        } catch (error) {
+            console.warn('Failed to save request', error);
+        }
     }
     updateRequestsModal();
 }
@@ -2552,10 +2560,19 @@ function updateRequestsModal() {
         return;
     }
     let history = [];
-    try {
-        history = JSON.parse(localStorage.getItem('requestsHistory') || '[]');
-    } catch (error) {
-        history = [];
+    if (isHistoryDisabled()) {
+        try {
+            const active = JSON.parse(localStorage.getItem('activeRequest') || 'null');
+            if (active) { history = [active]; }
+        } catch (error) {
+            history = [];
+        }
+    } else {
+        try {
+            history = JSON.parse(localStorage.getItem('requestsHistory') || '[]');
+        } catch (error) {
+            history = [];
+        }
     }
     if (!history || history.length === 0) {
         elements.requestsBody.innerHTML = `<p data-i18n="requests.empty">${translations[state.language]['requests.empty'] || 'Заявок пока нет'}</p>`;
@@ -2644,24 +2661,37 @@ function updateRequestsModal() {
 }
 
 async function confirmRequest(requestId) {
-    let history = [];
+    if (isHistoryDisabled()) {
+        try {
+            const active = JSON.parse(localStorage.getItem('activeRequest') || 'null');
+            if (active && active.requestId === requestId) {
+                localStorage.removeItem('activeRequest');
+            }
+        } catch (error) {
+            console.warn('Failed to clear active request', error);
+        }
+    } else {
+        let history = [];
+        try {
+            history = JSON.parse(localStorage.getItem('requestsHistory') || '[]');
+        } catch (error) {
+            history = [];
+        }
+        const idx = history.findIndex(item => item.requestId === requestId);
+        if (idx !== -1) {
+            history[idx].status = 'Исполнено✅';
+            try {
+                localStorage.setItem('requestsHistory', JSON.stringify(history));
+            } catch (error) {
+                console.warn('Failed to update request', error);
+            }
+        }
+    }
+
     try {
-        history = JSON.parse(localStorage.getItem('requestsHistory') || '[]');
+        await sendConfirmationToWebhook(requestId);
     } catch (error) {
-        history = [];
-    }
-    if (!history || history.length === 0) {
-        return;
-    }
-    const idx = history.findIndex(item => item.requestId === requestId);
-    if (idx === -1) {
-        return;
-    }
-    history[idx].status = 'Исполнено✅';
-    try {
-        localStorage.setItem('requestsHistory', JSON.stringify(history));
-    } catch (error) {
-        console.warn('Failed to update request', error);
+        console.warn('Failed to notify manager about confirmation', error);
     }
 
     try {
@@ -2689,6 +2719,10 @@ async function sendConfirmationToWebhook(requestId) {
     if (!response.ok) {
         throw new Error(`Confirmation webhook failed: ${response.status}`);
     }
+
+    const thanksText = translations[state.language]['requests.thanks'] || 'Благодарим за сделку, Fortexis';
+    showToast(thanksText, 'success');
+    updateRequestsModal();
 }
 
 function clearHistory() {
