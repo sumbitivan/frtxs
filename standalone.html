@@ -1145,6 +1145,10 @@ textarea {
         </div>
 
         <div class="info-block">
+            <div class="info-item" id="referralBtn">
+                <span class="info-icon"><svg viewBox="0 0 24 24"><path d="M17 11a4 4 0 1 0-3.5-6"/><circle cx="9" cy="8" r="4"/><path d="M2 21v-1a6 6 0 0 1 6-6h2a6 6 0 0 1 6 6v1"/><path d="M17 14a5 5 0 0 1 5 5v2"/></svg></span>
+                <span data-i18n="info.referral">Рефералка</span>
+            </div>
             <div class="info-item" id="requestsBtn">
                 <span class="info-icon"><svg viewBox="0 0 24 24"><path d="M6 3h12a1 1 0 0 1 1 1v16l-3-2-2 2-2-2-2 2-2-2-3 2V4a1 1 0 0 1 1-1z"/><path d="M9 8h6M9 12h6"/></svg></span>
                 <span data-i18n="info.requests">Операции</span>
@@ -1383,6 +1387,20 @@ textarea {
                 <h3 data-i18n="about.title">О нас</h3>
                 <button class="close-btn" id="closeAboutModal">&times;</button>
             </div>
+            <!-- Модальное окно "Рефералка" -->
+    <div class="modal" id="referralModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 data-i18n="referral.title">Реферальная программа</h3>
+                <button class="close-btn" id="closeReferralModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p data-i18n="referral.text" style="line-height: 1.8; color: var(--text-primary); text-align: center;">
+                    Скоро появится, следите за обновлениями
+                </p>
+            </div>
+        </div>
+    </div>
             <div class="modal-body">
                 <p data-i18n="about.text" style="line-height: 1.8; color: var(--text-primary);">
                     Мы — надежный сервис обмена криптовалюты на наличные деньги.
@@ -1635,6 +1653,9 @@ const translations = {
         'confirm.no': 'Нет',
         'confirm.cleared': 'История удалена',
         'updated': 'Курс обновлен'
+        'info.referral': 'Рефералка',
+        'referral.title': 'Реферальная программа',
+        'referral.text': 'Скоро появится, следите за обновлениями',
     },
     en: {
         'rates.title': 'Current Rate',
@@ -1718,6 +1739,9 @@ const translations = {
         'confirm.no': 'No',
         'confirm.cleared': 'History deleted',
         'updated': 'Курс обновлен'
+        'info.referral': 'Referral',
+        'referral.title': 'Referral Program',
+        'referral.text': 'Coming soon, stay tuned',
     },
     zh: {
         'rates.title': '当前汇率',
@@ -1801,6 +1825,9 @@ const translations = {
         'confirm.no': '否',
         'confirm.cleared': '历史已删除',
         'updated': 'Курс обновлен'
+        'info.referral': '推荐计划',
+        'referral.title': '推荐计划',
+        'referral.text': '即将推出，敬请关注',
     }
 };
 
@@ -1890,6 +1917,9 @@ const elements = {
     requestsModal: document.getElementById('requestsModal'),
     closeRequestsModal: document.getElementById('closeRequestsModal'),
     requestsBody: document.getElementById('requestsBody')
+    referralBtn: document.getElementById('referralBtn'),
+    referralModal: document.getElementById('referralModal'),
+    closeReferralModal: document.getElementById('closeReferralModal'),
 };
 
 // Инициализация
@@ -2117,6 +2147,19 @@ function setupEventListeners() {
     if (elements.aboutBtn) {
         elements.aboutBtn.addEventListener('click', () => openAboutModal());
     }
+    
+    if (elements.referralBtn) {
+        elements.referralBtn.addEventListener('click', () => openReferralModal());
+    }
+    if (elements.closeReferralModal) {
+        elements.closeReferralModal.addEventListener('click', closeReferralModal);
+    }
+    if (elements.referralModal) {
+        elements.referralModal.addEventListener('click', (e) => {
+            if (e.target === elements.referralModal) closeReferralModal();
+        });
+    }
+    
     elements.closeAboutModal.addEventListener('click', closeAboutModal);
     elements.aboutModal.addEventListener('click', (e) => {
         if (e.target === elements.aboutModal) closeAboutModal();
@@ -2295,6 +2338,12 @@ function openAboutModal() {
     document.body.style.overflow = 'hidden';
 }
 
+function openReferralModal() {
+    closeAllModals();
+    elements.referralModal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
 function closeAboutModal() {
     elements.aboutModal.classList.remove('active');
     document.body.style.overflow = '';
@@ -2304,6 +2353,11 @@ function openSecurityModal() {
     closeAllModals();
     elements.securityModal.classList.add('active');
     document.body.style.overflow = 'hidden';
+}
+
+function closeReferralModal() {
+    elements.referralModal.classList.remove('active');
+    document.body.style.overflow = '';
 }
 
 function closeSecurityModal() {
@@ -2328,6 +2382,9 @@ function closeAllModals() {
     elements.securityModal.classList.remove('active');
     elements.requestsModal.classList.remove('active');
     elements.confirmClearModal.classList.remove('active');
+    if (elements.referralModal) {
+        elements.referralModal.classList.remove('active');
+    }
     document.body.style.overflow = '';
 }
 
