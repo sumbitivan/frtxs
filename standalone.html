@@ -2485,7 +2485,7 @@ async function handleFormSubmit(e) {
     try {
         await sendToWebhook(formData);
         saveLastRequest(formData);
-        showToast('Заявка принята', 'success');
+        showToast('Заявка принята, менеджер свяжется с вами в ближайшее время', 'success');
         setTimeout(() => closeModal(), 1500);
     } catch (error) {
         console.error('Ошибка отправки:', error);
