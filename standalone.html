@@ -1380,14 +1380,24 @@ textarea {
         </div>
     </div>
 
-    <!-- Модальное окно "О нас" -->
+<!-- Модальное окно "О нас" -->
     <div class="modal" id="aboutModal">
         <div class="modal-content">
             <div class="modal-header">
                 <h3 data-i18n="about.title">О нас</h3>
                 <button class="close-btn" id="closeAboutModal">&times;</button>
             </div>
-            <!-- Модальное окно "Рефералка" -->
+            <div class="modal-body">
+                <p data-i18n="about.text" style="line-height: 1.8; color: var(--text-primary);">
+                    Мы — надежный сервис обмена криптовалюты на наличные деньги.
+                    Наша команда работает для того, чтобы предоставить вам быстрый,
+                    безопасный и удобный способ обмена валют. Мы гарантируем честные
+                    курсы, мгновенные переводы и профессиональную поддержку 24/7.
+                </p>
+            </div>
+        </div>
+    </div>
+    <!-- Модальное окно "Рефералка" -->
     <div class="modal" id="referralModal">
         <div class="modal-content">
             <div class="modal-header">
@@ -1401,17 +1411,6 @@ textarea {
             </div>
         </div>
     </div>
-            <div class="modal-body">
-                <p data-i18n="about.text" style="line-height: 1.8; color: var(--text-primary);">
-                    Мы — надежный сервис обмена криптовалюты на наличные деньги.
-                    Наша команда работает для того, чтобы предоставить вам быстрый,
-                    безопасный и удобный способ обмена валют. Мы гарантируем честные
-                    курсы, мгновенные переводы и профессиональную поддержку 24/7.
-                </p>
-            </div>
-        </div>
-    </div>
-
     <!-- Модальное окно "Безопасность" -->
     <div class="modal" id="securityModal">
         <div class="modal-content">
@@ -1652,7 +1651,7 @@ const translations = {
         'confirm.yes': 'Да',
         'confirm.no': 'Нет',
         'confirm.cleared': 'История удалена',
-        'updated': 'Курс обновлен'
+        'updated': 'Курс обновлен',
         'info.referral': 'Рефералка',
         'referral.title': 'Реферальная программа',
         'referral.text': 'Скоро появится, следите за обновлениями',
@@ -1738,7 +1737,7 @@ const translations = {
         'confirm.yes': 'Yes',
         'confirm.no': 'No',
         'confirm.cleared': 'History deleted',
-        'updated': 'Курс обновлен'
+        'updated': 'Курс обновлен',
         'info.referral': 'Referral',
         'referral.title': 'Referral Program',
         'referral.text': 'Coming soon, stay tuned',
@@ -1824,7 +1823,7 @@ const translations = {
         'confirm.yes': '是',
         'confirm.no': '否',
         'confirm.cleared': '历史已删除',
-        'updated': 'Курс обновлен'
+        'updated': 'Курс обновлен',
         'info.referral': '推荐计划',
         'referral.title': '推荐计划',
         'referral.text': '即将推出，敬请关注',
@@ -1916,7 +1915,7 @@ const elements = {
     requestsBtn: document.getElementById('requestsBtn'),
     requestsModal: document.getElementById('requestsModal'),
     closeRequestsModal: document.getElementById('closeRequestsModal'),
-    requestsBody: document.getElementById('requestsBody')
+    requestsBody: document.getElementById('requestsBody'),
     referralBtn: document.getElementById('referralBtn'),
     referralModal: document.getElementById('referralModal'),
     closeReferralModal: document.getElementById('closeReferralModal'),
