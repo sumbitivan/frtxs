@@ -2501,12 +2501,21 @@ function closeSettingsModal() {
     elements.settingsModal.classList.remove('active');
     document.body.style.overflow = '';
 }
-
+        
 function openAboutModal() {
     closeAllModals();
     elements.aboutModal.classList.add('active');
     document.body.style.overflow = 'hidden';
 }
+
+function openReferralModal() {
+    closeAllModals();
+    renderReferralInfo();
+    elements.referralModal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function getOrCreateReferralId() {
 
 function getOrCreateReferralId() {
     const tgUser = tg.initDataUnsafe?.user;
