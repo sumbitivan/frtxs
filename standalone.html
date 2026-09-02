@@ -998,6 +998,127 @@ textarea {
     transform: translateX(-50%) translateY(0);
 }
 
+.referral-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 14px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.referral-card:active {
+    transform: scale(0.98);
+}
+.referral-card__icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(111, 179, 224, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.referral-card__icon svg {
+    width: 20px;
+    height: 20px;
+    stroke: var(--accent-light);
+    fill: none;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+.referral-card__text {
+    flex: 1;
+    min-width: 0;
+}
+.referral-card__title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+}
+.referral-card__subtitle {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+.referral-card__arrow {
+    font-size: 22px;
+    color: var(--text-secondary);
+    flex-shrink: 0;
+}
+
+.referral-link-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg-color);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 12px 14px;
+    margin-bottom: 20px;
+}
+.referral-link-row__text {
+    flex: 1;
+    min-width: 0;
+    font-size: 13px;
+    color: var(--text-primary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.referral-link-row__copy {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: var(--card-bg);
+    color: var(--accent-light);
+    cursor: pointer;
+}
+.referral-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+.referral-stat {
+    background: var(--bg-color);
+    border-radius: 12px;
+    padding: 14px;
+    text-align: center;
+}
+.referral-stat__value {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+.referral-stat__label {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+.referral-list-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 10px;
+}
+.referral-list-empty {
+    font-size: 13px;
+    color: var(--text-secondary);
+    text-align: center;
+    padding: 20px 0;
+}
+
 @keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
@@ -1102,6 +1223,17 @@ textarea {
             </div>
         </div>
 
+        <div class="referral-card" id="referralCard">
+            <div class="referral-card__icon">
+                <svg viewBox="0 0 24 24"><path d="M17 11a4 4 0 1 0-3.5-6"/><circle cx="9" cy="8" r="4"/><path d="M2 21v-1a6 6 0 0 1 6-6h2a6 6 0 0 1 6 6v1"/><path d="M17 14a5 5 0 0 1 5 5v2"/></svg>
+            </div>
+            <div class="referral-card__text">
+                <div class="referral-card__title" data-i18n="info.referral">Реферальная программа</div>
+                <div class="referral-card__subtitle" data-i18n="referral.cardHint">Приглашайте друзей и получайте вознаграждение</div>
+            </div>
+            <div class="referral-card__arrow">›</div>
+        </div>
+
         <div class="tips-section">
             <h2 class="tips-title">Полезно знать</h2>
             <div class="tips-carousel" id="tipsCarousel">
@@ -1143,12 +1275,8 @@ textarea {
             </div>
             <div class="tips-dots" id="tipsDots"></div>
         </div>
-
+        
         <div class="info-block">
-            <div class="info-item" id="referralBtn">
-                <span class="info-icon"><svg viewBox="0 0 24 24"><path d="M17 11a4 4 0 1 0-3.5-6"/><circle cx="9" cy="8" r="4"/><path d="M2 21v-1a6 6 0 0 1 6-6h2a6 6 0 0 1 6 6v1"/><path d="M17 14a5 5 0 0 1 5 5v2"/></svg></span>
-                <span data-i18n="info.referral">Рефералка</span>
-            </div>
             <div class="info-item" id="requestsBtn">
                 <span class="info-icon"><svg viewBox="0 0 24 24"><path d="M6 3h12a1 1 0 0 1 1 1v16l-3-2-2 2-2-2-2 2-2-2-3 2V4a1 1 0 0 1 1-1z"/><path d="M9 8h6M9 12h6"/></svg></span>
                 <span data-i18n="info.requests">Операции</span>
@@ -1405,9 +1533,29 @@ textarea {
                 <button class="close-btn" id="closeReferralModal">&times;</button>
             </div>
             <div class="modal-body">
-                <p data-i18n="referral.text" style="line-height: 1.8; color: var(--text-primary); text-align: center;">
-                    Скоро появится, следите за обновлениями
-                </p>
+                <div class="referral-link-row">
+                    <span class="referral-link-row__text" id="referralLinkText">—</span>
+                    <span class="referral-link-row__copy" id="copyReferralLinkBtn">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="9" y="9" width="13" height="13" rx="2"/>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                        </svg>
+                    </span>
+                </div>
+
+                <div class="referral-stats">
+                    <div class="referral-stat">
+                        <div class="referral-stat__value" id="referralCountValue">0</div>
+                        <div class="referral-stat__label" data-i18n="referral.countLabel">Приведено рефералов</div>
+                    </div>
+                    <div class="referral-stat">
+                        <div class="referral-stat__value" id="referralEarnedValue">0 ₽</div>
+                        <div class="referral-stat__label" data-i18n="referral.earnedLabel">Заработано</div>
+                    </div>
+                </div>
+
+                <div class="referral-list-title" data-i18n="referral.listTitle">Ваши рефералы</div>
+                <div class="referral-list-empty" data-i18n="referral.listEmpty">Пока никого нет</div>
             </div>
         </div>
     </div>
@@ -1655,6 +1803,12 @@ const translations = {
         'info.referral': 'Рефералка',
         'referral.title': 'Реферальная программа',
         'referral.text': 'Скоро появится, следите за обновлениями',
+        'referral.cardHint': 'Приглашайте друзей и получайте вознаграждение',
+        'referral.countLabel': 'Приведено рефералов',
+        'referral.earnedLabel': 'Заработано',
+        'referral.listTitle': 'Ваши рефералы',
+        'referral.listEmpty': 'Пока никого нет',
+        'referral.linkCopied': 'Ссылка скопирована',
     },
     en: {
         'rates.title': 'Current Rate',
@@ -1741,6 +1895,12 @@ const translations = {
         'info.referral': 'Referral',
         'referral.title': 'Referral Program',
         'referral.text': 'Coming soon, stay tuned',
+        'referral.cardHint': 'Invite friends and earn rewards',
+        'referral.countLabel': 'Referrals invited',
+        'referral.earnedLabel': 'Earned',
+        'referral.listTitle': 'Your referrals',
+        'referral.listEmpty': 'No one yet',
+        'referral.linkCopied': 'Link copied',
     },
     zh: {
         'rates.title': '当前汇率',
@@ -1827,6 +1987,12 @@ const translations = {
         'info.referral': '推荐计划',
         'referral.title': '推荐计划',
         'referral.text': '即将推出，敬请关注',
+        'referral.cardHint': '邀请好友获得奖励',
+        'referral.countLabel': '已邀请人数',
+        'referral.earnedLabel': '已赚取',
+        'referral.listTitle': '您的推荐人',
+        'referral.listEmpty': '暂无推荐人',
+        'referral.linkCopied': '链接已复制',
     }
 };
 
@@ -1916,9 +2082,11 @@ const elements = {
     requestsModal: document.getElementById('requestsModal'),
     closeRequestsModal: document.getElementById('closeRequestsModal'),
     requestsBody: document.getElementById('requestsBody'),
-    referralBtn: document.getElementById('referralBtn'),
+    referralCard: document.getElementById('referralCard'),
     referralModal: document.getElementById('referralModal'),
     closeReferralModal: document.getElementById('closeReferralModal'),
+    referralLinkText: document.getElementById('referralLinkText'),
+    copyReferralLinkBtn: document.getElementById('copyReferralLinkBtn'),
 };
 
 // Инициализация
@@ -2147,8 +2315,11 @@ function setupEventListeners() {
         elements.aboutBtn.addEventListener('click', () => openAboutModal());
     }
     
-    if (elements.referralBtn) {
-        elements.referralBtn.addEventListener('click', () => openReferralModal());
+    if (elements.referralCard) {
+        elements.referralCard.addEventListener('click', () => openReferralModal());
+    }
+    if (elements.copyReferralLinkBtn) {
+        elements.copyReferralLinkBtn.addEventListener('click', () => copyReferralLink());
     }
     if (elements.closeReferralModal) {
         elements.closeReferralModal.addEventListener('click', closeReferralModal);
@@ -2337,10 +2508,54 @@ function openAboutModal() {
     document.body.style.overflow = 'hidden';
 }
 
-function openReferralModal() {
-    closeAllModals();
-    elements.referralModal.classList.add('active');
-    document.body.style.overflow = 'hidden';
+function getOrCreateReferralId() {
+    const tgUser = tg.initDataUnsafe?.user;
+    if (tgUser && tgUser.id) {
+        return String(tgUser.id);
+    }
+    try {
+        let stored = localStorage.getItem('referralUserId');
+        if (!stored) {
+            stored = 'u' + Math.random().toString(36).slice(2, 10);
+            localStorage.setItem('referralUserId', stored);
+        }
+        return stored;
+    } catch (error) {
+        return 'guest';
+    }
+}
+
+function getReferralLink() {
+    const botUsername = 'fortexisEx_bot'; // заменить на реальный username бота
+    const refId = getOrCreateReferralId();
+    return `https://t.me/${botUsername}?start=ref_${refId}`;
+}
+
+function renderReferralInfo() {
+    if (elements.referralLinkText) {
+        elements.referralLinkText.textContent = getReferralLink();
+    }
+    // Реальные данные о рефералах и заработке появятся, когда будет готов бэкенд —
+    // пока отображаются нулевые значения как отправная точка.
+    const countEl = document.getElementById('referralCountValue');
+    const earnedEl = document.getElementById('referralEarnedValue');
+    if (countEl) { countEl.textContent = '0'; }
+    if (earnedEl) { earnedEl.textContent = '0 ₽'; }
+}
+
+function copyReferralLink() {
+    const link = getReferralLink();
+    const showCopiedToast = () => {
+        const copiedText = translations[state.language]['referral.linkCopied'] || 'Ссылка скопирована';
+        showToast(copiedText, 'success');
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(link).then(showCopiedToast).catch(() => {
+            fallbackCopy(link, showCopiedToast);
+        });
+    } else {
+        fallbackCopy(link, showCopiedToast);
+    }
 }
 
 function closeAboutModal() {
