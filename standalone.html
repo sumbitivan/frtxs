@@ -2474,6 +2474,7 @@ const state = {
     sellRate: 96.00,
     clientAmount: 0,
     amountLimits: null,
+    cashlessRub: null,
     resultAmount: 0,
     theme: localStorage.getItem('theme') || 'light',
     language: localStorage.getItem('language') || 'ru',
@@ -2796,6 +2797,10 @@ async function loadExchangeRates() {
 
         if (data?.limits && typeof data.limits === 'object') {
             state.amountLimits = data.limits;
+        }
+
+        if (data?.cashlessRub && typeof data.cashlessRub === 'object') {
+            state.cashlessRub = data.cashlessRub;
         }
 
         state.lastUpdatedAt = data?.updatedAt || null;
@@ -3458,6 +3463,7 @@ function setCurrency(currency) {
         }
     }
 }
+const CASHLESS_RUB_FALLBACK = { min: 10000, max: 80000 };
 const AMOUNT_LIMITS_FALLBACK = {
     RUB: { min: 1000, max: 100000000 },
     USD: { min: 10, max: 5000000 },
@@ -3468,7 +3474,26 @@ function getAmountUnit() {
     return state.direction === 'sell' ? 'USDT' : state.currency;
 }
 
+function getCashlessLimits() {
+    const src = state.cashlessRub || CASHLESS_RUB_FALLBACK;
+    const min = Number(src.min);
+    const max = Number(src.max);
+    if (!Number.isFinite(min) || !Number.isFinite(max)) return null;
+
+    if (state.direction === 'buy') return { min, max };
+
+    const rate = getSelectedRateValue();
+    if (!Number.isFinite(rate) || rate <= 0) return null;
+
+    return {
+        min: Math.ceil((min / rate) * 100) / 100,
+        max: Math.floor((max / rate) * 100) / 100
+    };
+}
+
 function getAmountLimits() {
+    if (state.exchangeType === 'cashless') return getCashlessLimits();
+
     const table = state.amountLimits || AMOUNT_LIMITS_FALLBACK;
     const limits = table[getAmountUnit()];
     if (!limits) return null;
