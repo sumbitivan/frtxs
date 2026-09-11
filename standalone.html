@@ -1693,8 +1693,8 @@ textarea {
                         <div class="referral-stat__label" data-i18n="referral.countLabel">Приведено рефералов</div>
                     </div>
                     <div class="referral-stat">
-                        <div class="referral-stat__value" id="referralEarnedValue">0 USDT</div>
-                        <div class="referral-stat__label" data-i18n="referral.earnedLabel">Заработано</div>
+                        <div class="referral-stat__value" id="referralBalanceValue">0 USDT</div>
+                        <div class="referral-stat__label" data-i18n="referral.balanceLabel">Баланс</div>
                     </div>
                 </div>
 
@@ -2010,7 +2010,7 @@ const translations = {
         'referral.title': 'Реферальная программа',
         'referral.cardHint': 'Приглашайте друзей и получайте вознаграждение',
         'referral.countLabel': 'Приведено рефералов',
-        'referral.earnedLabel': 'Заработано',
+        'referral.balanceLabel': 'Баланс',
         'referral.listTitle': 'Ваши рефералы',
         'referral.listEmpty': 'Пока никого нет',
         'referral.linkCopied': 'Ссылка скопирована',
@@ -2214,7 +2214,7 @@ const translations = {
         'referral.title': 'Referral Program',
         'referral.cardHint': 'Invite friends and earn rewards',
         'referral.countLabel': 'Referrals invited',
-        'referral.earnedLabel': 'Earned',
+        'referral.balanceLabel': 'Balance',
         'referral.listTitle': 'Your referrals',
         'referral.listEmpty': 'No one yet',
         'referral.linkCopied': 'Link copied',
@@ -2418,7 +2418,7 @@ const translations = {
         'referral.title': '推荐计划',
         'referral.cardHint': '邀请好友获得奖励',
         'referral.countLabel': '已邀请人数',
-        'referral.earnedLabel': '已赚取',
+        'referral.balanceLabel': '余额',
         'referral.listTitle': '您的推荐人',
         'referral.listEmpty': '暂无推荐人',
         'referral.linkCopied': '链接已复制',
@@ -2558,7 +2558,6 @@ const state = {
         code: null,
         link: null,
         count: 0,
-        earned: 0,
         available: 0,
         users: []
     },
@@ -2647,7 +2646,7 @@ const elements = {
     withdrawMaxBtn: document.getElementById('withdrawMaxBtn'),
     withdrawAmountError: document.getElementById('withdrawAmountError'),
     referralCountValue: document.getElementById('referralCountValue'),
-    referralEarnedValue: document.getElementById('referralEarnedValue'),
+    referralBalanceValue: document.getElementById('referralBalanceValue'),
     managerModal: document.getElementById('managerModal'),
     closeManagerModal: document.getElementById('closeManagerModal'),
     managerRefreshBtn: document.getElementById('managerRefreshBtn'),
@@ -2813,7 +2812,6 @@ function applyReferralStats(stats) {
     if (!stats || typeof stats !== 'object') return;
 
     state.referral.count = Number(stats.count) || 0;
-    state.referral.earned = Number(stats.earned) || 0;
     if (stats.available !== undefined) {
         state.referral.available = Number(stats.available) || 0;
     }
@@ -2822,11 +2820,12 @@ function applyReferralStats(stats) {
     if (elements.referralCountValue) {
         elements.referralCountValue.textContent = String(state.referral.count);
     }
-    if (elements.referralEarnedValue) {
-        elements.referralEarnedValue.textContent = formatUsdt(state.referral.earned);
-    }
 
     const available = Number(state.referral.available) || 0;
+
+    if (elements.referralBalanceValue) {
+        elements.referralBalanceValue.textContent = formatUsdt(available);
+    }
     if (elements.withdrawHint) {
         elements.withdrawHint.textContent = `${t('referral.available')}: ${formatUsdt(available)}`;
     }
