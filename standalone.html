@@ -1261,6 +1261,10 @@ textarea {
     }
 }
     
+.withdraw-group { margin-top:14px; margin-bottom:0; }
+.withdraw-label-row { display:flex; justify-content:space-between; align-items:baseline; gap:10px; }
+.withdraw-max { flex:0 0 auto; padding:10px 0 10px 14px; margin:-10px 0; border:0; background:transparent; color:var(--primary-color,#4aa3df); font-size:12px; font-weight:700; cursor:pointer; }
+.withdraw-max:disabled { opacity:.45; cursor:default; }
 .manager-panel { display:none; }
 .manager-panel.active { display:block; }
 .manager-toolbar { display:flex; gap:8px; margin-bottom:14px; }
@@ -1694,6 +1698,25 @@ textarea {
                     </div>
                 </div>
 
+                <div class="form-group withdraw-group">
+                    <div class="withdraw-label-row">
+                        <label for="withdrawAmount" data-i18n="referral.withdrawAmount">Сумма вывода</label>
+                        <button type="button" class="withdraw-max" id="withdrawMaxBtn" data-i18n="referral.withdrawMax">Вывести всё</button>
+                    </div>
+                    <div class="input-wrapper">
+                        <input
+                            type="number"
+                            id="withdrawAmount"
+                            placeholder="0.00"
+                            min="1"
+                            step="0.01"
+                            inputmode="decimal"
+                        >
+                        <span class="currency-label">USDT</span>
+                    </div>
+                    <div class="field-error" id="withdrawAmountError" hidden></div>
+                </div>
+
                 <button type="button" class="submit-btn" id="withdrawBtn" style="margin-top:12px;" data-i18n="referral.withdraw">Вывести USDT</button>
                 <div id="withdrawHint" style="margin-top:6px;font-size:12px;color:var(--text-secondary);text-align:center;">Доступно к выводу: 0.00 USDT</div>
 
@@ -1998,6 +2021,11 @@ const translations = {
         'referral.dealsFew': 'сделки',
         'referral.dealsMany': 'сделок',
         'referral.withdrawMin': 'Недостаточно средств для вывода (минимум 1 USDT)',
+        'referral.withdrawAmount': 'Сумма вывода',
+        'referral.withdrawMax': 'Вывести всё',
+        'referral.withdrawAmountEmpty': 'Введите сумму вывода',
+        'referral.withdrawAmountTooSmall': 'Минимальная сумма вывода — 1 USDT',
+        'referral.withdrawAmountTooBig': 'Больше доступного: {amount}',
         'referral.withdrawConfirm': 'Отправить заявку на вывод {amount}?',
         'referral.withdrawSent': 'Заявка на вывод {amount} отправлена — менеджер свяжется с вами',
         'referral.withdrawPending': 'У вас уже есть активная заявка на вывод',
@@ -2197,6 +2225,11 @@ const translations = {
         'referral.dealsFew': 'deals',
         'referral.dealsMany': 'deals',
         'referral.withdrawMin': 'Not enough balance to withdraw (minimum 1 USDT)',
+        'referral.withdrawAmount': 'Withdrawal amount',
+        'referral.withdrawMax': 'Withdraw all',
+        'referral.withdrawAmountEmpty': 'Enter the amount to withdraw',
+        'referral.withdrawAmountTooSmall': 'The minimum withdrawal is 1 USDT',
+        'referral.withdrawAmountTooBig': 'More than available: {amount}',
         'referral.withdrawConfirm': 'Submit a withdrawal request for {amount}?',
         'referral.withdrawSent': 'Withdrawal request for {amount} sent — a manager will contact you',
         'referral.withdrawPending': 'You already have an active withdrawal request',
@@ -2396,6 +2429,11 @@ const translations = {
         'referral.dealsFew': '笔交易',
         'referral.dealsMany': '笔交易',
         'referral.withdrawMin': '余额不足，无法提现（最低 1 USDT）',
+        'referral.withdrawAmount': '提现金额',
+        'referral.withdrawMax': '全部提现',
+        'referral.withdrawAmountEmpty': '请输入提现金额',
+        'referral.withdrawAmountTooSmall': '最低提现金额为 1 USDT',
+        'referral.withdrawAmountTooBig': '超过可提现余额：{amount}',
         'referral.withdrawConfirm': '提交 {amount} 的提现申请吗？',
         'referral.withdrawSent': '{amount} 的提现申请已提交，经理会与您联系',
         'referral.withdrawPending': '您已有一个进行中的提现申请',
@@ -2605,6 +2643,9 @@ const elements = {
     referralCard: document.getElementById('referralCard'),
     withdrawBtn: document.getElementById('withdrawBtn'),
     withdrawHint: document.getElementById('withdrawHint'),
+    withdrawAmount: document.getElementById('withdrawAmount'),
+    withdrawMaxBtn: document.getElementById('withdrawMaxBtn'),
+    withdrawAmountError: document.getElementById('withdrawAmountError'),
     referralCountValue: document.getElementById('referralCountValue'),
     referralEarnedValue: document.getElementById('referralEarnedValue'),
     managerModal: document.getElementById('managerModal'),
@@ -2792,6 +2833,67 @@ function applyReferralStats(stats) {
     if (elements.withdrawBtn) {
         elements.withdrawBtn.disabled = available < 1;
     }
+    if (elements.withdrawAmount) {
+        elements.withdrawAmount.max = available > 0 ? available.toFixed(2) : '';
+        elements.withdrawAmount.disabled = available < 1;
+    }
+    if (elements.withdrawMaxBtn) {
+        elements.withdrawMaxBtn.disabled = available < 1;
+    }
+    validateWithdrawAmount();
+}
+
+function withdrawAmountState() {
+    const available = Number(state.referral.available) || 0;
+    const raw = (elements.withdrawAmount?.value ?? '').trim();
+
+    if (!raw) return { code: 'empty', available };
+
+    const amount = Math.floor(Number(raw.replace(',', '.')) * 100) / 100;
+
+    if (!Number.isFinite(amount) || amount <= 0) return { code: 'empty', available };
+    if (amount < 1) return { code: 'min', available };
+    if (amount > available) return { code: 'max', available };
+
+    return { code: 'ok', amount, available };
+}
+
+function validateWithdrawAmount() {
+    const checked = withdrawAmountState();
+
+    const input = elements.withdrawAmount;
+    const box = elements.withdrawAmountError;
+    if (!input || !box) return checked;
+
+    const raw = (input.value ?? '').trim();
+
+    let message = '';
+    if (raw && checked.code === 'min') {
+        message = t('referral.withdrawAmountTooSmall');
+    } else if (raw && checked.code === 'max') {
+        message = t('referral.withdrawAmountTooBig').replace('{amount}', formatUsdt(checked.available));
+    }
+
+    box.replaceChildren();
+
+    if (message) {
+        box.appendChild(document.createTextNode(message));
+        box.hidden = false;
+        input.classList.add('invalid');
+    } else {
+        box.hidden = true;
+        input.classList.remove('invalid');
+    }
+
+    return checked;
+}
+
+function fillWithdrawMax() {
+    const available = Number(state.referral.available) || 0;
+    if (!elements.withdrawAmount || available < 1) return;
+
+    elements.withdrawAmount.value = (Math.floor(available * 100) / 100).toFixed(2);
+    validateWithdrawAmount();
 }
 
 function formatUsdt(value) {
@@ -3059,6 +3161,12 @@ function setupEventListeners() {
     }
     if (elements.withdrawBtn) {
         elements.withdrawBtn.addEventListener('click', () => requestWithdraw());
+    }
+    if (elements.withdrawMaxBtn) {
+        elements.withdrawMaxBtn.addEventListener('click', () => fillWithdrawMax());
+    }
+    if (elements.withdrawAmount) {
+        elements.withdrawAmount.addEventListener('input', () => validateWithdrawAmount());
     }
     if (elements.closeReferralModal) {
         elements.closeReferralModal.addEventListener('click', closeReferralModal);
@@ -3337,23 +3445,44 @@ async function requestWithdraw() {
         showToast(t('common.openInTelegram'), 'error');
         return;
     }
-    if (!window.confirm(t('referral.withdrawConfirm').replace('{amount}', formatUsdt(available)))) return;
+
+    const checked = validateWithdrawAmount();
+    if (checked.code === 'empty') {
+        showToast(t('referral.withdrawAmountEmpty'), 'error');
+        elements.withdrawAmount?.focus();
+        return;
+    }
+    if (checked.code === 'min') {
+        showToast(t('referral.withdrawAmountTooSmall'), 'error');
+        elements.withdrawAmount?.focus();
+        return;
+    }
+    if (checked.code === 'max') {
+        showToast(t('referral.withdrawAmountTooBig').replace('{amount}', formatUsdt(available)), 'error');
+        elements.withdrawAmount?.focus();
+        return;
+    }
+
+    const amount = checked.amount;
+    if (!window.confirm(t('referral.withdrawConfirm').replace('{amount}', formatUsdt(amount)))) return;
 
     const btn = elements.withdrawBtn;
     if (btn) btn.disabled = true;
     try {
         const res = await apiFetch(API.referralWithdraw, {
             method: 'POST',
-            body: JSON.stringify({})
+            body: JSON.stringify({ amount })
         });
-        showToast(t('referral.withdrawSent').replace('{amount}', formatUsdt(res.amount ?? available)), 'success');
+        showToast(t('referral.withdrawSent').replace('{amount}', formatUsdt(res.amount ?? amount)), 'success');
+        if (elements.withdrawAmount) elements.withdrawAmount.value = '';
         await refreshReferralStats(false);
         renderReferralInfo();
     } catch (error) {
         console.error('Withdraw failed:', error);
         const code = error.payload?.error;
         const msg = code === 'withdrawal_pending' ? t('referral.withdrawPending')
-            : code === 'insufficient_balance' ? t('referral.withdrawMin')
+            : code === 'insufficient_balance' ? t('referral.withdrawAmountTooBig').replace('{amount}', formatUsdt(available))
+            : code === 'withdrawal_amount_invalid' ? t('referral.withdrawAmountTooSmall')
             : code === 'rate_limited' ? t('referral.withdrawRateLimited')
             : t('referral.withdrawFailed');
         showToast(msg, 'error');
