@@ -1593,7 +1593,7 @@ textarea {
                 <div class="form-group privacy-section" id="privacySection" style="display: none;">
                     <div class="setting-option compact">
                         <div class="setting-option-label">
-                            <strong data-i18n="settings.historyDisable">Не показывать историю сделок</strong>
+                            <strong data-i18n="settings.historyDisable">Отключить сохранение истории сделок</strong>
                             <small data-i18n="settings.historyHint">Завершённые сделки не будут отображаться в «Операциях»</small>
                         </div>
                         <label class="toggle">
@@ -1603,8 +1603,8 @@ textarea {
                     </div>
                     <div class="setting-option compact" id="clearHistoryBtn" style="margin-top: 8px;">
                         <div class="setting-option-label">
-                            <strong data-i18n="settings.historyClear">Скрыть историю сделок</strong>
-                            <small data-i18n="settings.historyClearHint">Убрать завершённые сделки из «Операций»</small>
+                            <strong data-i18n="settings.historyClear">Удалить историю сделок</strong>
+                            <small data-i18n="settings.historyClearHint">Очистить все операции</small>
                         </div>
                         <div class="setting-option-value">🗑️</div>
                     </div>
@@ -1759,7 +1759,7 @@ textarea {
             </div>
             <div class="modal-body">
                 <p data-i18n="confirm.clearText" style="line-height: 1.6; color: var(--text-primary);">
-                    Скрыть все завершённые сделки из раздела «Операции»? Активные заявки останутся.
+                    Удалить все завершённые сделки из раздела «Операции»? Активные заявки останутся.
                 </p>
                 <div class="form-group" style="display: flex; gap: 10px; margin-top: 16px;">
                     <button type="button" class="submit-btn" id="confirmClearYes" style="flex: 1;">
@@ -1947,10 +1947,10 @@ const translations = {
         'about.openHint': 'Открыть подробности',
         'settings.privacyTitle': 'Настройки приватности',
         'settings.privacyHint': 'Управление историей',
-        'settings.historyDisable': 'Не показывать историю сделок',
+        'settings.historyDisable': 'Отключить сохранение истории сделок',
         'settings.historyHint': 'Завершённые сделки не будут отображаться в «Операциях»',
-        'settings.historyClear': 'Скрыть историю сделок',
-        'settings.historyClearHint': 'Убрать завершённые сделки из «Операций»',
+        'settings.historyClear': 'Удалить историю сделок',
+        'settings.historyClearHint': 'Очистить все операции',
         'settings.theme': 'Тема приложения',
         'settings.light': 'Стандартная',
         'settings.dark': 'Контрастная',
@@ -1979,10 +1979,10 @@ const translations = {
         'requests.thanks': 'Благодарим за сделку, Fortexis',
         'requests.copied': 'Номер заявки скопирован',
         'confirm.clearTitle': 'Подтверждение',
-        'confirm.clearText': 'Скрыть все завершённые сделки из раздела «Операции»? Активные заявки останутся.',
+        'confirm.clearText': 'Удалить все завершённые сделки из раздела «Операции»? Активные заявки останутся.',
         'confirm.yes': 'Да',
         'confirm.no': 'Нет',
-        'confirm.cleared': 'История скрыта',
+        'confirm.cleared': 'История удалена',
         'info.referral': 'Реферальная программа',
         'referral.title': 'Реферальная программа',
         'referral.cardHint': 'Приглашайте друзей и получайте вознаграждение',
@@ -2047,7 +2047,7 @@ const translations = {
         'validate.amountMin': 'Минимальная сумма',
         'validate.amountMax': 'Максимальная сумма',
         'validate.amountLimitHint': 'Для увеличения лимита напишите менеджеру',
-        'history.deleteFailed': 'Не удалось скрыть историю',
+        'history.deleteFailed': 'Не удалось удалить историю',
         'manager.refresh': 'Обновить',
         'manager.loadingAccess': 'Проверка доступа и загрузка заявок…',
         'manager.checking': 'Проверка доступа…',
@@ -2146,10 +2146,10 @@ const translations = {
         'about.openHint': 'Open details',
         'settings.privacyTitle': 'Privacy settings',
         'settings.privacyHint': 'History control',
-        'settings.historyDisable': 'Do not show deal history',
+        'settings.historyDisable': 'Turn off saving deal history',
         'settings.historyHint': 'Completed deals will not appear in Operations',
-        'settings.historyClear': 'Hide deal history',
-        'settings.historyClearHint': 'Remove completed deals from Operations',
+        'settings.historyClear': 'Delete deal history',
+        'settings.historyClearHint': 'Clear all operations',
         'settings.theme': 'App Theme',
         'settings.light': 'Standard',
         'settings.dark': 'Contrast',
@@ -2178,10 +2178,10 @@ const translations = {
         'requests.thanks': 'Thank you for the deal, Fortexis',
         'requests.copied': 'Request ID copied',
         'confirm.clearTitle': 'Confirmation',
-        'confirm.clearText': 'Hide all completed deals from Operations? Active requests will stay.',
+        'confirm.clearText': 'Delete all completed deals from Operations? Active requests will stay.',
         'confirm.yes': 'Yes',
         'confirm.no': 'No',
-        'confirm.cleared': 'History hidden',
+        'confirm.cleared': 'History deleted',
         'info.referral': 'Referral',
         'referral.title': 'Referral Program',
         'referral.cardHint': 'Invite friends and earn rewards',
@@ -2246,7 +2246,7 @@ const translations = {
         'validate.amountMin': 'Minimum amount',
         'validate.amountMax': 'Maximum amount',
         'validate.amountLimitHint': 'Contact a manager to raise your limit',
-        'history.deleteFailed': 'Could not hide the history',
+        'history.deleteFailed': 'Could not delete the history',
         'manager.refresh': 'Refresh',
         'manager.loadingAccess': 'Checking access and loading requests…',
         'manager.checking': 'Checking access…',
@@ -2345,10 +2345,10 @@ const translations = {
         'about.openHint': '查看详情',
         'settings.privacyTitle': '隐私设置',
         'settings.privacyHint': '历史管理',
-        'settings.historyDisable': '不显示交易历史',
+        'settings.historyDisable': '关闭保存交易历史',
         'settings.historyHint': '已完成的交易将不在“操作”中显示',
-        'settings.historyClear': '隐藏交易历史',
-        'settings.historyClearHint': '将已完成的交易从「操作」中移除',
+        'settings.historyClear': '删除交易历史',
+        'settings.historyClearHint': '清除所有操作记录',
         'settings.theme': '应用主题',
         'settings.light': '标准',
         'settings.dark': '对比',
@@ -2377,10 +2377,10 @@ const translations = {
         'requests.thanks': '感谢合作, Fortexis',
         'requests.copied': '申请编号已复制',
         'confirm.clearTitle': '确认',
-        'confirm.clearText': '将所有已完成的交易从「操作」中隐藏？进行中的申请将保留。',
+        'confirm.clearText': '将所有已完成的交易从「操作」中删除？进行中的申请将保留。',
         'confirm.yes': '是',
         'confirm.no': '否',
-        'confirm.cleared': '历史已隐藏',
+        'confirm.cleared': '历史已删除',
         'info.referral': '推荐计划',
         'referral.title': '推荐计划',
         'referral.cardHint': '邀请好友获得奖励',
@@ -2445,7 +2445,7 @@ const translations = {
         'validate.amountMin': '最低金额',
         'validate.amountMax': '最高金额',
         'validate.amountLimitHint': '如需提高限额，请联系客户经理',
-        'history.deleteFailed': '无法隐藏历史',
+        'history.deleteFailed': '无法删除历史',
         'manager.refresh': '刷新',
         'manager.loadingAccess': '正在验证权限并加载申请…',
         'manager.checking': '正在验证权限…',
@@ -4485,13 +4485,13 @@ async function clearHistory() {
     if (isTelegramMiniApp) {
         try {
             await apiFetch(API.clearHistory, { method: 'POST', body: JSON.stringify({}) });
-            showToast(t('confirm.cleared') || 'История скрыта', 'success');
+            showToast(t('confirm.cleared') || 'История удалена', 'success');
         } catch (error) {
             console.error('Failed to clear deal history:', error);
             showToast(t('history.deleteFailed'), 'error');
         }
     } else {
-        showToast(t('confirm.cleared') || 'История скрыта', 'success');
+        showToast(t('confirm.cleared') || 'История удалена', 'success');
     }
 
     updateRequestsModal();
