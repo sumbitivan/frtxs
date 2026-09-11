@@ -451,6 +451,36 @@ body {
     display: block;
 }
 
+.app-notice {
+    margin: 0 0 14px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    border: 1px solid var(--notice-border, #e0b44a);
+    background: var(--notice-bg, #fdf6e3);
+    color: var(--notice-text, #6b4e00);
+    font-size: 14px;
+    line-height: 1.5;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+}
+.app-notice__icon { flex: 0 0 auto; }
+.app-notice__text { flex: 1 1 auto; overflow-wrap: anywhere; }
+.app-notice--blocking {
+    border-color: var(--notice-stop-border, #d98080);
+    background: var(--notice-stop-bg, #fdeaea);
+    color: var(--notice-stop-text, #7a1f1f);
+}
+[data-theme="dark"] .app-notice {
+    background: #2c2617;
+    border-color: #6b5520;
+    color: #e8d9a8;
+}
+[data-theme="dark"] .app-notice--blocking {
+    background: #2f1c1c;
+    border-color: #7a3535;
+    color: #f0c4c4;
+}
 .tips-section {
     background: var(--card-bg);
     border: 1px solid var(--border-color);
@@ -1271,6 +1301,10 @@ textarea {
 </head>
 <body>
     <div class="container">
+        <div class="app-notice" id="appNotice" hidden>
+            <span class="app-notice__icon">!</span>
+            <span class="app-notice__text" id="appNoticeText"></span>
+        </div>
         <div class="brand-header">
             <svg class="brand-logo" viewBox="0 0 28 32" aria-hidden="true">
                 <defs>
@@ -1899,6 +1933,7 @@ const translations = {
         'exchange.namePlaceholder': 'Введите ваше имя',
         'exchange.phone': 'Ваш юзернейм',
         'exchange.phonePlaceholder': 'Пример: @username',
+        'exchange.acceptingPaused': 'Приём заявок временно приостановлен',
         'exchange.pairUnavailable': 'Пара временно недоступна',
         'result.tba': 'Скоро появится, узнавайте у менеджера',
         'exchange.comment': 'Комментарий (необязательно)',
@@ -2097,6 +2132,7 @@ const translations = {
         'exchange.namePlaceholder': 'Enter your name',
         'exchange.phone': 'Your username',
         'exchange.phonePlaceholder': 'Example: @username',
+        'exchange.acceptingPaused': 'New requests are paused for now',
         'exchange.pairUnavailable': 'This pair is temporarily unavailable',
         'result.tba': 'Coming soon — ask the manager',
         'exchange.comment': 'Comment (optional)',
@@ -2295,6 +2331,7 @@ const translations = {
         'exchange.namePlaceholder': '请输入您的姓名',
         'exchange.phone': '您的用户名',
         'exchange.phonePlaceholder': '示例： @username',
+        'exchange.acceptingPaused': '暂停接收新申请',
         'exchange.pairUnavailable': '该货币对暂时不可用',
         'result.tba': '即将推出，请咨询客服',
         'exchange.comment': '评论（可选）',
@@ -2475,6 +2512,7 @@ const state = {
     clientAmount: 0,
     amountLimits: null,
     cashlessRub: null,
+    notice: null,
     resultAmount: 0,
     theme: localStorage.getItem('theme') || 'light',
     language: localStorage.getItem('language') || 'ru',
@@ -2562,6 +2600,8 @@ const elements = {
     requestsModal: document.getElementById('requestsModal'),
     closeRequestsModal: document.getElementById('closeRequestsModal'),
     requestsBody: document.getElementById('requestsBody'),
+    appNotice: document.getElementById('appNotice'),
+    appNoticeText: document.getElementById('appNoticeText'),
     referralCard: document.getElementById('referralCard'),
     withdrawBtn: document.getElementById('withdrawBtn'),
     withdrawHint: document.getElementById('withdrawHint'),
@@ -2802,6 +2842,9 @@ async function loadExchangeRates() {
         if (data?.cashlessRub && typeof data.cashlessRub === 'object') {
             state.cashlessRub = data.cashlessRub;
         }
+
+        state.notice = data?.notice || null;
+        renderAppNotice();
 
         state.lastUpdatedAt = data?.updatedAt || null;
 
@@ -3155,7 +3198,7 @@ function openModal() {
 
     const submitBtn = elements.exchangeForm?.querySelector('.submit-btn');
     if (submitBtn) {
-        submitBtn.disabled = state.currency === 'EUR';
+        submitBtn.disabled = state.currency === 'EUR' || acceptingPaused();
         const label = submitBtn.querySelector('[data-i18n="exchange.submit"]');
         if (label && state.currency !== 'EUR') {
             label.textContent = t('exchange.submit');
@@ -3453,9 +3496,12 @@ function setCurrency(currency) {
     elements.clientAmount.disabled = isEurDisabled;
     const submitBtn = elements.exchangeForm.querySelector('.submit-btn');
     if (submitBtn) {
-        submitBtn.disabled = isEurDisabled;
-        submitBtn.textContent = isEurDisabled ? t('exchange.pairUnavailable') : '';
-        if (!isEurDisabled) {
+        const paused = acceptingPaused();
+        submitBtn.disabled = isEurDisabled || paused;
+        submitBtn.textContent = isEurDisabled
+            ? t('exchange.pairUnavailable')
+            : (paused ? t('exchange.acceptingPaused') : '');
+        if (!isEurDisabled && !paused) {
             const label = document.createElement('span');
             label.setAttribute('data-i18n', 'exchange.submit');
             label.textContent = t('exchange.submit');
@@ -3632,6 +3678,9 @@ function submitErrorMessage(error) {
 
     const code = error.payload?.error || '';
 
+    if (code === 'accepting_paused') {
+        return t('exchange.acceptingPaused');
+    }
     if (code === 'rate_limited' || error.status === 429) {
         return t('exchange.tooManyRequests');
     }
@@ -3652,6 +3701,12 @@ function submitErrorMessage(error) {
 }
 
 async function handleFormSubmit(e) {
+    if (acceptingPaused()) {
+        e.preventDefault();
+        showToast(t('exchange.acceptingPaused'), 'error');
+        return;
+    }
+
     e.preventDefault();
 
     const submitBtn = elements.exchangeForm.querySelector('.submit-btn');
@@ -3714,7 +3769,7 @@ async function handleFormSubmit(e) {
             submittingRequest = false;
 
             if (submitBtn) {
-                submitBtn.disabled = state.currency === 'EUR';
+                submitBtn.disabled = state.currency === 'EUR' || acceptingPaused();
                 const label = submitBtn.querySelector('[data-i18n="exchange.submit"]');
                 if (label && state.currency !== 'EUR') {
                     label.textContent = t('exchange.submit');
@@ -4541,6 +4596,30 @@ function sendToTelegram(data) {
     const message = `🔄 Новая заявка на обмен валюты\n\n💼 Тип сделки: ${dealTypeLabel}\n📊 Направление: ${data.direction === 'buy' ? 'Покупка USDT' : 'Продажа USDT'}\n💰 Отдает: ${data.clientAmount} ${data.direction === 'buy' ? 'RUB' : 'USDT'}\n💵 Получает: ${data.resultAmount.toFixed(2)} ${data.direction === 'buy' ? 'USDT' : 'RUB'}\n📈 Курс: ${data.rate} ₽\n\n👤 Имя: ${data.clientName}\n📱 Юзернейм: ${data.clientPhone}${data.clientComment ? `\n💬 Комментарий: ${data.clientComment}` : ''}\n\n${user ? `👤 Telegram: @${user.username || user.first_name}` : ''}\n🕐 Время: ${new Date().toLocaleString('ru-RU')}`;
     tg.sendData(JSON.stringify({ type: 'exchange_request', data: data }));
     console.log('Отправка заявки:', message);
+}
+
+function renderAppNotice() {
+    const box = elements.appNotice;
+    const textEl = elements.appNoticeText;
+    if (!box || !textEl) return;
+
+    const notice = state.notice;
+    const text = notice && typeof notice.text === 'string' ? notice.text.trim() : '';
+
+    if (!text) {
+        box.hidden = true;
+        textEl.textContent = '';
+        box.classList.remove('app-notice--blocking');
+        return;
+    }
+
+    textEl.textContent = text;
+    box.classList.toggle('app-notice--blocking', notice.blocking === true);
+    box.hidden = false;
+}
+
+function acceptingPaused() {
+    return state.notice?.blocking === true;
 }
 
 function showToast(message, type = 'success') {
