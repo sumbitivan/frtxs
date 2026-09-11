@@ -1,0 +1,4607 @@
+<!DOCTYPE html>
+<html lang="ru" id="htmlRoot">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="
+      default-src 'none';
+      script-src 'self' 'unsafe-inline' https://telegram.org;
+      style-src 'self' 'unsafe-inline';
+      img-src 'self' data:;
+      font-src 'self';
+      connect-src 'self' https://patient-brook-3cd1.syedwang789.workers.dev https://telegram.org;
+      base-uri 'none';
+      form-action 'self';
+    ">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content">
+    <title id="pageTitle">Обмен валют</title>
+    <script src="https://telegram.org/js/telegram-web-app.js?63"></script>
+    <style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --primary-color: #3f7ca6;
+    --primary-dark: #2c5770;
+    --accent-light: #6fb3e0;
+    --secondary-color: #ff6b6b;
+    --success-color: #34a37c;
+    --bg-color: #0d141a;
+    --card-bg: #121b23;
+    --text-primary: #eef4f8;
+    --text-secondary: #93a9ba;
+    --border-color: #233241;
+    --shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+    --shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.5);
+    --steel-gradient: linear-gradient(135deg, #324a5e 0%, #7c97ac 22%, #dbe6ee 38%, #8ea5b8 52%, #3f5b71 70%, #26394a 100%);
+}
+
+[data-theme="dark"] {
+    --bg-color: #080b0e;
+    --card-bg: #0d141a;
+    --text-primary: #f2f6f9;
+    --text-secondary: #7e94a6;
+    --border-color: #1a2733;
+    --shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+    --shadow-hover: 0 4px 18px rgba(0, 0, 0, 0.65);
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background: radial-gradient(120% 70% at 78% 0%, #1c2b3a 0%, var(--bg-color) 55%);
+    background-color: var(--bg-color);
+    color: var(--text-primary);
+    line-height: 1.6;
+    padding: 0;
+    margin: 0;
+    min-height: 100vh;
+    transition: background 0.3s, color 0.3s;
+}
+
+:root {
+    --vh: 1vh;
+}
+
+.container {
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 16px;
+    padding-bottom: 110px;
+    position: relative;
+}
+        
+.currency-selector.single-option {
+    grid-template-columns: 1fr;
+}
+        
+.brand-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 18px;
+    padding: 2px 2px 0;
+}
+
+.brand-logo {
+    width: 26px;
+    height: 30px;
+    flex-shrink: 0;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
+}
+
+.brand-name {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 2.5px;
+    color: var(--text-primary);
+}
+
+.rates-banner {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 12px 14px;
+    margin-bottom: 14px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .rates-banner {
+    background: var(--card-bg);
+    color: var(--text-primary);
+}
+
+.rates-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.rates-header h2 {
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.update-time {
+    font-size: 11px;
+    opacity: 0.8;
+    display: none;
+}
+
+.rates-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.rates-combined {
+    background: rgba(111, 179, 224, 0.07);
+    backdrop-filter: blur(6px);
+    border-radius: 10px;
+    padding: 6px;
+}
+
+[data-theme="dark"] .rates-combined {
+    background: rgba(111, 179, 224, 0.05);
+}
+
+.rates-combined .rate-column {
+    background: transparent;
+}
+
+.rates-grid--merged {
+    position: relative;
+    gap: 0;
+}
+
+.rates-grid--merged .rate-column {
+    border-radius: 0;
+}
+
+.rates-grid--merged .rate-column:first-child {
+    border-top-left-radius: 10px;
+    border-bottom-left-radius: 10px;
+}
+
+.rates-grid--merged .rate-column:last-child {
+    border-top-right-radius: 10px;
+    border-bottom-right-radius: 10px;
+}
+
+.rates-grid--joined-top {
+    margin-bottom: -2px;
+}
+
+.rates-grid--joined-bottom {
+    margin-top: -2px;
+}
+
+.rates-grid--joined-top .rate-column {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.rates-grid--joined-bottom .rate-column {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+}
+
+.rates-grid--compact-joined {
+    gap: 0;
+}
+
+.rates-grid--compact-joined .rate-column {
+    border-radius: 0;
+}
+
+.rates-grid--compact-joined .rate-column:first-child {
+    border-top-left-radius: 10px;
+    border-bottom-left-radius: 10px;
+}
+
+.rates-grid--compact-joined .rate-column:last-child {
+    border-top-right-radius: 10px;
+    border-bottom-right-radius: 10px;
+}
+
+.rates-merge-label {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 12px;
+    font-weight: 700;
+    opacity: 0.85;
+    text-align: center;
+    width: 100%;
+    pointer-events: none;
+}
+
+.rates-grid--compact {
+    gap: 6px;
+    margin-top: 8px;
+}
+
+.rates-grid--compact .rate-column {
+    padding: 6px;
+    border-radius: 8px;
+}
+
+.rates-grid--compact .rate-label {
+    font-size: 12px;
+    margin-bottom: 6px;
+}
+
+.rates-grid--compact .rate-value {
+    font-size: 15px;
+}
+
+.rates-grid--compact .rate-subtitle {
+    font-size: 9px;
+}
+
+.rate-column {
+    position: relative;
+    background: rgba(111, 179, 224, 0.07);
+    backdrop-filter: blur(6px);
+    border-radius: 10px;
+    padding: 10px 6px 6px;
+    text-align: center;
+}
+
+.rates-combined .rate-column {
+    background: transparent;
+    backdrop-filter: none;
+}
+
+.rate-tag {
+    position: static;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.1;
+    display: block;
+    opacity: 0.8;
+    margin-bottom: 4px;
+    text-align: left;
+}
+
+.rate-tag--cash {
+    font-size: 12px;
+}
+
+.rate-tag--cashless {
+    font-size: 12px;
+}
+
+.rate-tag--placeholder {
+    visibility: hidden;
+}
+
+.rate-tag--spacer {
+    display: block;
+    height: 4px;
+    margin-bottom: 0;
+    opacity: 0;
+}
+
+[data-theme="dark"] .rate-column {
+    background: rgba(111, 179, 224, 0.05);
+}
+
+[data-theme="dark"] .rates-combined .rate-column {
+    background: transparent;
+}
+
+.rate-label {
+    font-size: 12px;
+    font-weight: 700;
+    opacity: 0.9;
+    margin-bottom: 6px;
+}
+
+.rate-label--buy {
+    color: #00d26a;
+}
+
+.rate-label--sell {
+    color: #ff2d20;
+}
+
+.rate-label--left {
+    text-align: left;
+    width: 100%;
+}
+
+.rate-value {
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 2px;
+}
+
+.rate-value--pulse {
+    display: inline-block;
+    width: 52px;
+    height: 15px;
+    border-radius: 4px;
+    color: transparent;
+    background: linear-gradient(90deg, rgba(111, 179, 224, 0.12) 25%, rgba(111, 179, 224, 0.28) 37%, rgba(111, 179, 224, 0.12) 63%);
+    background-size: 400% 100%;
+    animation: ratePulse 1.6s ease-in-out infinite;
+}
+
+@keyframes ratePulse {
+    0% { background-position: 100% 0; }
+    100% { background-position: 0 0; }
+}
+
+.rate-value-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.rate-arrow {
+    font-size: 12px;
+    line-height: 1;
+    opacity: 0.6;
+    animation: arrowBlink 2.2s ease-in-out infinite;
+}
+
+.rate-arrow--up {
+    color: #00d26a;
+}
+
+.rate-arrow--down {
+    color: #ff2d20;
+}
+
+@keyframes arrowBlink {
+    0%, 100% {
+        opacity: 0.35;
+    }
+    50% {
+        opacity: 1;
+    }
+}
+
+.rate-subtitle {
+    font-size: 9px;
+    font-weight: 600;
+    opacity: 0.8;
+}
+
+.info-block {
+    position: fixed;
+    left: 16px;
+    right: 16px;
+    bottom: calc(16px + env(safe-area-inset-bottom));
+    z-index: 1200;
+    display: flex;
+    gap: 0;
+    background: var(--card-bg);
+    border-radius: 14px;
+    padding: 6px 10px;
+    box-shadow: var(--shadow);
+    justify-content: space-between;
+}
+
+.info-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.3s;
+    padding: 6px 8px;
+    border-radius: 6px;
+    white-space: nowrap;
+    min-width: 0;
+}
+
+.info-item.exchange-item {
+    background: var(--steel-gradient);
+    color: #0c1319;
+}
+
+.info-item.exchange-item:hover {
+    background: var(--primary-dark);
+}
+
+.info-item:hover {
+    background: var(--bg-color);
+    transform: translateY(-2px);
+}
+
+.info-item:active {
+    transform: translateY(0);
+}
+
+.info-icon {
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.info-item#settingsBtn .info-icon {
+    color: var(--text-secondary);
+}
+
+.info-icon svg {
+    width: 18px;
+    height: 18px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.info-icon img {
+    width: 18px;
+    height: 18px;
+    display: block;
+}
+
+.tips-section {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 14px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+}
+
+[data-theme="dark"] .tips-section {
+    background: var(--card-bg);
+}
+
+.tips-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 12px;
+    padding: 0;
+}
+
+.tips-carousel {
+    display: flex;
+    overflow-x: auto;
+    gap: 12px;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 2px;
+    scrollbar-width: none;
+}
+
+.tips-carousel::-webkit-scrollbar {
+    display: none;
+}
+
+.tip-card {
+    flex: 0 0 100%;
+    scroll-snap-align: start;
+    background: rgba(111, 179, 224, 0.06);
+    border-radius: 10px;
+    padding: 18px 14px;
+}
+
+.tip-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: rgba(111, 179, 224, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 14px;
+}
+
+.tip-icon svg {
+    width: 22px;
+    height: 22px;
+    stroke: var(--accent-light);
+    fill: none;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.tip-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-primary);
+    text-align: center;
+    margin-bottom: 10px;
+    line-height: 1.35;
+}
+
+.tip-text {
+    font-size: 13px;
+    color: var(--text-secondary);
+    text-align: center;
+    line-height: 1.55;
+}
+
+.tips-dots {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 10px;
+    margin-bottom: 2px;
+}
+
+.tips-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--border-color);
+    cursor: pointer;
+    transition: background 0.2s, transform 0.2s;
+}
+
+.tips-dot.active {
+    background: var(--accent-light);
+    transform: scale(1.3);
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: calc(var(--vh, 1vh) * 100);
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    overflow-y: auto;
+    animation: fadeIn 0.3s ease;
+}
+
+.modal.active {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 20px;
+}
+
+.modal-content {
+    background: var(--card-bg);
+    border-radius: 20px;
+    width: 100%;
+    max-width: 500px;
+    max-height: calc(var(--vh, 1vh) * 90);
+    overflow-y: auto;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    animation: slideUp 0.3s ease;
+    margin-top: 20px;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid var(--border-color);
+    position: sticky;
+    top: 0;
+    background: var(--card-bg);
+    z-index: 10;
+}
+
+.modal-header h3 {
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 28px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s;
+}
+
+.close-btn:active {
+    background: var(--bg-color);
+}
+
+.modal-body {
+    padding: 20px;
+    padding-bottom: 80px;
+}
+
+.modal-content.keyboard-open {
+    max-height: calc(var(--vh, 1vh) * 70);
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group.compact {
+    margin-bottom: 12px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 8px;
+    color: var(--text-primary);
+}
+
+.exchange-direction {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+#exchangeTypeModal .direction-btn {
+    width: 100%;
+    min-height: 54px;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.currency-selector {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+.currency-btn {
+    background: var(--bg-color);
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    padding: 12px;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.currency-btn.active {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+    color: white;
+}
+
+.direction-btn {
+    background: var(--bg-color);
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.direction-btn span {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.direction-btn small {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.direction-btn.active {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+    color: white;
+}
+
+.direction-btn.active span,
+.direction-btn.active small {
+    color: white;
+}
+
+.input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-wrapper input {
+    width: 100%;
+    padding: 14px 80px 14px 16px;
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    font-size: 18px;
+    font-weight: 600;
+    transition: all 0.3s;
+    background: var(--card-bg);
+    color: var(--text-primary);
+}
+
+.input-wrapper input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(111, 179, 224, 0.15);
+}
+
+.currency-label {
+    position: absolute;
+    right: 16px;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    pointer-events: none;
+}
+
+.input-wrapper input.invalid,
+.input-wrapper input.invalid:focus {
+    border-color: var(--secondary-color);
+    box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.15);
+}
+
+.field-error {
+    margin-top: 8px;
+    font-size: 13px;
+    line-height: 1.45;
+    color: var(--secondary-color);
+}
+
+.field-error__hint {
+    display: block;
+    margin-top: 2px;
+    color: var(--text-secondary);
+    font-size: 12px;
+}
+
+input[type="text"],
+input[type="tel"],
+textarea {
+    width: 100%;
+    padding: 14px 16px;
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    font-size: 16px;
+    font-family: inherit;
+    transition: all 0.3s;
+    background: var(--card-bg);
+    color: var(--text-primary);
+}
+
+input[type="text"]:focus,
+input[type="tel"]:focus,
+textarea:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(111, 179, 224, 0.15);
+}
+
+textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.result-amount {
+    background: linear-gradient(135deg, var(--success-color) 0%, #4a9c81 100%);
+    border-radius: 10px;
+    padding: 12px 14px;
+    text-align: center;
+    color: white;
+    margin-bottom: 6px;
+}
+
+.result-value {
+    font-size: 26px;
+    font-weight: 700;
+    display: block;
+    margin-bottom: 2px;
+}
+
+.result-currency {
+    font-size: 16px;
+    opacity: 0.9;
+}
+
+.rate-info {
+    font-size: 14px;
+    color: var(--text-secondary);
+    text-align: center;
+}
+
+.rate-info span {
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+.submit-btn {
+    width: 100%;
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+    border: none;
+    border-radius: 12px;
+    padding: 16px;
+    font-size: 18px;
+    font-weight: 600;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-top: 10px;
+}
+
+.submit-btn:active {
+    transform: scale(0.98);
+}
+
+.submit-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.setting-option {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    background: var(--bg-color);
+    border-radius: 12px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.toggle {
+    position: relative;
+    width: 44px;
+    height: 24px;
+    flex: 0 0 auto;
+}
+
+.toggle input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    inset: 0;
+    background: var(--border-color);
+    border-radius: 999px;
+    transition: 0.2s;
+}
+
+.toggle-slider::before {
+    content: '';
+    position: absolute;
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    top: 3px;
+    background: white;
+    border-radius: 50%;
+    transition: 0.2s;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.toggle input:checked + .toggle-slider {
+    background: var(--success-color);
+}
+
+.toggle input:checked + .toggle-slider::before {
+    transform: translateX(20px);
+}
+
+.setting-option.compact {
+    padding: 10px 12px;
+}
+
+.setting-option.compact .setting-option-label strong {
+    font-size: 14px;
+}
+
+.setting-option.compact .setting-option-label small {
+    font-size: 11px;
+}
+
+.setting-option.compact .setting-option-value {
+    font-size: 13px;
+}
+
+.privacy-section {
+    position: relative;
+    padding-left: 8px;
+    margin-left: 4px;
+    border-left: 1px solid var(--border-color);
+}
+
+.privacy-section .setting-option.compact {
+    padding: 6px 8px;
+    border-radius: 8px;
+}
+
+.privacy-section .setting-option-label strong {
+    font-size: 13px;
+}
+
+.privacy-section .setting-option-label small {
+    font-size: 10px;
+}
+
+.privacy-section .setting-option-value {
+    font-size: 12px;
+}
+.setting-option:hover {
+    background: var(--border-color);
+}
+
+.setting-option-label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.setting-option-label strong {
+    font-size: 16px;
+    color: var(--text-primary);
+}
+
+.setting-option-label small {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.setting-option-value {
+    font-size: 14px;
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+.request-chevron {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    color: var(--text-secondary);
+    transition: transform 0.2s ease;
+}
+
+.request-chevron svg {
+    width: 18px;
+    height: 18px;
+}
+
+.setting-option.is-expanded .request-chevron {
+    transform: rotate(180deg);
+}
+
+.theme-selector,
+.language-selector {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.theme-btn,
+.language-btn {
+    flex: 1;
+    padding: 12px;
+    background: var(--bg-color);
+    border: 2px solid var(--border-color);
+    border-radius: 10px;
+    cursor: pointer;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    transition: all 0.3s;
+}
+
+.theme-btn.active,
+.language-btn.active {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+    color: white;
+}
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 700;
+}
+
+.status-badge__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 14px;
+    height: 14px;
+    font-size: 13px;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+.status-badge__spin {
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: statusSpin 0.7s linear infinite;
+}
+
+@keyframes statusSpin {
+    to { transform: rotate(360deg); }
+}
+
+.status-badge--pending { color: #f5a623; }
+.status-badge--processing { color: #3b82f6; }
+.status-badge--completed { color: var(--success-color, #2ecc71); }
+.status-badge--rejected { color: var(--secondary-color, #ff6b6b); }
+.status-badge--cancelled { color: var(--text-secondary); }
+
+.toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: #16222c;
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 14px 24px;
+    border-radius: 12px;
+    box-shadow: var(--shadow-hover);
+    z-index: 2000;
+    opacity: 0;
+    transition: all 0.3s ease;
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+.referral-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 14px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.referral-card:active {
+    transform: scale(0.98);
+}
+.referral-card__icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(111, 179, 224, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.referral-card__icon svg {
+    width: 20px;
+    height: 20px;
+    stroke: var(--accent-light);
+    fill: none;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+.referral-card__text {
+    flex: 1;
+    min-width: 0;
+}
+.referral-card__title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+}
+.referral-card__subtitle {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+.referral-card__arrow {
+    font-size: 22px;
+    color: var(--text-secondary);
+    flex-shrink: 0;
+}
+
+.referral-link-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg-color);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 12px 14px;
+    margin-bottom: 20px;
+}
+.referral-link-row__text {
+    flex: 1;
+    min-width: 0;
+    font-size: 13px;
+    color: var(--text-primary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.referral-link-row__copy {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: var(--card-bg);
+    color: var(--accent-light);
+    cursor: pointer;
+}
+.referral-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+.referral-stat {
+    background: var(--bg-color);
+    border-radius: 12px;
+    padding: 14px;
+    text-align: center;
+}
+.referral-stat__value {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+.referral-stat__label {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+.referral-list-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 10px;
+}
+.referral-list-empty {
+    font-size: 13px;
+    color: var(--text-secondary);
+    text-align: center;
+    padding: 20px 0;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@media (max-width: 480px) {
+    .container {
+        padding: 12px;
+    }
+    .rates-banner {
+        padding: 10px 12px;
+    }
+    .rate-value {
+        font-size: 20px;
+    }
+    .modal-content {
+        border-radius: 20px 20px 0 0;
+        margin-top: auto;
+        max-height: calc(var(--vh, 1vh) * 95);
+    }
+}
+    
+.manager-panel { display:none; }
+.manager-panel.active { display:block; }
+.manager-toolbar { display:flex; gap:8px; margin-bottom:14px; }
+.manager-toolbar { flex-wrap:wrap; align-items:center; }
+.manager-tab { flex:0 0 auto; padding:7px 14px; border-radius:999px; border:1px solid var(--border-color); background:transparent; color:var(--text-secondary); font-size:13px; font-weight:700; cursor:pointer; }
+.manager-tab.active { background:var(--steel-gradient); color:#0c1319; border-color:transparent; }
+.manager-toolbar #managerRefreshBtn { margin-left:auto; flex:0 0 auto; width:auto; padding:7px 16px; }
+.wd-card { background:var(--bg-color); border:1px solid var(--border-color); border-radius:12px; padding:14px; margin-bottom:12px; }
+.wd-card__top { display:flex; justify-content:space-between; align-items:baseline; gap:10px; margin-bottom:10px; }
+.wd-card__amount { font-weight:800; font-size:16px; }
+.wd-card__badge { font-size:11px; font-weight:700; padding:2px 8px; border-radius:999px; }
+.wd-badge--requested { background:rgba(245,166,35,.15); color:#f5a623; }
+.wd-badge--paid { background:rgba(46,204,113,.15); color:var(--success-color,#2ecc71); }
+.wd-badge--rejected { background:rgba(255,107,107,.15); color:var(--secondary-color,#ff6b6b); }
+.wd-card__meta { font-size:12px; color:var(--text-secondary); line-height:1.7; margin-bottom:12px; }
+.wd-card__meta b { color:var(--text-primary); font-weight:600; }
+.manager-status { font-size:12px; color:var(--text-secondary); margin-bottom:12px; }
+.manager-card { background:var(--bg-color); border:1px solid var(--border-color); border-radius:12px; padding:14px; margin-bottom:12px; }
+.manager-card__top { display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:10px; }
+.manager-card__id { font-weight:700; font-size:14px; }
+.manager-card__status { font-size:11px; color:var(--text-secondary); }
+.manager-card__grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px; }
+.manager-card__field { background:var(--card-bg); border-radius:8px; padding:8px; }
+.manager-card__field small { display:block; font-size:10px; color:var(--text-secondary); margin-bottom:2px; }
+.manager-card__field strong { font-size:13px; color:var(--text-primary); }
+.manager-actions { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.manager-actions .submit-btn { margin-top:0; }
+.manager-error { padding:12px; border-radius:10px; background:rgba(255,107,107,.12); color:#ff8b8b; font-size:13px; }
+.manager-empty { text-align:center; color:var(--text-secondary); padding:24px 0; font-size:13px; }
+.referral-list { display:flex; flex-direction:column; gap:8px; margin-top:10px; }
+.referral-user { display:flex; justify-content:space-between; align-items:center; gap:10px; padding:10px 12px; background:var(--bg-color); border-radius:10px; }
+.referral-user__main { min-width:0; }
+.referral-user__name { font-size:13px; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.referral-user__meta { font-size:11px; color:var(--text-secondary); margin-top:2px; }
+.referral-user__earned { font-size:12px; color:var(--success-color); font-weight:700; white-space:nowrap; }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="brand-header">
+            <svg class="brand-logo" viewBox="0 0 28 32" aria-hidden="true">
+                <defs>
+                    <linearGradient id="brandSteel" x1="15%" y1="0%" x2="85%" y2="100%">
+                        <stop offset="0%" stop-color="#324a5e"/>
+                        <stop offset="22%" stop-color="#7c97ac"/>
+                        <stop offset="38%" stop-color="#dbe6ee"/>
+                        <stop offset="52%" stop-color="#8ea5b8"/>
+                        <stop offset="70%" stop-color="#3f5b71"/>
+                        <stop offset="100%" stop-color="#26394a"/>
+                    </linearGradient>
+                </defs>
+                <path d="M 6 14 A 8 8 0 0 1 22 14" fill="none" stroke="url(#brandSteel)" stroke-width="4.5" stroke-linecap="round"/>
+                <rect x="0" y="12" width="28" height="20" rx="4" fill="url(#brandSteel)"/>
+                <circle cx="14" cy="21" r="2.6" fill="#0c1319"/>
+                <path d="M 12 23 L 16 23 L 15 28 L 13 28 Z" fill="#0c1319"/>
+            </svg>
+            <span class="brand-name">FORTEXIS</span>
+        </div>
+        <div class="rates-banner">
+            <div class="rates-header">
+                <h2 data-i18n="rates.title">Текущий курс</h2>
+                <span class="update-time" id="updateTime" data-i18n="rate.updatedJustNow">Курс обновлён: только что</span>
+            </div>
+            <div class="rates-combined">
+                <div class="rates-grid rates-grid--merged rates-grid--joined-top">
+                    <div class="rate-column">
+                    <div class="rate-tag rate-tag--cash" data-i18n="rates.cash">Наличный</div>
+                    <div class="rate-label rate-label--buy" data-i18n="rates.buyShort">Покупка</div>
+                    <div class="rate-value-row">
+                        <span class="rate-arrow rate-arrow--up">▲</span>
+                        <div class="rate-value" id="buyRate">—</div>
+                    </div>
+                    <div class="rate-subtitle" id="buySubtitle" data-i18n="rates.buySubtitle" style="display:none">рублей за USDT</div>
+                    </div>
+                    <div class="rate-column">
+                    <div class="rate-tag rate-tag--placeholder">Наличный</div>
+                    <div class="rate-label rate-label--sell" data-i18n="rates.sellShort">Продажа</div>
+                    <div class="rate-value-row">
+                        <span class="rate-arrow rate-arrow--down">▼</span>
+                        <div class="rate-value" id="sellRate">—</div>
+                    </div>
+                    <div class="rate-subtitle" id="sellSubtitle" data-i18n="rates.sellSubtitle" style="display:none">рублей за USDT</div>
+                    </div>
+                </div>
+                <div class="rates-grid rates-grid--merged rates-grid--joined-bottom">
+                    <div class="rate-column">
+                    <div class="rate-tag rate-tag--cashless" data-i18n="rates.cashless">Безналичный</div>
+                    <div class="rate-tag rate-tag--spacer"></div>
+                    <div class="rate-value-row">
+                        <span class="rate-arrow rate-arrow--up">▲</span>
+                        <div class="rate-value" id="buyRateCashless">—</div>
+                    </div>
+                        <div class="rate-subtitle" data-dup="buySubtitle" style="display:none">рублей за USDT</div>
+                    </div>
+                    <div class="rate-column">
+                    <div class="rate-tag rate-tag--placeholder">Безналичный</div>
+                    <div class="rate-tag rate-tag--spacer"></div>
+                    <div class="rate-value-row">
+                        <span class="rate-arrow rate-arrow--down">▼</span>
+                        <div class="rate-value" id="sellRateCashless">—</div>
+                    </div>
+                        <div class="rate-subtitle" data-dup="sellSubtitle" style="display:none">рублей за USDT</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="referral-card" id="referralCard">
+            <div class="referral-card__icon">
+                <svg viewBox="0 0 24 24"><path d="M17 11a4 4 0 1 0-3.5-6"/><circle cx="9" cy="8" r="4"/><path d="M2 21v-1a6 6 0 0 1 6-6h2a6 6 0 0 1 6 6v1"/><path d="M17 14a5 5 0 0 1 5 5v2"/></svg>
+            </div>
+            <div class="referral-card__text">
+                <div class="referral-card__title" data-i18n="info.referral">Реферальная программа</div>
+                <div class="referral-card__subtitle" data-i18n="referral.cardHint">Приглашайте друзей и получайте вознаграждение</div>
+            </div>
+            <div class="referral-card__arrow">›</div>
+        </div>
+
+        <div class="tips-section">
+            <h2 class="tips-title" data-i18n="tips.title">Полезно знать</h2>
+            <div class="tips-carousel" id="tipsCarousel">
+                <div class="tip-card">
+                    <div class="tip-icon">
+                        <svg viewBox="0 0 24 24"><path d="M12 21s7-7.5 7-12a7 7 0 1 0-14 0c0 4.5 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/></svg>
+                    </div>
+                    <div class="tip-title" data-i18n="tips.1.title">Почему важно проверять адрес и сеть перед переводом</div>
+                    <div class="tip-text" data-i18n="tips.1.text">Ошибка в адресе или выбор не той сети — частая причина потери средств. Сверяйте данные перед каждой отправкой.</div>
+                </div>
+                <div class="tip-card">
+                    <div class="tip-icon">
+                        <svg viewBox="0 0 24 24"><path d="M20.5 12.5 12 21 3 12l8.5-8.5H20a1 1 0 0 1 1 1v8z"/><circle cx="15.5" cy="7.5" r="1.3"/></svg>
+                    </div>
+                    <div class="tip-title" data-i18n="tips.2.title">Что такое memo / тег и когда он обязателен</div>
+                    <div class="tip-text" data-i18n="tips.2.text">В части сетей (TON, XRP, Stellar) перевод без memo или тега может не дойти до получателя. Уточняйте это заранее.</div>
+                </div>
+                <div class="tip-card">
+                    <div class="tip-icon">
+                        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+                    </div>
+                    <div class="tip-title" data-i18n="tips.4.title">Почему подтверждение иногда занимает больше времени</div>
+                    <div class="tip-text" data-i18n="tips.4.text">Скорость подтверждения зависит от загрузки самой сети блокчейна, а не от Fortexis. Дождитесь нужного числа подтверждений.</div>
+                </div>
+                <div class="tip-card">
+                    <div class="tip-icon">
+                        <svg viewBox="0 0 24 24"><path d="M3 3l18 18"/><path d="M10.6 5.1A10.6 10.6 0 0 1 12 5c5 0 9 4 10 7-0.4 1.2-1.2 2.6-2.4 3.9"/><path d="M6.6 6.6C4.4 8 2.9 10 2 12c1 3 5 7 10 7 1.4 0 2.7-.3 3.9-.8"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>
+                    </div>
+                    <div class="tip-title" data-i18n="tips.5.title">История операций — по вашему усмотрению</div>
+                    <div class="tip-text" data-i18n="tips.5.text">Хранение истории сделок можно в любой момент отключить в настройках профиля.</div>
+                </div>
+            </div>
+            <div class="tips-dots" id="tipsDots"></div>
+        </div>
+        
+        <div class="info-block">
+            <div class="info-item" id="requestsBtn">
+                <span class="info-icon"><svg viewBox="0 0 24 24"><path d="M6 3h12a1 1 0 0 1 1 1v16l-3-2-2 2-2-2-2 2-2-2-3 2V4a1 1 0 0 1 1-1z"/><path d="M9 8h6M9 12h6"/></svg></span>
+                <span data-i18n="info.requests">Операции</span>
+            </div>
+            <div class="info-item exchange-item" id="exchangeBtn">
+                <span class="info-icon"><svg viewBox="0 0 24 24"><path d="M7 7h11l-3-3"/><path d="M17 17H6l3 3"/></svg></span>
+                <span data-i18n="exchange.btn">Обмен</span>
+            </div>
+            <div class="info-item" id="settingsBtn">
+                <span class="info-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.5-7 8-7s8 3 8 7"/></svg></span>
+                <span data-i18n="info.settings">Профиль</span>
+            </div>
+            <div class="info-item" id="managerBtn" style="display:none;">
+                <span class="info-icon"><svg viewBox="0 0 24 24"><path d="M9 11l3 3 8-8"/><path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/></svg></span>
+                <span data-i18n="info.manager">Менеджер</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="exchangeTypeModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 data-i18n="exchange.typeTitle">Тип обмена</h3>
+                <button class="close-btn" id="closeExchangeTypeModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="exchange-direction">
+                    <button type="button" class="direction-btn" id="cashTypeBtn">
+                        <span data-i18n="exchange.typeCash">Наличный</span>
+                    </button>
+                    <button type="button" class="direction-btn" id="cashlessTypeBtn">
+                        <span data-i18n="exchange.typeCashless">Безналичный</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="exchangeModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 data-i18n="exchange.title">Обмен валюты</h3>
+                <button class="close-btn" id="closeModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="exchangeForm">
+                    <div class="form-group">
+                        <label data-i18n="exchange.direction">Выберите направление обмена</label>
+                        <div class="exchange-direction">
+                            <button type="button" class="direction-btn active" data-direction="buy">
+                                <span id="directionBuyLabel" data-i18n="exchange.buy">Покупка USDT</span>
+                                <small id="directionBuyDesc" data-i18n="exchange.buyDesc">Отдаёте RUB, получаете USDT</small>
+                            </button>
+                            <button type="button" class="direction-btn" data-direction="sell">
+                                <span id="directionSellLabel" data-i18n="exchange.sell">Продажа USDT</span>
+                                <small id="directionSellDesc" data-i18n="exchange.sellDesc">Отдаёте USDT, получаете RUB</small>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label data-i18n="exchange.currencyTitle">Выберите валюту к получению</label>
+                        <div class="currency-selector">
+                            <button type="button" class="currency-btn" data-currency="RUB" data-i18n="exchange.currencyRub">Рубль</button>
+                            <button type="button" class="currency-btn active" data-currency="USD" data-i18n="exchange.currencyUsd">Доллар</button>
+                            <button type="button" class="currency-btn" data-currency="EUR" data-i18n="exchange.currencyEur">Евро</button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="clientAmount" data-i18n="exchange.amount">Сумма, которую отдаёте</label>
+                        <div class="input-wrapper">
+                            <input
+                                type="number"
+                                id="clientAmount"
+                                placeholder="0.00"
+                                min="0"
+                                step="0.01"
+                                required
+                            >
+                            <span class="currency-label" id="clientCurrency">USDT</span>
+                        </div>
+                        <div class="field-error" id="amountError" hidden></div>
+                    </div>
+
+                    <div class="form-group compact">
+                        <label data-i18n="exchange.result">Сумма к получению</label>
+                        <div class="result-amount" id="resultAmount">
+                            <span class="result-value">0.00</span>
+                            <span class="result-currency" id="resultCurrency">RUB</span>
+                        </div>
+                        <div class="rate-info" id="rateInfo">
+                            <span data-i18n="exchange.rate">Курс</span>: <span id="currentRate">—</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="clientName" data-i18n="exchange.name">Ваше имя</label>
+                        <input
+                            type="text"
+                            id="clientName"
+                            placeholder=""
+                            data-i18n-placeholder="exchange.namePlaceholder"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="clientPhone" data-i18n="exchange.phone">Ваш юзернейм</label>
+                        <input
+                            type="text"
+                            id="clientPhone"
+                            placeholder="Пример: @admin"
+                            data-i18n-placeholder="exchange.phonePlaceholder"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="clientComment" data-i18n="exchange.comment">Комментарий (необязательно)</label>
+                        <textarea
+                            id="clientComment"
+                            rows="3"
+                            placeholder=""
+                            data-i18n-placeholder="exchange.commentPlaceholder"
+                        ></textarea>
+                    </div>
+
+                    <button type="submit" class="submit-btn">
+                        <span data-i18n="exchange.submit">Отправить заявку</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="settingsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 data-i18n="settings.title">Настройки профиля</h3>
+                <button class="close-btn" id="closeSettingsModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label data-i18n="settings.theme">Тема приложения</label>
+                    <div class="theme-selector">
+                        <button type="button" class="theme-btn active" data-theme="light" data-i18n="settings.light">Стандартная</button>
+                        <button type="button" class="theme-btn" data-theme="dark" data-i18n="settings.dark">Контрастная</button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label data-i18n="settings.language">Язык</label>
+                    <div class="language-selector">
+                        <button type="button" class="language-btn active" data-lang="ru" data-i18n="settings.russian">Русский</button>
+                        <button type="button" class="language-btn" data-lang="en" data-i18n="settings.english">English</button>
+                        <button type="button" class="language-btn" data-lang="zh" data-i18n="settings.chinese">中文</button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="setting-option compact" id="privacyBtn">
+                        <div class="setting-option-label">
+                            <strong data-i18n="settings.privacyTitle">Настройки приватности</strong>
+                            <small data-i18n="settings.privacyHint">Управление историей</small>
+                        </div>
+                        <div class="setting-option-value">🔒</div>
+                    </div>
+                </div>
+
+                <div class="form-group privacy-section" id="privacySection" style="display: none;">
+                    <div class="setting-option compact">
+                        <div class="setting-option-label">
+                            <strong data-i18n="settings.historyDisable">Не показывать историю сделок</strong>
+                            <small data-i18n="settings.historyHint">Завершённые сделки не будут отображаться в «Операциях»</small>
+                        </div>
+                        <label class="toggle">
+                            <input type="checkbox" id="historyToggle">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div class="setting-option compact" id="clearHistoryBtn" style="margin-top: 8px;">
+                        <div class="setting-option-label">
+                            <strong data-i18n="settings.historyClear">Скрыть историю сделок</strong>
+                            <small data-i18n="settings.historyClearHint">Убрать завершённые сделки из «Операций»</small>
+                        </div>
+                        <div class="setting-option-value">🗑️</div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="setting-option compact" id="supportBtn">
+                        <div class="setting-option-label">
+                            <strong data-i18n="info.support">Задать вопрос</strong>
+                            <small data-i18n="settings.supportHint">Написать в поддержку</small>
+                        </div>
+                        <div class="setting-option-value">💬</div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="setting-option compact" id="reviewsBtn">
+                        <div class="setting-option-label">
+                            <strong data-i18n="info.reviews">Отзывы клиентов</strong>
+                            <small data-i18n="settings.reviewsHint">Оставить отзыв</small>
+                        </div>
+                        <div class="setting-option-value">⭐</div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+    <div class="setting-option compact" id="aboutSettingsBtn">
+        <div class="setting-option-label">
+            <strong data-i18n="info.about">О нас</strong>
+            <small data-i18n="settings.aboutHint">Информация о сервисе</small>
+        </div>
+        <div class="setting-option-value">ℹ️</div>
+    </div>
+</div>
+
+<div class="form-group">
+    <div class="setting-option compact" id="securitySettingsBtn">
+        <div class="setting-option-label">
+            <strong data-i18n="info.secure">Безопасность</strong>
+            <small data-i18n="settings.securityHint">Подробнее о безопасности</small>
+        </div>
+        <div class="setting-option-value">🔒</div>
+    </div>
+</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="aboutModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 data-i18n="about.title">О нас</h3>
+                <button class="close-btn" id="closeAboutModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p data-i18n="about.text" style="line-height: 1.8; color: var(--text-primary);">
+                    Fortexis — обмен USDT на рубли и доллары: наличными и переводом. Вы оставляете заявку в приложении, менеджер связывается с вами и подтверждает детали сделки. Курс считается автоматически и виден до отправки заявки.
+                </p>
+            </div>
+        </div>
+    </div>
+    <div class="modal" id="referralModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 data-i18n="referral.title">Реферальная программа</h3>
+                <button class="close-btn" id="closeReferralModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="referral-link-row">
+                    <span class="referral-link-row__text" id="referralLinkText">—</span>
+                    <span class="referral-link-row__copy" id="copyReferralLinkBtn">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="9" y="9" width="13" height="13" rx="2"/>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                        </svg>
+                    </span>
+                </div>
+
+                <div class="referral-stats">
+                    <div class="referral-stat">
+                        <div class="referral-stat__value" id="referralCountValue">0</div>
+                        <div class="referral-stat__label" data-i18n="referral.countLabel">Приведено рефералов</div>
+                    </div>
+                    <div class="referral-stat">
+                        <div class="referral-stat__value" id="referralEarnedValue">0 USDT</div>
+                        <div class="referral-stat__label" data-i18n="referral.earnedLabel">Заработано</div>
+                    </div>
+                </div>
+
+                <button type="button" class="submit-btn" id="withdrawBtn" style="margin-top:12px;" data-i18n="referral.withdraw">Вывести USDT</button>
+                <div id="withdrawHint" style="margin-top:6px;font-size:12px;color:var(--text-secondary);text-align:center;">Доступно к выводу: 0.00 USDT</div>
+
+                <div class="referral-list-title" data-i18n="referral.listTitle">Ваши рефералы</div>
+                <div class="referral-list-empty" data-i18n="referral.listEmpty">Пока никого нет</div>
+            </div>
+        </div>
+    </div>
+    <div class="modal" id="securityModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 data-i18n="security.title">Безопасность</h3>
+                <button class="close-btn" id="closeSecurityModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                    <p data-i18n="security.text" style="line-height: 1.8; color: var(--text-primary);">
+                    Для оформления заявки мы не запрашиваем документы. Имя и юзернейм из заявки нужны менеджеру, чтобы связаться с вами по сделке. Заявки хранятся на нашем сервере; в настройках можно скрыть завершённые сделки из «Операций».
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="requestsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 data-i18n="requests.title">Последние транзакции</h3>
+                <button class="close-btn" id="closeRequestsModal">&times;</button>
+            </div>
+            <div class="modal-body" id="requestsBody">
+                <p data-i18n="requests.empty">Операций пока нет</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="managerModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Fortexis Manager</h3>
+                <button class="close-btn" id="closeManagerModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="manager-toolbar">
+                    <button type="button" class="manager-tab active" data-manager-tab="requests" data-i18n="manager.tabRequests">Заявки</button>
+                    <button type="button" class="manager-tab" data-manager-tab="withdrawals" data-i18n="manager.tabWithdrawals">Выводы</button>
+                    <button type="button" class="theme-btn" id="managerRefreshBtn" data-i18n="manager.refresh">Обновить</button>
+                </div>
+                <div class="manager-status" id="managerStatus">Проверка доступа…</div>
+                <div id="managerRequests"></div>
+                <div id="managerWithdrawals" hidden></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast">
+        <span id="toastMessage"></span>
+    </div>
+
+    <div class="modal" id="confirmClearModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 data-i18n="confirm.clearTitle">Подтверждение</h3>
+                <button class="close-btn" id="closeConfirmClear">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p data-i18n="confirm.clearText" style="line-height: 1.6; color: var(--text-primary);">
+                    Скрыть все завершённые сделки из раздела «Операции»? Активные заявки останутся.
+                </p>
+                <div class="form-group" style="display: flex; gap: 10px; margin-top: 16px;">
+                    <button type="button" class="submit-btn" id="confirmClearYes" style="flex: 1;">
+                        <span data-i18n="confirm.yes">Да</span>
+                    </button>
+                    <button type="button" class="submit-btn" id="confirmClearNo" style="flex: 1; background: var(--border-color); color: var(--text-primary);">
+                        <span data-i18n="confirm.no">Нет</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+const tg = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : {
+    ready: () => {},
+    expand: () => {},
+    setHeaderColor: () => {},
+    setBackgroundColor: () => {},
+    initData: '',
+    initDataUnsafe: {},
+    sendData: () => {},
+    BackButton: {
+        show: () => {},
+        hide: () => {},
+        onClick: () => {},
+        offClick: () => {}
+    }
+};
+
+const isTelegramMiniApp = Boolean(tg.initData);
+
+tg.ready();
+tg.expand();
+
+function visibleViewportHeight() {
+    if (window.visualViewport) {
+        return window.visualViewport.height;
+    }
+
+    if (typeof tg.viewportHeight === 'number' && tg.viewportHeight > 0) {
+        return tg.viewportHeight;
+    }
+
+    return window.innerHeight;
+}
+
+function updateViewportHeight() {
+    document.documentElement.style.setProperty(
+        '--vh',
+        `${visibleViewportHeight() * 0.01}px`
+    );
+}
+
+function activeModalContent() {
+    const modal = document.querySelector('.modal.active');
+
+    return modal ? modal.querySelector('.modal-content') : null;
+}
+
+function onViewportChange() {
+    updateViewportHeight();
+
+    const modalContent = activeModalContent();
+    if (!modalContent) { return; }
+
+    const keyboardOpen =
+        visibleViewportHeight() < window.innerHeight * 0.8;
+
+    modalContent.classList.toggle('keyboard-open', keyboardOpen);
+
+    if (keyboardOpen && activeInputElement) {
+        requestAnimationFrame(() => {
+            scrollFieldIntoView(activeInputElement);
+        });
+    }
+}
+
+function bindKeyboardHandlers() {
+    if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', onViewportChange);
+        window.visualViewport.addEventListener('scroll', onViewportChange);
+    }
+
+    if (typeof tg.onEvent === 'function') {
+        tg.onEvent('viewportChanged', onViewportChange);
+    }
+
+    onViewportChange();
+}
+
+function scrollFieldIntoView(el) {
+    const container = el.closest('.modal-content');
+    if (!container) { return; }
+    const containerRect = container.getBoundingClientRect();
+    const elRect = el.getBoundingClientRect();
+    const offset = elRect.top - containerRect.top - (containerRect.height / 2) + (elRect.height / 2);
+    container.scrollTop += offset;
+}
+
+updateViewportHeight();
+
+window.addEventListener('resize', onViewportChange);
+window.addEventListener('orientationchange', onViewportChange);
+
+document.addEventListener('focusin', (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLElement)) { return; }
+    if (!target.matches('input, textarea, select')) { return; }
+    const modalContent = target.closest('.modal-content');
+    if (!modalContent) { return; }
+    activeInputElement = target;
+    [50, 200, 400, 600].forEach((delay) => {
+        setTimeout(() => {
+            if (activeInputElement === target) { scrollFieldIntoView(target); }
+        }, delay);
+    });
+});
+document.addEventListener('focusout', (event) => {
+    if (event.target === activeInputElement) { activeInputElement = null; }
+});
+
+const REQUESTS_WEBHOOK_URL = 'https://patient-brook-3cd1.syedwang789.workers.dev';
+
+const API = {
+    initUser: '/api/user/init',
+    referralStats: '/api/referral/stats',
+    referralWithdraw: '/api/referral/withdraw',
+    createRequest: '/api/requests',
+    myRequests: '/api/requests',
+    confirmRequest: '/api/requests/confirm',
+    clearHistory: '/api/requests/history/clear',
+    welcome: '/api/user/welcome',
+    managerRequests: '/api/manager/requests',
+    managerComplete: '/api/manager/complete',
+    managerReject: '/api/manager/reject',
+    managerWithdrawals: '/api/manager/withdrawals',
+    managerWithdrawProcess: '/api/manager/withdrawals/process'
+};
+
+const translations = {
+    ru: {
+        'rates.title': 'Текущий курс',
+        'rates.buy': 'Покупка USDT',
+        'rates.sell': 'Продажа USDT',
+        'rates.buyShort': 'Покупка',
+        'rates.sellShort': 'Продажа',
+        'rates.cash': 'Наличный',
+        'rates.cashless': 'Безналичный',
+        'rates.buySubtitle': 'рублей за USDT',
+        'rates.sellSubtitle': 'рублей за USDT',
+        'rates.countdown': 'Курс обновится',
+        'exchange.btn': 'Обмен',
+        'exchange.title': 'Обмен валюты',
+        'exchange.typeTitle': 'Тип обмена',
+        'exchange.typeCash': 'Наличный',
+        'exchange.typeCashless': 'Безналичный',
+        'exchange.currencyTitle': 'Выберите валюту к получению',
+        'exchange.currencyUsd': 'Доллар',
+        'exchange.currencyEur': 'Евро',
+        'exchange.currencyRub': 'Рубль',
+        'exchange.direction': 'Выберите направление обмена',
+        'exchange.buy': 'Покупка USDT',
+        'exchange.buyDesc': 'Отдаёте RUB, получаете USDT',
+        'exchange.sell': 'Продажа USDT',
+        'exchange.sellDesc': 'Отдаёте USDT, получаете RUB',
+        'exchange.amount': 'Сумма, которую отдаёте',
+        'exchange.result': 'Сумма к получению',
+        'exchange.rate': 'Курс',
+        'exchange.name': 'Ваше имя',
+        'exchange.namePlaceholder': 'Введите ваше имя',
+        'exchange.phone': 'Ваш юзернейм',
+        'exchange.phonePlaceholder': 'Пример: @username',
+        'exchange.pairUnavailable': 'Пара временно недоступна',
+        'result.tba': 'Скоро появится, узнавайте у менеджера',
+        'exchange.comment': 'Комментарий (необязательно)',
+        'exchange.commentPlaceholder': 'Дополнительная информация...',
+        'exchange.submit': 'Отправить заявку',
+        'settings.title': 'Настройки профиля',
+        'settings.supportHint': 'Написать в поддержку',
+        'settings.reviewsHint': 'Оставить отзыв',
+        'settings.aboutHint': 'Информация о сервисе',
+        'settings.securityHint': 'Подробнее о безопасности',
+        'about.openHint': 'Открыть подробности',
+        'settings.privacyTitle': 'Настройки приватности',
+        'settings.privacyHint': 'Управление историей',
+        'settings.historyDisable': 'Не показывать историю сделок',
+        'settings.historyHint': 'Завершённые сделки не будут отображаться в «Операциях»',
+        'settings.historyClear': 'Скрыть историю сделок',
+        'settings.historyClearHint': 'Убрать завершённые сделки из «Операций»',
+        'settings.theme': 'Тема приложения',
+        'settings.light': 'Стандартная',
+        'settings.dark': 'Контрастная',
+        'settings.language': 'Язык',
+        'settings.russian': 'Русский',
+        'settings.english': 'English',
+        'settings.chinese': '中文',
+        'info.about': 'О нас',
+        'info.secure': 'Безопасность',
+        'info.support': 'Задать вопрос',
+        'info.reviews': 'Отзывы клиентов',
+        'info.settings': 'Профиль',
+        'info.requests': 'Операции',
+        'about.title': 'О нас',
+        'about.text': 'Fortexis — обмен USDT на рубли и доллары: наличными и переводом. Вы оставляете заявку в приложении, менеджер связывается с вами и подтверждает детали сделки. Курс считается автоматически и виден до отправки заявки.',
+        'security.title': 'Безопасность',
+        'security.text': 'Для оформления заявки мы не запрашиваем документы. Имя и юзернейм из заявки нужны менеджеру, чтобы связаться с вами по сделке. Заявки хранятся на нашем сервере; в настройках можно скрыть завершённые сделки из «Операций».',
+        'requests.title': 'Последние транзакции',
+        'requests.empty': 'Операций пока нет',
+        'requests.idLabel': 'Номер заявки',
+        'requests.statusLabel': 'Статус',
+        'requests.payLabel': 'Вы отдаёте',
+        'requests.receiveLabel': 'Вы получаете',
+        'requests.support': 'Поддержка',
+        'requests.confirm': 'Подтвердить получение',
+        'requests.thanks': 'Благодарим за сделку, Fortexis',
+        'requests.copied': 'Номер заявки скопирован',
+        'confirm.clearTitle': 'Подтверждение',
+        'confirm.clearText': 'Скрыть все завершённые сделки из раздела «Операции»? Активные заявки останутся.',
+        'confirm.yes': 'Да',
+        'confirm.no': 'Нет',
+        'confirm.cleared': 'История скрыта',
+        'info.referral': 'Реферальная программа',
+        'referral.title': 'Реферальная программа',
+        'referral.cardHint': 'Приглашайте друзей и получайте вознаграждение',
+        'referral.countLabel': 'Приведено рефералов',
+        'referral.earnedLabel': 'Заработано',
+        'referral.listTitle': 'Ваши рефералы',
+        'referral.listEmpty': 'Пока никого нет',
+        'referral.linkCopied': 'Ссылка скопирована',
+        'referral.linkLoading': 'Реферальная ссылка загружается…',
+        'referral.withdraw': 'Вывести USDT',
+        'referral.available': 'Доступно к выводу',
+        'referral.dealsOne': 'сделка',
+        'referral.dealsFew': 'сделки',
+        'referral.dealsMany': 'сделок',
+        'referral.withdrawMin': 'Недостаточно средств для вывода (минимум 1 USDT)',
+        'referral.withdrawConfirm': 'Отправить заявку на вывод {amount}?',
+        'referral.withdrawSent': 'Заявка на вывод {amount} отправлена — менеджер свяжется с вами',
+        'referral.withdrawPending': 'У вас уже есть активная заявка на вывод',
+        'referral.withdrawRateLimited': 'Слишком часто — попробуйте позже',
+        'referral.withdrawFailed': 'Не удалось отправить заявку на вывод',
+        'referral.statsRefreshFailed': 'Не удалось обновить реферальную статистику',
+        'common.openInTelegram': 'Откройте приложение в Telegram',
+        'info.manager': 'Менеджер',
+        'tips.title': 'Полезно знать',
+        'tips.1.title': 'Почему важно проверять адрес и сеть перед переводом',
+        'tips.1.text': 'Ошибка в адресе или выбор не той сети — частая причина потери средств. Сверяйте данные перед каждой отправкой.',
+        'tips.2.title': 'Что такое memo / тег и когда он обязателен',
+        'tips.2.text': 'В части сетей (TON, XRP, Stellar) перевод без memo или тега может не дойти до получателя. Уточняйте это заранее.',
+        'tips.4.title': 'Почему подтверждение иногда занимает больше времени',
+        'tips.4.text': 'Скорость подтверждения зависит от загрузки самой сети блокчейна, а не от Fortexis. Дождитесь нужного числа подтверждений.',
+        'tips.5.title': 'История операций — по вашему усмотрению',
+        'tips.5.text': 'Хранение истории сделок можно в любой момент отключить в настройках профиля.',
+        'requests.supportAction': 'Написать в поддержку',
+        'requests.confirmedBadge': 'Получение подтверждено',
+        'requests.loading': 'Загрузка…',
+        'requests.loadFailed': 'Не удалось загрузить операции',
+        'requests.confirmError': 'Не удалось подтвердить заявку',
+        'requests.noAccess': 'Нет доступа к этой заявке',
+        'requests.confirmReceiptFailed': 'Не удалось подтвердить получение',
+        'status.pending': 'В обработке',
+        'status.processing': 'В работе',
+        'status.completed': 'Исполнено',
+        'status.cancelled': 'Отменено',
+        'status.rejected': 'Отклонено',
+        'rate.loading': 'Загрузка курса…',
+        'rate.updated': 'Курс обновлён',
+        'rate.unavailable': 'Курс недоступен',
+        'rate.updatedJustNow': 'Курс обновлён: только что',
+        'exchange.sending': 'Отправка…',
+        'exchange.accepted': 'Заявка принята, менеджер свяжется с вами в ближайшее время',
+        'exchange.tooManyRequests': 'Слишком много запросов. Попробуйте немного позже.',
+        'exchange.submitFailed': 'Не удалось отправить заявку. Попробуйте ещё раз.',
+        'exchange.networkFailed': 'Нет связи с сервером. Проверьте интернет и попробуйте ещё раз.',
+        'common.sessionExpired': 'Сессия устарела. Закройте приложение и откройте заново.',
+        'common.profileLoadFailed': 'Не удалось загрузить профиль. Часть функций может не работать.',
+        'exchange.invalidData': 'Сервер не принял данные заявки. Проверьте сумму и поля формы.',
+        'exchange.commentTooLong': 'Слишком длинный комментарий. Сократите его и отправьте снова.',
+        'exchange.serverFailed': 'Сбой на нашей стороне. Попробуйте позже.',
+        'validate.name': 'Введите корректное имя',
+        'validate.username': 'Введите корректный юзернейм',
+        'validate.amount': 'Введите сумму больше нуля',
+        'validate.amountMin': 'Минимальная сумма',
+        'validate.amountMax': 'Максимальная сумма',
+        'validate.amountLimitHint': 'Для увеличения лимита напишите менеджеру',
+        'history.deleteFailed': 'Не удалось скрыть историю',
+        'manager.refresh': 'Обновить',
+        'manager.loadingAccess': 'Проверка доступа и загрузка заявок…',
+        'manager.checking': 'Проверка доступа…',
+        'manager.noAccessShort': 'Нет доступа',
+        'manager.accessGranted': 'Доступ разрешён',
+        'manager.requestsWord': 'заявок',
+        'manager.onlyForManager': 'Эта страница доступна только авторизованному менеджеру.',
+        'manager.panelLoadFailed': 'Не удалось загрузить менеджерскую панель.',
+        'manager.noNewRequests': 'Новых заявок нет',
+        'manager.fieldClient': 'Клиент',
+        'manager.fieldDirection': 'Направление',
+        'manager.fieldGives': 'Отдаёт',
+        'manager.fieldReceives': 'Получает',
+        'manager.fieldRate': 'Курс',
+        'manager.fieldReferrer': 'Реферер',
+        'manager.fieldClientConfirmed': 'Клиент подтвердил',
+        'manager.yes': 'Да',
+        'manager.waiting': 'Ожидание',
+        'manager.buyUsdt': 'Покупка USDT',
+        'manager.sellUsdt': 'Продажа USDT',
+        'manager.complete': 'Подтвердить исполнение',
+        'manager.reject': 'Отклонить',
+        'manager.confirmComplete': 'Подтвердить исполнение заявки? Рефереру будет начислено вознаграждение.',
+        'manager.confirmReject': 'Отклонить заявку?',
+        'manager.completedToast': 'Заявка исполнена, реферальное вознаграждение начислено',
+        'manager.alreadyProcessed': 'Заявка уже обработана',
+        'manager.completeFailed': 'Не удалось завершить сделку',
+        'manager.rejectedToast': 'Заявка отклонена',
+        'manager.rejectFailed': 'Не удалось отклонить заявку',
+        'manager.tabRequests': 'Заявки',
+        'manager.tabWithdrawals': 'Выводы',
+        'manager.loadingWithdrawals': 'Загрузка заявок на вывод…',
+        'manager.wdPendingWord': 'на вывод',
+        'manager.wdEmpty': 'Заявок на вывод нет',
+        'manager.wdEarned': 'Всего заработано',
+        'manager.wdReferrals': 'Рефералов',
+        'manager.wdRequestedAt': 'Запрошено',
+        'manager.wdProcessedAt': 'Обработано',
+        'manager.wdMarkPaid': 'Выплачено',
+        'manager.wdRejectBtn': 'Отклонить',
+        'manager.wdConfirmPaid': 'Отметить вывод как выплаченный? Клиент получит уведомление.',
+        'manager.wdConfirmReject': 'Отклонить заявку на вывод? Сумма вернётся на баланс клиента.',
+        'manager.wdPaidToast': 'Вывод отмечен как выплаченный',
+        'manager.wdRejectedToast': 'Заявка на вывод отклонена, баланс возвращён',
+        'manager.wdActionFailed': 'Не удалось обработать заявку',
+        'manager.wdAlreadyDone': 'Заявка уже обработана',
+        'manager.wdStatusRequested': 'Ожидает',
+        'manager.wdStatusPaid': 'Выплачено',
+        'manager.wdStatusRejected': 'Отклонено',
+        'exchange.buyDescTpl': 'Отдаёте {code}, получаете USDT',
+        'exchange.sellDescTpl': 'Отдаёте USDT, получаете {code}',
+    },
+    en: {
+        'rates.title': 'Current Rate',
+        'rates.buy': 'Buy USDT',
+        'rates.sell': 'Sell USDT',
+        'rates.buyShort': 'Buy',
+        'rates.sellShort': 'Sell',
+        'rates.cash': 'Cash',
+        'rates.cashless': 'Cashless',
+        'rates.buySubtitle': 'rubles per USDT',
+        'rates.sellSubtitle': 'rubles per USDT',
+        'rates.countdown': 'Update in',
+        'exchange.btn': 'Exchange',
+        'exchange.title': 'Currency Exchange',
+        'exchange.typeTitle': 'Exchange type',
+        'exchange.typeCash': 'Cash',
+        'exchange.typeCashless': 'Cashless',
+        'exchange.currencyTitle': 'Choose currency',
+        'exchange.currencyUsd': 'Dollar',
+        'exchange.currencyEur': 'Euro',
+        'exchange.currencyRub': 'Ruble',
+        'exchange.direction': 'Select the exchange direction',
+        'exchange.buy': 'Buy USDT',
+        'exchange.buyDesc': 'You give RUB, receive USDT',
+        'exchange.sell': 'Sell USDT',
+        'exchange.sellDesc': 'You give USDT, receive RUB',
+        'exchange.amount': 'Amount you give',
+        'exchange.result': 'Amount to receive',
+        'exchange.rate': 'Rate',
+        'exchange.name': 'Your name',
+        'exchange.namePlaceholder': 'Enter your name',
+        'exchange.phone': 'Your username',
+        'exchange.phonePlaceholder': 'Example: @username',
+        'exchange.pairUnavailable': 'This pair is temporarily unavailable',
+        'result.tba': 'Coming soon — ask the manager',
+        'exchange.comment': 'Comment (optional)',
+        'exchange.commentPlaceholder': 'Additional information...',
+        'exchange.submit': 'Submit Request',
+        'settings.title': 'Profile settings',
+        'settings.supportHint': 'Contact support',
+        'settings.reviewsHint': 'Leave a review',
+        'settings.aboutHint': 'About the service',
+        'settings.securityHint': 'More about security',
+        'about.openHint': 'Open details',
+        'settings.privacyTitle': 'Privacy settings',
+        'settings.privacyHint': 'History control',
+        'settings.historyDisable': 'Do not show deal history',
+        'settings.historyHint': 'Completed deals will not appear in Operations',
+        'settings.historyClear': 'Hide deal history',
+        'settings.historyClearHint': 'Remove completed deals from Operations',
+        'settings.theme': 'App Theme',
+        'settings.light': 'Standard',
+        'settings.dark': 'Contrast',
+        'settings.language': 'Language',
+        'settings.russian': 'Русский',
+        'settings.english': 'English',
+        'settings.chinese': '中文',
+        'info.about': 'About Us',
+        'info.secure': 'Security',
+        'info.support': 'Ask a question',
+        'info.reviews': 'Customer reviews',
+        'info.settings': 'Profile',
+        'info.requests': 'Operations',
+        'about.title': 'About Us',
+        'about.text': 'Fortexis exchanges USDT for rubles and dollars, in cash or by transfer. You submit a request in the app, and a manager contacts you to confirm the details of the deal. The rate is calculated automatically and shown before you submit.',
+        'security.title': 'Security',
+        'security.text': 'We do not ask for documents to submit a request. The name and username from the request are what a manager uses to reach you about the deal. Requests are stored on our server; in settings you can hide completed deals from Operations.',
+        'requests.title': 'Recent transactions',
+        'requests.empty': 'No operations yet',
+        'requests.idLabel': 'Request ID',
+        'requests.statusLabel': 'Status',
+        'requests.payLabel': 'You give',
+        'requests.receiveLabel': 'You receive',
+        'requests.support': 'Support',
+        'requests.confirm': 'Confirm receipt',
+        'requests.thanks': 'Thank you for the deal, Fortexis',
+        'requests.copied': 'Request ID copied',
+        'confirm.clearTitle': 'Confirmation',
+        'confirm.clearText': 'Hide all completed deals from Operations? Active requests will stay.',
+        'confirm.yes': 'Yes',
+        'confirm.no': 'No',
+        'confirm.cleared': 'History hidden',
+        'info.referral': 'Referral',
+        'referral.title': 'Referral Program',
+        'referral.cardHint': 'Invite friends and earn rewards',
+        'referral.countLabel': 'Referrals invited',
+        'referral.earnedLabel': 'Earned',
+        'referral.listTitle': 'Your referrals',
+        'referral.listEmpty': 'No one yet',
+        'referral.linkCopied': 'Link copied',
+        'referral.linkLoading': 'Loading referral link…',
+        'referral.withdraw': 'Withdraw USDT',
+        'referral.available': 'Available to withdraw',
+        'referral.dealsOne': 'deal',
+        'referral.dealsFew': 'deals',
+        'referral.dealsMany': 'deals',
+        'referral.withdrawMin': 'Not enough balance to withdraw (minimum 1 USDT)',
+        'referral.withdrawConfirm': 'Submit a withdrawal request for {amount}?',
+        'referral.withdrawSent': 'Withdrawal request for {amount} sent — a manager will contact you',
+        'referral.withdrawPending': 'You already have an active withdrawal request',
+        'referral.withdrawRateLimited': 'Too often — try again later',
+        'referral.withdrawFailed': 'Failed to submit the withdrawal request',
+        'referral.statsRefreshFailed': 'Failed to refresh referral stats',
+        'common.openInTelegram': 'Open the app in Telegram',
+        'info.manager': 'Manager',
+        'tips.title': 'Good to know',
+        'tips.1.title': 'Why checking the address and network matters',
+        'tips.1.text': 'A wrong address or network is a common cause of lost funds. Double-check the details before every transfer.',
+        'tips.2.title': 'What a memo / tag is and when it is required',
+        'tips.2.text': 'On some networks (TON, XRP, Stellar) a transfer without a memo or tag may not reach the recipient. Clarify this in advance.',
+        'tips.4.title': 'Why confirmation sometimes takes longer',
+        'tips.4.text': 'Confirmation speed depends on the blockchain network load, not on Fortexis. Wait for the required number of confirmations.',
+        'tips.5.title': 'Operation history is up to you',
+        'tips.5.text': 'You can disable storing deal history at any time in your profile settings.',
+        'requests.supportAction': 'Contact support',
+        'requests.confirmedBadge': 'Receipt confirmed',
+        'requests.loading': 'Loading…',
+        'requests.loadFailed': 'Failed to load operations',
+        'requests.confirmError': 'Failed to confirm the request',
+        'requests.noAccess': 'No access to this request',
+        'requests.confirmReceiptFailed': 'Failed to confirm receipt',
+        'status.pending': 'Processing',
+        'status.processing': 'In progress',
+        'status.completed': 'Completed',
+        'status.cancelled': 'Cancelled',
+        'status.rejected': 'Rejected',
+        'rate.loading': 'Loading rate…',
+        'rate.updated': 'Rate updated',
+        'rate.unavailable': 'Rate unavailable',
+        'rate.updatedJustNow': 'Rate updated: just now',
+        'exchange.sending': 'Sending…',
+        'exchange.accepted': 'Request accepted, a manager will contact you shortly',
+        'exchange.tooManyRequests': 'Too many requests. Please try again a bit later.',
+        'exchange.submitFailed': 'Failed to submit the request. Please try again.',
+        'exchange.networkFailed': 'No connection to the server. Check your internet and try again.',
+        'common.sessionExpired': 'Your session has expired. Close the app and open it again.',
+        'common.profileLoadFailed': 'Could not load your profile. Some features may not work.',
+        'exchange.invalidData': 'The server rejected the request data. Check the amount and the form fields.',
+        'exchange.commentTooLong': 'The comment is too long. Shorten it and send again.',
+        'exchange.serverFailed': 'Something went wrong on our side. Please try again later.',
+        'validate.name': 'Enter a valid name',
+        'validate.username': 'Enter a valid username',
+        'validate.amount': 'Enter an amount greater than zero',
+        'validate.amountMin': 'Minimum amount',
+        'validate.amountMax': 'Maximum amount',
+        'validate.amountLimitHint': 'Contact a manager to raise your limit',
+        'history.deleteFailed': 'Could not hide the history',
+        'manager.refresh': 'Refresh',
+        'manager.loadingAccess': 'Checking access and loading requests…',
+        'manager.checking': 'Checking access…',
+        'manager.noAccessShort': 'No access',
+        'manager.accessGranted': 'Access granted',
+        'manager.requestsWord': 'requests',
+        'manager.onlyForManager': 'This page is available only to an authorized manager.',
+        'manager.panelLoadFailed': 'Failed to load the manager panel.',
+        'manager.noNewRequests': 'No new requests',
+        'manager.fieldClient': 'Client',
+        'manager.fieldDirection': 'Direction',
+        'manager.fieldGives': 'Gives',
+        'manager.fieldReceives': 'Receives',
+        'manager.fieldRate': 'Rate',
+        'manager.fieldReferrer': 'Referrer',
+        'manager.fieldClientConfirmed': 'Client confirmed',
+        'manager.yes': 'Yes',
+        'manager.waiting': 'Waiting',
+        'manager.buyUsdt': 'Buy USDT',
+        'manager.sellUsdt': 'Sell USDT',
+        'manager.complete': 'Confirm execution',
+        'manager.reject': 'Reject',
+        'manager.confirmComplete': 'Confirm the request execution? The referrer will be credited a reward.',
+        'manager.confirmReject': 'Reject the request?',
+        'manager.completedToast': 'Request executed, referral reward credited',
+        'manager.alreadyProcessed': 'Request already processed',
+        'manager.completeFailed': 'Failed to complete the deal',
+        'manager.rejectedToast': 'Request rejected',
+        'manager.rejectFailed': 'Failed to reject the request',
+        'manager.tabRequests': 'Requests',
+        'manager.tabWithdrawals': 'Withdrawals',
+        'manager.loadingWithdrawals': 'Loading withdrawal requests…',
+        'manager.wdPendingWord': 'pending',
+        'manager.wdEmpty': 'No withdrawal requests',
+        'manager.wdEarned': 'Total earned',
+        'manager.wdReferrals': 'Referrals',
+        'manager.wdRequestedAt': 'Requested',
+        'manager.wdProcessedAt': 'Processed',
+        'manager.wdMarkPaid': 'Mark paid',
+        'manager.wdRejectBtn': 'Reject',
+        'manager.wdConfirmPaid': 'Mark this withdrawal as paid? The client will be notified.',
+        'manager.wdConfirmReject': 'Reject this withdrawal? The amount returns to the client balance.',
+        'manager.wdPaidToast': 'Withdrawal marked as paid',
+        'manager.wdRejectedToast': 'Withdrawal rejected, balance returned',
+        'manager.wdActionFailed': 'Failed to process the request',
+        'manager.wdAlreadyDone': 'Request already processed',
+        'manager.wdStatusRequested': 'Pending',
+        'manager.wdStatusPaid': 'Paid',
+        'manager.wdStatusRejected': 'Rejected',
+        'exchange.buyDescTpl': 'You give {code}, receive USDT',
+        'exchange.sellDescTpl': 'You give USDT, receive {code}',
+    },
+    zh: {
+        'rates.title': '当前汇率',
+        'rates.buy': '买入美元',
+        'rates.sell': '卖出美元',
+        'rates.buyShort': '买入',
+        'rates.sellShort': '卖出',
+        'rates.cash': '现金',
+        'rates.cashless': '无现金',
+        'rates.buySubtitle': '卢布/USDT',
+        'rates.sellSubtitle': '卢布/USDT',
+        'rates.countdown': '更新倒计时',
+        'exchange.btn': '兑换',
+        'exchange.title': '货币兑换',
+        'exchange.typeTitle': '兑换类型',
+        'exchange.typeCash': '现金',
+        'exchange.typeCashless': '无现金',
+        'exchange.currencyTitle': '选择货币',
+        'exchange.currencyUsd': '美元',
+        'exchange.currencyEur': '欧元',
+        'exchange.currencyRub': '卢布',
+        'exchange.direction': '选择兑换方向',
+        'exchange.buy': '买入美元',
+        'exchange.buyDesc': '您支付卢布，获得美元',
+        'exchange.sell': '卖出美元',
+        'exchange.sellDesc': '您支付美元，获得卢布',
+        'exchange.amount': '您支付的金额',
+        'exchange.result': '将收到的金额',
+        'exchange.rate': '汇率',
+        'exchange.name': '您的姓名',
+        'exchange.namePlaceholder': '请输入您的姓名',
+        'exchange.phone': '您的用户名',
+        'exchange.phonePlaceholder': '示例： @username',
+        'exchange.pairUnavailable': '该货币对暂时不可用',
+        'result.tba': '即将推出，请咨询客服',
+        'exchange.comment': '评论（可选）',
+        'exchange.commentPlaceholder': '附加信息...',
+        'exchange.submit': '提交申请',
+        'settings.title': '个人资料设置',
+        'settings.supportHint': '联系支持',
+        'settings.reviewsHint': '留下评价',
+        'settings.aboutHint': '关于服务',
+        'settings.securityHint': '了解安全信息',
+        'about.openHint': '查看详情',
+        'settings.privacyTitle': '隐私设置',
+        'settings.privacyHint': '历史管理',
+        'settings.historyDisable': '不显示交易历史',
+        'settings.historyHint': '已完成的交易将不在“操作”中显示',
+        'settings.historyClear': '隐藏交易历史',
+        'settings.historyClearHint': '将已完成的交易从「操作」中移除',
+        'settings.theme': '应用主题',
+        'settings.light': '标准',
+        'settings.dark': '对比',
+        'settings.language': '语言',
+        'settings.russian': 'Русский',
+        'settings.english': 'English',
+        'settings.chinese': '中文',
+        'info.about': '关于我们',
+        'info.secure': '安全',
+        'info.support': '提问',
+        'info.reviews': '客户评价',
+        'info.settings': '个人资料',
+        'info.requests': '操作',
+        'about.title': '关于我们',
+        'about.text': 'Fortexis 提供 USDT 兑换卢布和美元的服务，支持现金和转账。您在应用内提交申请，经理会与您联系并确认交易细节。汇率自动计算，并在提交前显示。',
+        'security.title': '安全',
+        'security.text': '提交申请无需提供证件。申请中的姓名和用户名供经理与您联系交易事宜。申请保存在我们的服务器上；您可以在设置中将已完成的交易从"操作"中隐藏。',
+        'requests.title': '最近交易',
+        'requests.empty': '暂无操作',
+        'requests.idLabel': '申请编号',
+        'requests.statusLabel': '状态',
+        'requests.payLabel': '您支付',
+        'requests.receiveLabel': '您获得',
+        'requests.support': '客服',
+        'requests.confirm': '确认收款',
+        'requests.thanks': '感谢合作, Fortexis',
+        'requests.copied': '申请编号已复制',
+        'confirm.clearTitle': '确认',
+        'confirm.clearText': '将所有已完成的交易从「操作」中隐藏？进行中的申请将保留。',
+        'confirm.yes': '是',
+        'confirm.no': '否',
+        'confirm.cleared': '历史已隐藏',
+        'info.referral': '推荐计划',
+        'referral.title': '推荐计划',
+        'referral.cardHint': '邀请好友获得奖励',
+        'referral.countLabel': '已邀请人数',
+        'referral.earnedLabel': '已赚取',
+        'referral.listTitle': '您的推荐人',
+        'referral.listEmpty': '暂无推荐人',
+        'referral.linkCopied': '链接已复制',
+        'referral.linkLoading': '正在加载推荐链接…',
+        'referral.withdraw': '提现 USDT',
+        'referral.available': '可提现金额',
+        'referral.dealsOne': '笔交易',
+        'referral.dealsFew': '笔交易',
+        'referral.dealsMany': '笔交易',
+        'referral.withdrawMin': '余额不足，无法提现（最低 1 USDT）',
+        'referral.withdrawConfirm': '提交 {amount} 的提现申请吗？',
+        'referral.withdrawSent': '{amount} 的提现申请已提交，经理会与您联系',
+        'referral.withdrawPending': '您已有一个进行中的提现申请',
+        'referral.withdrawRateLimited': '操作过于频繁，请稍后再试',
+        'referral.withdrawFailed': '提交提现申请失败',
+        'referral.statsRefreshFailed': '无法刷新推荐统计',
+        'common.openInTelegram': '请在 Telegram 中打开应用',
+        'info.manager': '经理',
+        'tips.title': '实用提示',
+        'tips.1.title': '为什么转账前要核对地址和网络',
+        'tips.1.text': '地址错误或选错网络是资金丢失的常见原因。每次转账前请仔细核对信息。',
+        'tips.2.title': '什么是 memo / 标签，何时必填',
+        'tips.2.text': '在部分网络（TON、XRP、Stellar）中，缺少 memo 或标签的转账可能无法到账。请提前确认。',
+        'tips.4.title': '为什么确认有时需要更长时间',
+        'tips.4.text': '确认速度取决于区块链网络负载，而非 Fortexis。请等待所需的确认数量。',
+        'tips.5.title': '操作历史由您决定',
+        'tips.5.text': '您可以随时在个人资料设置中关闭交易历史保存。',
+        'requests.supportAction': '联系客服',
+        'requests.confirmedBadge': '已确认收款',
+        'requests.loading': '加载中…',
+        'requests.loadFailed': '无法加载操作记录',
+        'requests.confirmError': '无法确认申请',
+        'requests.noAccess': '无权访问此申请',
+        'requests.confirmReceiptFailed': '无法确认收款',
+        'status.pending': '处理中',
+        'status.processing': '进行中',
+        'status.completed': '已完成',
+        'status.cancelled': '已取消',
+        'status.rejected': '已拒绝',
+        'rate.loading': '正在加载汇率…',
+        'rate.updated': '汇率已更新',
+        'rate.unavailable': '汇率不可用',
+        'rate.updatedJustNow': '汇率已更新：刚刚',
+        'exchange.sending': '发送中…',
+        'exchange.accepted': '申请已受理，经理会尽快与您联系',
+        'exchange.tooManyRequests': '请求过多，请稍后再试。',
+        'exchange.submitFailed': '提交申请失败，请重试。',
+        'exchange.networkFailed': '无法连接服务器。请检查网络后重试。',
+        'common.sessionExpired': '会话已过期。请关闭应用后重新打开。',
+        'common.profileLoadFailed': '无法加载您的资料，部分功能可能不可用。',
+        'exchange.invalidData': '服务器未接受申请数据。请检查金额和表单内容。',
+        'exchange.commentTooLong': '备注过长，请缩短后重新提交。',
+        'exchange.serverFailed': '我们这边出现故障，请稍后重试。',
+        'validate.name': '请输入有效的姓名',
+        'validate.username': '请输入有效的用户名',
+        'validate.amount': '请输入大于零的金额',
+        'validate.amountMin': '最低金额',
+        'validate.amountMax': '最高金额',
+        'validate.amountLimitHint': '如需提高限额，请联系客户经理',
+        'history.deleteFailed': '无法隐藏历史',
+        'manager.refresh': '刷新',
+        'manager.loadingAccess': '正在验证权限并加载申请…',
+        'manager.checking': '正在验证权限…',
+        'manager.noAccessShort': '无权限',
+        'manager.accessGranted': '已授权',
+        'manager.requestsWord': '个申请',
+        'manager.onlyForManager': '此页面仅对授权经理开放。',
+        'manager.panelLoadFailed': '无法加载经理面板。',
+        'manager.noNewRequests': '暂无新申请',
+        'manager.fieldClient': '客户',
+        'manager.fieldDirection': '方向',
+        'manager.fieldGives': '支付',
+        'manager.fieldReceives': '获得',
+        'manager.fieldRate': '汇率',
+        'manager.fieldReferrer': '推荐人',
+        'manager.fieldClientConfirmed': '客户已确认',
+        'manager.yes': '是',
+        'manager.waiting': '等待中',
+        'manager.buyUsdt': '买入 USDT',
+        'manager.sellUsdt': '卖出 USDT',
+        'manager.complete': '确认执行',
+        'manager.reject': '拒绝',
+        'manager.confirmComplete': '确认执行此申请？将向推荐人发放奖励。',
+        'manager.confirmReject': '拒绝此申请？',
+        'manager.completedToast': '申请已执行，推荐奖励已发放',
+        'manager.alreadyProcessed': '申请已处理',
+        'manager.completeFailed': '无法完成交易',
+        'manager.rejectedToast': '申请已拒绝',
+        'manager.rejectFailed': '无法拒绝申请',
+        'manager.tabRequests': '申请',
+        'manager.tabWithdrawals': '提现',
+        'manager.loadingWithdrawals': '正在加载提现申请…',
+        'manager.wdPendingWord': '待处理',
+        'manager.wdEmpty': '暂无提现申请',
+        'manager.wdEarned': '累计收益',
+        'manager.wdReferrals': '推荐人数',
+        'manager.wdRequestedAt': '申请时间',
+        'manager.wdProcessedAt': '处理时间',
+        'manager.wdMarkPaid': '标记已支付',
+        'manager.wdRejectBtn': '拒绝',
+        'manager.wdConfirmPaid': '将此提现标记为已支付？客户会收到通知。',
+        'manager.wdConfirmReject': '拒绝此提现？金额将退回客户余额。',
+        'manager.wdPaidToast': '提现已标记为已支付',
+        'manager.wdRejectedToast': '提现已拒绝，余额已退回',
+        'manager.wdActionFailed': '处理申请失败',
+        'manager.wdAlreadyDone': '申请已处理',
+        'manager.wdStatusRequested': '待处理',
+        'manager.wdStatusPaid': '已支付',
+        'manager.wdStatusRejected': '已拒绝',
+        'exchange.buyDescTpl': '您支付 {code}，获得 USDT',
+        'exchange.sellDescTpl': '您支付 USDT，获得 {code}',
+    }
+};
+
+const state = {
+    direction: 'buy',
+    exchangeType: 'cash',
+    currency: 'USD',
+        rates: { cash: { buy: null, sell: null }, cashless: { buy: null, sell: null }, usd: { buy: null, sell: null } },
+    baseRates: { USD: 95.50, EUR: 0, RUB: 1 },
+    currentRate: 0,
+    buyRate: 95.50,
+    sellRate: 96.00,
+    clientAmount: 0,
+    amountLimits: null,
+    resultAmount: 0,
+    theme: localStorage.getItem('theme') || 'light',
+    language: localStorage.getItem('language') || 'ru',
+    referral: {
+        code: null,
+        link: null,
+        count: 0,
+        earned: 0,
+        available: 0,
+        users: []
+    },
+    manager: {
+        isManager: false,
+        authorized: false,
+        loading: false,
+        tab: 'requests'
+    }
+};
+
+let activeInputElement = null;
+
+let submittingRequest = false;
+let countdownTimer = null;
+let nextUpdateAt = null;
+        function t(key) {
+    return (translations[state.language] && translations[state.language][key])
+        || translations.ru[key]
+        || key;
+}
+
+const elements = {
+    buyRate: document.getElementById('buyRate'),
+    sellRate: document.getElementById('sellRate'),
+    buyRateCashless: document.getElementById('buyRateCashless'),
+    sellRateCashless: document.getElementById('sellRateCashless'),
+    buySubtitle: document.getElementById('buySubtitle'),
+    sellSubtitle: document.getElementById('sellSubtitle'),
+    updateTime: document.getElementById('updateTime'),
+    exchangeTypeModal: document.getElementById('exchangeTypeModal'),
+    closeExchangeTypeModal: document.getElementById('closeExchangeTypeModal'),
+    cashTypeBtn: document.getElementById('cashTypeBtn'),
+    cashlessTypeBtn: document.getElementById('cashlessTypeBtn'),
+    exchangeBtn: document.getElementById('exchangeBtn'),
+    exchangeModal: document.getElementById('exchangeModal'),
+    closeModal: document.getElementById('closeModal'),
+    exchangeForm: document.getElementById('exchangeForm'),
+    clientAmount: document.getElementById('clientAmount'),
+    amountError: document.getElementById('amountError'),
+    clientCurrency: document.getElementById('clientCurrency'),
+    resultAmount: document.getElementById('resultAmount'),
+    resultCurrency: document.getElementById('resultCurrency'),
+    currentRate: document.getElementById('currentRate'),
+    rateInfo: document.getElementById('rateInfo'),
+    directionBtns: document.querySelectorAll('.direction-btn[data-direction]'),
+    currencyBtns: document.querySelectorAll('.currency-btn'),
+    directionBuyLabel: document.getElementById('directionBuyLabel'),
+    directionSellLabel: document.getElementById('directionSellLabel'),
+    directionBuyDesc: document.getElementById('directionBuyDesc'),
+    directionSellDesc: document.getElementById('directionSellDesc'),
+    toast: document.getElementById('toast'),
+    toastMessage: document.getElementById('toastMessage'),
+    settingsBtn: document.getElementById('settingsBtn'),
+    managerBtn: document.getElementById('managerBtn'),
+    settingsModal: document.getElementById('settingsModal'),
+    closeSettingsModal: document.getElementById('closeSettingsModal'),
+    themeBtns: document.querySelectorAll('.theme-btn'),
+    languageBtns: document.querySelectorAll('.language-btn'),
+    aboutModal: document.getElementById('aboutModal'),
+    closeAboutModal: document.getElementById('closeAboutModal'),
+    securityModal: document.getElementById('securityModal'),
+    closeSecurityModal: document.getElementById('closeSecurityModal'),
+    supportBtn: document.getElementById('supportBtn'),
+    reviewsBtn: document.getElementById('reviewsBtn'),
+    aboutSettingsBtn: document.getElementById('aboutSettingsBtn'),
+    securitySettingsBtn: document.getElementById('securitySettingsBtn'),
+    historyToggle: document.getElementById('historyToggle'),
+    privacyBtn: document.getElementById('privacyBtn'),
+    privacySection: document.getElementById('privacySection'),
+    clearHistoryBtn: document.getElementById('clearHistoryBtn'),
+    confirmClearModal: document.getElementById('confirmClearModal'),
+    closeConfirmClear: document.getElementById('closeConfirmClear'),
+    confirmClearYes: document.getElementById('confirmClearYes'),
+    confirmClearNo: document.getElementById('confirmClearNo'),
+    requestsBtn: document.getElementById('requestsBtn'),
+    requestsModal: document.getElementById('requestsModal'),
+    closeRequestsModal: document.getElementById('closeRequestsModal'),
+    requestsBody: document.getElementById('requestsBody'),
+    referralCard: document.getElementById('referralCard'),
+    withdrawBtn: document.getElementById('withdrawBtn'),
+    withdrawHint: document.getElementById('withdrawHint'),
+    referralCountValue: document.getElementById('referralCountValue'),
+    referralEarnedValue: document.getElementById('referralEarnedValue'),
+    managerModal: document.getElementById('managerModal'),
+    closeManagerModal: document.getElementById('closeManagerModal'),
+    managerRefreshBtn: document.getElementById('managerRefreshBtn'),
+    managerStatus: document.getElementById('managerStatus'),
+    managerRequests: document.getElementById('managerRequests'),
+    managerWithdrawals: document.getElementById('managerWithdrawals'),
+    managerTabs: document.querySelectorAll('.manager-tab'),
+    referralModal: document.getElementById('referralModal'),
+    closeReferralModal: document.getElementById('closeReferralModal'),
+    referralLinkText: document.getElementById('referralLinkText'),
+    copyReferralLinkBtn: document.getElementById('copyReferralLinkBtn'),
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+    initApp();
+});
+
+function initApp() {
+    if (!isTelegramMiniApp) {
+        console.warn('Fortexis открыт вне Telegram: авторизация и оформление заявок недоступны.');
+    }
+    setUpdateStatus(t('rate.loading'));
+    applyTheme(state.theme);
+    applyLanguage(state.language);
+    bindKeyboardHandlers();
+    syncHistoryToggle();
+    loadExchangeRates();
+    startRateCountdown();
+    setupEventListeners();
+    updateRatesDisplay();
+    if (isTelegramMiniApp) {
+        initializeBackendUserWithRetry()
+            .then(() => maybeWelcomeUser())
+            .catch((error) => {
+                console.warn('Backend user init failed:', error);
+                showToast(initErrorMessage(error), 'error');
+            });
+    }
+    initializeManagerMode();
+}
+
+function maybeWelcomeUser() {
+    if (!isTelegramMiniApp) return;
+    try {
+        if (localStorage.getItem('welcomeSent') === 'true') return;
+    } catch (_) {}
+
+    const sendWelcome = () => {
+        apiFetch(API.welcome, { method: 'POST', body: JSON.stringify({}) })
+            .then((res) => {
+                try {
+                    if (res && (res.sent || res.ok)) localStorage.setItem('welcomeSent', 'true');
+                } catch (_) {}
+            })
+            .catch((e) => console.warn('welcome failed', e));
+    };
+
+    if (typeof tg.requestWriteAccess === 'function') {
+        try {
+            tg.requestWriteAccess((granted) => { if (granted) sendWelcome(); });
+        } catch (_) {
+            sendWelcome();
+        }
+    } else {
+        sendWelcome();
+    }
+}
+
+async function apiFetch(path, options = {}) {
+    if (!REQUESTS_WEBHOOK_URL) {
+        throw new Error('Backend URL is not configured');
+    }
+
+    const headers = {
+        'Content-Type': 'application/json',
+        'X-Telegram-Init-Data': tg.initData || '',
+        ...(options.headers || {})
+    };
+
+    const response = await fetch(`${REQUESTS_WEBHOOK_URL}${path}`, {
+        ...options,
+        headers
+    });
+
+    let payload = null;
+    try {
+        payload = await response.json();
+    } catch (_) {
+        payload = null;
+    }
+
+    if (!response.ok) {
+        const error = new Error(payload?.error || `Backend request failed: ${response.status}`);
+        error.status = response.status;
+        error.payload = payload;
+        throw error;
+    }
+
+    return payload || {};
+}
+
+const INIT_RETRY_DELAYS = [1500, 4000];
+
+function isTransientError(error) {
+    if (!error?.status) return true;
+    return error.status === 429 || error.status >= 500;
+}
+
+async function initializeBackendUserWithRetry() {
+    for (let attempt = 0; ; attempt++) {
+        try {
+            await initializeBackendUser();
+            return;
+        } catch (error) {
+            if (attempt >= INIT_RETRY_DELAYS.length || !isTransientError(error)) {
+                throw error;
+            }
+            await new Promise(resolve => setTimeout(resolve, INIT_RETRY_DELAYS[attempt]));
+        }
+    }
+}
+
+function initErrorMessage(error) {
+    const code = error?.payload?.error || '';
+
+    if (code === 'unauthorized' || code === 'user_not_initialized' || error?.status === 401) {
+        return t('common.sessionExpired');
+    }
+
+    return t('common.profileLoadFailed');
+}
+
+async function initializeBackendUser() {
+    if (!tg?.initData) {
+        return;
+    }
+
+    const startParam = tg.initDataUnsafe?.start_param || null;
+    const data = await apiFetch(API.initUser, {
+        method: 'POST',
+        body: JSON.stringify({ startParam })
+    });
+
+    if (data.isManager) {
+        state.manager.isManager = true;
+        revealManagerEntry();
+    }
+
+    if (data.referralCode) {
+        state.referral.code = data.referralCode;
+    }
+    if (data.referralLink) {
+        state.referral.link = data.referralLink;
+    }
+    if (data.stats) {
+        applyReferralStats(data.stats);
+    }
+
+    await refreshReferralStats(false);
+}
+
+function applyReferralStats(stats) {
+    if (!stats || typeof stats !== 'object') return;
+
+    state.referral.count = Number(stats.count) || 0;
+    state.referral.earned = Number(stats.earned) || 0;
+    if (stats.available !== undefined) {
+        state.referral.available = Number(stats.available) || 0;
+    }
+    state.referral.users = Array.isArray(stats.users) ? stats.users : [];
+
+    if (elements.referralCountValue) {
+        elements.referralCountValue.textContent = String(state.referral.count);
+    }
+    if (elements.referralEarnedValue) {
+        elements.referralEarnedValue.textContent = formatUsdt(state.referral.earned);
+    }
+
+    const available = Number(state.referral.available) || 0;
+    if (elements.withdrawHint) {
+        elements.withdrawHint.textContent = `${t('referral.available')}: ${formatUsdt(available)}`;
+    }
+    if (elements.withdrawBtn) {
+        elements.withdrawBtn.disabled = available < 1;
+    }
+}
+
+function formatUsdt(value) {
+    const num = Number(value);
+    if (!Number.isFinite(num)) return '0.00 USDT';
+    return `${num.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USDT`;
+}
+
+async function refreshReferralStats(showError = true) {
+    try {
+        const data = await apiFetch(API.referralStats, { method: 'GET' });
+        applyReferralStats(data);
+        return data;
+    } catch (error) {
+        if (showError) {
+            console.error('Ошибка реферальной статистики:', error);
+            showToast(t('referral.statsRefreshFailed'), 'error');
+        }
+        throw error;
+    }
+}
+
+function getReferralDisplayLink() {
+    if (state.referral.link) return state.referral.link;
+
+    return t('referral.linkLoading');
+}
+
+async function loadExchangeRates() {
+    try {
+       
+        const data = await apiFetch('/api/rate', { method: 'GET' });
+
+        state.rates.cash.buy = Number(data?.cash?.buy);
+        state.rates.cash.sell = Number(data?.cash?.sell);
+        state.rates.cashless.buy = Number(data?.cashless?.buy);
+        state.rates.cashless.sell = Number(data?.cashless?.sell);
+
+        if (data?.usd) {
+            state.rates.usd.buy = Number(data.usd.buy);
+            state.rates.usd.sell = Number(data.usd.sell);
+        }
+
+        if (data?.limits && typeof data.limits === 'object') {
+            state.amountLimits = data.limits;
+        }
+
+        state.lastUpdatedAt = data?.updatedAt || null;
+
+        updateRatesDisplay();
+        updateCurrencyTexts();
+        updateCountdownDisplay();
+        updateRateInfo(getSelectedRateValue());
+
+        if (elements.exchangeModal.classList.contains('active')) {
+            calculateResult();
+        }
+
+        setUpdateStatus(t('rate.updated'));
+    } catch (error) {
+        console.error('Ошибка загрузки курсов:', error);
+        updateRatesDisplay();
+        setUpdateStatus(t('rate.unavailable'), true);
+    }
+}
+
+function updateRatesDisplay() {
+    if (!elements.buyRate || !elements.sellRate) {
+        setUpdateStatus(t('rate.unavailable'), true);
+        return;
+    }
+    const fmt = (val) => Number.isFinite(val) ? `${val.toFixed(2)} ₽` : '—';
+    const applyRate = (el, val) => {
+        if (!el) return;
+        el.textContent = fmt(val);
+        el.classList.toggle('rate-value--pulse', !Number.isFinite(val));
+    };
+
+    applyRate(elements.buyRate, state.rates.cash.buy);
+    applyRate(elements.sellRate, state.rates.cash.sell);
+    applyRate(elements.buyRateCashless, state.rates.cashless.buy);
+    applyRate(elements.sellRateCashless, state.rates.cashless.sell);
+    syncRateDuplicates();
+}
+
+function setUpdateStatus(text, isError = false) {
+    if (!elements.updateTime) {
+        return;
+    }
+    elements.updateTime.textContent = text;
+    elements.updateTime.style.color = isError ? 'var(--secondary-color)' : '';
+}
+
+function startRateCountdown() {
+    resetRateCountdown();
+    if (countdownTimer) {
+        clearInterval(countdownTimer);
+    }
+    countdownTimer = setInterval(tickRateCountdown, 1000);
+}
+
+function resetRateCountdown() {
+    nextUpdateAt = Date.now() + 5 * 60 * 1000;
+    updateCountdownDisplay();
+}
+
+function tickRateCountdown() {
+    if (!nextUpdateAt) {
+        return;
+    }
+    const diffMs = nextUpdateAt - Date.now();
+    if (diffMs <= 0) {
+        loadExchangeRates();
+        resetRateCountdown();
+        return;
+    }
+    updateCountdownDisplay();
+}
+
+function updateCountdownDisplay() {
+    if (!elements.updateTime || !nextUpdateAt) {
+        return;
+    }
+    const diffMs = Math.max(0, nextUpdateAt - Date.now());
+    const totalSeconds = Math.ceil(diffMs / 1000);
+    const minutes = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
+    const seconds = String(totalSeconds % 60).padStart(2, '0');
+    const label = translations[state.language]['rates.countdown'] || 'Обновление через';
+    elements.updateTime.textContent = `${label}: ${minutes}:${seconds}`;
+    elements.updateTime.style.color = '';
+}
+
+function applyTheme(theme) {
+    state.theme = theme;
+    const root = document.getElementById('htmlRoot');
+    if (theme === 'dark') {
+        root.setAttribute('data-theme', 'dark');
+    } else {
+        root.removeAttribute('data-theme');
+    }
+    localStorage.setItem('theme', theme);
+
+    elements.themeBtns.forEach(btn => {
+        if (btn.dataset.theme === theme) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+}
+
+function applyLanguage(lang) {
+    state.language = lang;
+    document.documentElement.lang = lang;
+    localStorage.setItem('language', lang);
+
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (translations[lang] && translations[lang][key]) {
+            el.textContent = translations[lang][key];
+        }
+    });
+
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+        const key = el.getAttribute('data-i18n-placeholder');
+        if (translations[lang] && translations[lang][key]) {
+            el.placeholder = translations[lang][key];
+        }
+    });
+
+    elements.languageBtns.forEach(btn => {
+        if (btn.dataset.lang === lang) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+
+    updateCountdownDisplay();
+    updateCurrencyTexts();
+    syncRateDuplicates();
+    if (elements.exchangeModal.classList.contains('active')) {
+        calculateResult();
+    }
+    if (elements.requestsModal && elements.requestsModal.classList.contains('active')) {
+        updateRequestsModal();
+    }
+    if (elements.referralModal && elements.referralModal.classList.contains('active')) {
+        renderReferralInfo();
+    }
+    if (elements.managerModal && elements.managerModal.classList.contains('active') && state.manager.authorized) {
+        loadManagerTab();
+    }
+}
+
+function openTgLink(url) {
+    if (tg && tg.openTelegramLink && /^https:\/\/t\.me\//i.test(url)) {
+        tg.openTelegramLink(url);
+    } else if (tg && tg.openLink) {
+        tg.openLink(url);
+    } else {
+        window.open(url, '_blank');
+    }
+}
+
+function openSupport() {
+    openTgLink('https://t.me/FortexisSupport');
+}
+
+function setupEventListeners() {
+    elements.exchangeBtn.addEventListener('click', () => openExchangeTypeModal());
+    elements.closeModal.addEventListener('click', closeModal);
+    elements.exchangeModal.addEventListener('click', (e) => {
+        if (e.target === elements.exchangeModal) closeModal();
+    });
+    if (elements.closeExchangeTypeModal) {
+        elements.closeExchangeTypeModal.addEventListener('click', closeExchangeTypeModal);
+    }
+    if (elements.exchangeTypeModal) {
+        elements.exchangeTypeModal.addEventListener('click', (e) => {
+            if (e.target === elements.exchangeTypeModal) closeExchangeTypeModal();
+        });
+    }
+    if (elements.cashTypeBtn) {
+        elements.cashTypeBtn.addEventListener('click', () => {
+            setExchangeType('cash');
+            closeExchangeTypeModal();
+            openModal();
+        });
+    }
+    if (elements.cashlessTypeBtn) {
+        elements.cashlessTypeBtn.addEventListener('click', () => {
+            setExchangeType('cashless');
+            closeExchangeTypeModal();
+            openModal();
+        });
+    }
+
+    if (elements.managerBtn) {
+        elements.managerBtn.addEventListener('click', () => openManagerModal());
+    }
+
+    elements.settingsBtn.addEventListener('click', () => openSettingsModal());
+    elements.closeSettingsModal.addEventListener('click', closeSettingsModal);
+    elements.settingsModal.addEventListener('click', (e) => {
+        if (e.target === elements.settingsModal) closeSettingsModal();
+    });
+
+    if (elements.aboutBtn) {
+        elements.aboutBtn.addEventListener('click', () => openAboutModal());
+    }
+    
+    if (elements.referralCard) {
+        elements.referralCard.addEventListener('click', () => openReferralModal());
+    }
+    if (elements.copyReferralLinkBtn) {
+        elements.copyReferralLinkBtn.addEventListener('click', () => copyReferralLink());
+    }
+    if (elements.withdrawBtn) {
+        elements.withdrawBtn.addEventListener('click', () => requestWithdraw());
+    }
+    if (elements.closeReferralModal) {
+        elements.closeReferralModal.addEventListener('click', closeReferralModal);
+    }
+    if (elements.referralModal) {
+        elements.referralModal.addEventListener('click', (e) => {
+            if (e.target === elements.referralModal) closeReferralModal();
+        });
+    }
+    
+    elements.closeAboutModal.addEventListener('click', closeAboutModal);
+    elements.aboutModal.addEventListener('click', (e) => {
+        if (e.target === elements.aboutModal) closeAboutModal();
+    });
+
+    if (elements.securityBtn) {
+        elements.securityBtn.addEventListener('click', () => openSecurityModal());
+    }
+    elements.closeSecurityModal.addEventListener('click', closeSecurityModal);
+    elements.securityModal.addEventListener('click', (e) => {
+        if (e.target === elements.securityModal) closeSecurityModal();
+    });
+
+    elements.supportBtn.addEventListener('click', () => openSupport());
+
+    if (elements.aboutSettingsBtn) {
+        elements.aboutSettingsBtn.addEventListener('click', () => {
+            openTgLink('https://t.me/fortexisExchange/22');
+        });
+    }
+
+    if (elements.aboutSettingsOpen) {
+        elements.aboutSettingsOpen.addEventListener('click', () => {
+            openTgLink('https://t.me/FortexisExchange');
+        });
+    }
+
+    if (elements.securitySettingsBtn) {
+        elements.securitySettingsBtn.addEventListener('click', () => openSecurityModal());
+    }
+
+    if (elements.requestsBtn) {
+        elements.requestsBtn.addEventListener('click', () => openRequestsModal());
+    }
+    if (elements.closeRequestsModal) {
+        elements.closeRequestsModal.addEventListener('click', closeRequestsModal);
+    }
+    if (elements.requestsModal) {
+        elements.requestsModal.addEventListener('click', (e) => {
+            if (e.target === elements.requestsModal) closeRequestsModal();
+        });
+    }
+
+    if (elements.reviewsBtn) {
+        elements.reviewsBtn.addEventListener('click', () => {
+            openTgLink('https://t.me/FortexisEx');
+        });
+    }
+
+    if (elements.privacyBtn && elements.privacySection) {
+        elements.privacyBtn.addEventListener('click', () => {
+            const isHidden = elements.privacySection.style.display === 'none';
+            elements.privacySection.style.display = isHidden ? 'block' : 'none';
+        });
+    }
+
+    if (elements.clearHistoryBtn) {
+        elements.clearHistoryBtn.addEventListener('click', () => openConfirmClearModal());
+    }
+    if (elements.closeConfirmClear) {
+        elements.closeConfirmClear.addEventListener('click', () => closeConfirmClearModal());
+    }
+    if (elements.confirmClearNo) {
+        elements.confirmClearNo.addEventListener('click', () => closeConfirmClearModal());
+    }
+    if (elements.confirmClearYes) {
+        elements.confirmClearYes.addEventListener('click', () => {
+            closeConfirmClearModal();
+            clearHistory();
+        });
+    }
+    if (elements.confirmClearModal) {
+        elements.confirmClearModal.addEventListener('click', (e) => {
+            if (e.target === elements.confirmClearModal) closeConfirmClearModal();
+        });
+    }
+
+    if (elements.historyToggle) {
+        elements.historyToggle.addEventListener('change', () => {
+            const disabled = elements.historyToggle.checked;
+            try {
+                localStorage.setItem('historyDisabled', disabled ? 'true' : 'false');
+            } catch (error) {
+                console.warn('Failed to persist history setting', error);
+            }
+            if (disabled) {
+                try { localStorage.removeItem('lastRequestSnapshot'); } catch (_) {}
+            }
+            updateRequestsModal();
+        });
+    }
+
+    elements.themeBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            applyTheme(btn.dataset.theme);
+        });
+    });
+
+    elements.languageBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            applyLanguage(btn.dataset.lang);
+        });
+    });
+
+    elements.directionBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            setDirection(btn.dataset.direction);
+        });
+    });
+
+    elements.currencyBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            setCurrency(btn.dataset.currency);
+        });
+    });
+
+    elements.clientAmount.addEventListener('input', () => calculateResult());
+    elements.exchangeForm.addEventListener('submit', handleFormSubmit);
+}
+
+function openModal() {
+    closeAllModals();
+    elements.exchangeModal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+
+    submittingRequest = false;
+
+    const submitBtn = elements.exchangeForm?.querySelector('.submit-btn');
+    if (submitBtn) {
+        submitBtn.disabled = state.currency === 'EUR';
+        const label = submitBtn.querySelector('[data-i18n="exchange.submit"]');
+        if (label && state.currency !== 'EUR') {
+            label.textContent = t('exchange.submit');
+        }
+    }
+
+    onViewportChange();
+
+    setTimeout(() => elements.clientAmount.focus(), 350);
+}
+
+function openExchangeTypeModal() {
+    closeAllModals();
+    if (elements.exchangeTypeModal) {
+        elements.exchangeTypeModal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+function closeExchangeTypeModal() {
+    if (elements.exchangeTypeModal) {
+        elements.exchangeTypeModal.classList.remove('active');
+    }
+    document.body.style.overflow = '';
+}
+
+function closeModal() {
+    elements.exchangeModal.classList.remove('active');
+    document.body.style.overflow = '';
+    resetForm();
+}
+
+function openSettingsModal() {
+    closeAllModals();
+    elements.settingsModal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeSettingsModal() {
+    elements.settingsModal.classList.remove('active');
+    document.body.style.overflow = '';
+}
+        
+function openAboutModal() {
+    closeAllModals();
+    elements.aboutModal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+async function openReferralModal() {
+    closeAllModals();
+    renderReferralInfo();
+    elements.referralModal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    try {
+        await refreshReferralStats(false);
+        renderReferralInfo();
+    } catch (_) {
+    }
+}
+
+function renderReferralInfo() {
+    const link = getReferralDisplayLink();
+
+    if (elements.referralLinkText) {
+        elements.referralLinkText.textContent = link;
+    }
+
+    applyReferralStats(state.referral);
+
+    const listTitleParent = elements.referralModal?.querySelector('.referral-list-title');
+    const oldList = elements.referralModal?.querySelector('.referral-list');
+    if (oldList) oldList.remove();
+
+    const list = document.createElement('div');
+    list.className = 'referral-list';
+
+    if (!state.referral.users.length) {
+        const empty = document.createElement('div');
+        empty.className = 'referral-list-empty';
+        empty.setAttribute('data-i18n', 'referral.listEmpty');
+        empty.textContent = t('referral.listEmpty');
+        list.appendChild(empty);
+    } else {
+        state.referral.users.forEach((user) => {
+            const row = document.createElement('div');
+            row.className = 'referral-user';
+
+            const main = document.createElement('div');
+            main.className = 'referral-user__main';
+
+            const name = document.createElement('div');
+            name.className = 'referral-user__name';
+            name.textContent = user.username ? `@${String(user.username).replace(/^@/, '')}` : `ID ${user.telegram_id ?? ''}`;
+
+            const meta = document.createElement('div');
+            meta.className = 'referral-user__meta';
+            meta.textContent = `${Number(user.deals) || 0} ${declensionDeals(Number(user.deals) || 0)}`;
+
+            const earned = document.createElement('div');
+            earned.className = 'referral-user__earned';
+            earned.textContent = `+${formatUsdt(user.earned)}`;
+
+            main.appendChild(name);
+            main.appendChild(meta);
+            row.appendChild(main);
+            row.appendChild(earned);
+            list.appendChild(row);
+        });
+    }
+
+    if (listTitleParent) {
+        listTitleParent.insertAdjacentElement('afterend', list);
+    }
+}
+
+function declensionDeals(value) {
+    const n = Math.abs(value) % 100;
+    const n1 = n % 10;
+    if (state.language === 'ru') {
+        if (n >= 11 && n <= 19) return t('referral.dealsMany');
+        if (n1 === 1) return t('referral.dealsOne');
+        if (n1 >= 2 && n1 <= 4) return t('referral.dealsFew');
+        return t('referral.dealsMany');
+    }
+    return value === 1 ? t('referral.dealsOne') : t('referral.dealsMany');
+}
+
+async function requestWithdraw() {
+    const available = Number(state.referral.available) || 0;
+    if (available < 1) {
+        showToast(t('referral.withdrawMin'), 'error');
+        return;
+    }
+    if (!tg?.initData) {
+        showToast(t('common.openInTelegram'), 'error');
+        return;
+    }
+    if (!window.confirm(t('referral.withdrawConfirm').replace('{amount}', formatUsdt(available)))) return;
+
+    const btn = elements.withdrawBtn;
+    if (btn) btn.disabled = true;
+    try {
+        const res = await apiFetch(API.referralWithdraw, {
+            method: 'POST',
+            body: JSON.stringify({})
+        });
+        showToast(t('referral.withdrawSent').replace('{amount}', formatUsdt(res.amount ?? available)), 'success');
+        await refreshReferralStats(false);
+        renderReferralInfo();
+    } catch (error) {
+        console.error('Withdraw failed:', error);
+        const code = error.payload?.error;
+        const msg = code === 'withdrawal_pending' ? t('referral.withdrawPending')
+            : code === 'insufficient_balance' ? t('referral.withdrawMin')
+            : code === 'rate_limited' ? t('referral.withdrawRateLimited')
+            : t('referral.withdrawFailed');
+        showToast(msg, 'error');
+        if (btn) btn.disabled = available < 1;
+    }
+}
+
+function copyReferralLink() {
+    const link = getReferralDisplayLink();
+    const showCopiedToast = () => {
+        const copiedText = translations[state.language]['referral.linkCopied'] || 'Ссылка скопирована';
+        showToast(copiedText, 'success');
+    };
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(link).then(showCopiedToast).catch(() => {
+            fallbackCopy(link, showCopiedToast);
+        });
+    } else {
+        fallbackCopy(link, showCopiedToast);
+    }
+}
+
+function closeAboutModal() {
+    elements.aboutModal.classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+function openSecurityModal() {
+    closeAllModals();
+    elements.securityModal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeReferralModal() {
+    elements.referralModal.classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+function closeSecurityModal() {
+    elements.securityModal.classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+function openRequestsModal() {
+    closeAllModals();
+    updateRequestsModal();
+    elements.requestsModal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeAllModals() {
+    elements.exchangeModal.classList.remove('active');
+    if (elements.exchangeTypeModal) {
+        elements.exchangeTypeModal.classList.remove('active');
+    }
+    elements.settingsModal.classList.remove('active');
+    elements.aboutModal.classList.remove('active');
+    elements.securityModal.classList.remove('active');
+    elements.requestsModal.classList.remove('active');
+    elements.confirmClearModal.classList.remove('active');
+    if (elements.referralModal) {
+        elements.referralModal.classList.remove('active');
+    }
+    if (elements.managerModal) {
+        elements.managerModal.classList.remove('active');
+    }
+    document.body.style.overflow = '';
+}
+
+function closeRequestsModal() {
+    elements.requestsModal.classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+function setDirection(direction) {
+    if (direction !== 'buy' && direction !== 'sell') return;
+    state.direction = direction;
+    elements.directionBtns.forEach(btn => {
+        if (btn.dataset.direction === direction) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+    if (direction === 'buy') {
+        elements.clientCurrency.textContent = state.currency;
+        elements.resultCurrency.textContent = 'USDT';
+    } else {
+        elements.clientCurrency.textContent = 'USDT';
+        elements.resultCurrency.textContent = state.currency;
+    }
+    calculateResult();
+}
+
+function setExchangeType(type) {
+    state.exchangeType = type;
+    toggleCurrencyOptions(type);
+    updateRateInfo(getSelectedRateValue());
+    calculateResult();
+}
+
+function toggleCurrencyOptions(type) {
+    const isCashless = type === 'cashless';
+    const selector = document.querySelector('.currency-selector');
+    if (selector) {
+        selector.classList.toggle('single-option', isCashless);
+    }
+    elements.currencyBtns.forEach(btn => {
+        const isRub = btn.dataset.currency === 'RUB';
+        btn.style.display = (isCashless && !isRub) ? 'none' : '';
+    });
+    if (isCashless && state.currency !== 'RUB') {
+        setCurrency('RUB');
+    }
+}
+
+function getSelectedRateValue() {
+    if (state.currency === 'USD') {
+        return state.direction === 'buy' ? state.rates.usd.buy : state.rates.usd.sell;
+    }
+    const bucket = state.exchangeType === 'cashless' ? state.rates.cashless : state.rates.cash;
+    return state.direction === 'buy' ? bucket.buy : bucket.sell;
+}
+
+function setCurrency(currency) {
+    state.currency = currency;
+    elements.currencyBtns.forEach(btn => {
+        if (btn.dataset.currency === currency) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+    updateCurrencyTexts();
+    updateRatesDisplay();
+    setDirection(state.direction);
+
+    const isEurDisabled = currency === 'EUR';
+    elements.clientAmount.disabled = isEurDisabled;
+    const submitBtn = elements.exchangeForm.querySelector('.submit-btn');
+    if (submitBtn) {
+        submitBtn.disabled = isEurDisabled;
+        submitBtn.textContent = isEurDisabled ? t('exchange.pairUnavailable') : '';
+        if (!isEurDisabled) {
+            const label = document.createElement('span');
+            label.setAttribute('data-i18n', 'exchange.submit');
+            label.textContent = t('exchange.submit');
+            submitBtn.replaceChildren(label);
+        }
+    }
+}
+const AMOUNT_LIMITS_FALLBACK = {
+    RUB: { min: 1000, max: 100000000 },
+    USD: { min: 10, max: 5000000 },
+    USDT: { min: 10, max: 5000000 }
+};
+
+function getAmountUnit() {
+    return state.direction === 'sell' ? 'USDT' : state.currency;
+}
+
+function getAmountLimits() {
+    const table = state.amountLimits || AMOUNT_LIMITS_FALLBACK;
+    const limits = table[getAmountUnit()];
+    if (!limits) return null;
+    const min = Number(limits.min);
+    const max = Number(limits.max);
+    if (!Number.isFinite(min) || !Number.isFinite(max)) return null;
+    return { min, max };
+}
+
+function limitLocale() {
+    if (state.language === 'ru') return 'ru-RU';
+    if (state.language === 'zh') return 'zh-CN';
+    return 'en-US';
+}
+
+function formatLimit(value) {
+    return Number(value).toLocaleString(limitLocale());
+}
+
+function checkAmountLimits() {
+    const raw = elements.clientAmount.value.trim();
+    if (!raw) return 'empty';
+
+    const amount = Number(raw);
+    if (!Number.isFinite(amount) || amount <= 0) return 'empty';
+
+    const limits = getAmountLimits();
+    if (!limits) return 'ok';
+
+    if (amount < limits.min) return 'min';
+    if (amount > limits.max) return 'max';
+    return 'ok';
+}
+
+function renderAmountLimitError(status) {
+    const input = elements.clientAmount;
+    const box = elements.amountError;
+    if (!input || !box) return;
+
+    if (status !== 'min' && status !== 'max') {
+        input.classList.remove('invalid');
+        box.hidden = true;
+        box.replaceChildren();
+        return;
+    }
+
+    const limits = getAmountLimits();
+    if (!limits) return;
+
+    const label = status === 'min'
+        ? t('validate.amountMin')
+        : t('validate.amountMax');
+    const value = status === 'min' ? limits.min : limits.max;
+
+    box.replaceChildren();
+    box.appendChild(
+        document.createTextNode(`${label}: ${formatLimit(value)} ${getAmountUnit()}`)
+    );
+
+    if (status === 'max') {
+        const hint = document.createElement('span');
+        hint.className = 'field-error__hint';
+        hint.textContent = t('validate.amountLimitHint');
+        box.appendChild(hint);
+    }
+
+    input.classList.add('invalid');
+    box.hidden = false;
+}
+
+function validateAmountField() {
+    const status = checkAmountLimits();
+    renderAmountLimitError(status);
+    return status;
+}
+
+function calculateResult() {
+    const amount = parseFloat(elements.clientAmount.value) || 0;
+    state.clientAmount = amount;
+
+    validateAmountField();
+
+    if (state.currency === 'EUR') {
+        updateResultDisplay(null);
+        updateRateInfo(null);
+        return;
+    }
+    if (amount <= 0) {
+        updateResultDisplay(0);
+        return;
+    }
+    let result = 0;
+    const usdtRubRate = getSelectedRateValue();
+    if (!Number.isFinite(usdtRubRate)) {
+        updateResultDisplay(0);
+        updateRateInfo('—');
+        return;
+    }
+    if (state.direction === 'buy') {
+        result = amount / usdtRubRate;
+    } else {
+        result = amount * usdtRubRate;
+    }
+    state.currentRate = usdtRubRate;
+    state.resultAmount = result;
+    updateResultDisplay(result);
+    updateRateInfo(usdtRubRate);
+}
+
+function updateResultDisplay(amount) {
+    const resultValue = elements.resultAmount.querySelector('.result-value');
+    resultValue.textContent = amount === null ? t('result.tba') : formatAmount(amount);
+}
+
+function updateRateInfo(rate) {
+    let numericRate = '—';
+        if (rate === null) {
+        numericRate = t('result.tba');
+    } else if (Number.isFinite(Number(rate))) {
+        if (state.currency === 'USD') {
+            numericRate = `${Number(rate).toFixed(4)} USD`;
+        } else {
+            numericRate = `${Number(rate).toFixed(2)} ₽`;
+        }
+    }
+    elements.currentRate.textContent = numericRate;
+}
+
+function formatAmount(amount) {
+    if (amount === 0) return '0.00';
+    return amount.toFixed(2);
+}
+
+function submitErrorMessage(error) {
+    if (!error?.status) return t('exchange.networkFailed');
+
+    const code = error.payload?.error || '';
+
+    if (code === 'rate_limited' || error.status === 429) {
+        return t('exchange.tooManyRequests');
+    }
+    if (code === 'unauthorized' || code === 'user_not_initialized' || error.status === 401) {
+        return t('common.sessionExpired');
+    }
+    if (code === 'payload_too_large' || error.status === 413) {
+        return t('exchange.commentTooLong');
+    }
+    if (code === 'bad_request' || error.status === 400) {
+        return t('exchange.invalidData');
+    }
+    if (error.status >= 500) {
+        return t('exchange.serverFailed');
+    }
+
+    return t('exchange.submitFailed');
+}
+
+async function handleFormSubmit(e) {
+    e.preventDefault();
+
+    const submitBtn = elements.exchangeForm.querySelector('.submit-btn');
+
+    if (submittingRequest || submitBtn?.disabled) return;
+
+    const requestId = generateRequestId();
+    const formData = {
+        requestId,
+        direction: state.direction,
+        dealType: state.exchangeType,
+        currency: state.currency,
+        amount: Number(elements.clientAmount.value),
+        clientName: document.getElementById('clientName').value.trim(),
+        clientPhone: document.getElementById('clientPhone').value.trim(),
+        clientComment: document.getElementById('clientComment').value.trim()
+    };
+
+    if (!validateForm({
+        clientAmount: formData.amount,
+        clientName: formData.clientName,
+        clientPhone: formData.clientPhone
+    })) {
+        return;
+    }
+
+    if (!tg?.initData) {
+        showToast(t('common.openInTelegram'), 'error');
+        return;
+    }
+
+    submittingRequest = true;
+
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        const label = submitBtn.querySelector('[data-i18n="exchange.submit"]');
+        if (label) label.textContent = t('exchange.sending');
+        else submitBtn.textContent = t('exchange.sending');
+    }
+
+    let succeeded = false;
+
+    try {
+        const created = await apiFetch(API.createRequest, {
+            method: 'POST',
+            body: JSON.stringify(formData)
+        });
+
+        const serverRequest = normalizeServerRequest(created.request || created);
+        saveLastRequest(serverRequest);
+
+        succeeded = true;
+        showToast(t('exchange.accepted'), 'success');
+        setTimeout(() => closeModal(), 1500);
+    } catch (error) {
+        console.error('Ошибка отправки:', error);
+        showToast(submitErrorMessage(error), 'error');
+    } finally {
+        if (!succeeded) {
+            submittingRequest = false;
+
+            if (submitBtn) {
+                submitBtn.disabled = state.currency === 'EUR';
+                const label = submitBtn.querySelector('[data-i18n="exchange.submit"]');
+                if (label && state.currency !== 'EUR') {
+                    label.textContent = t('exchange.submit');
+                }
+            }
+        }
+    }
+}
+
+function normalizeServerRequest(item) {
+    const tx = item || {};
+    const amount = Number(tx.client_amount ?? tx.clientAmount ?? 0);
+    const result = Number(tx.result_amount ?? tx.resultAmount ?? 0);
+    const currency = tx.currency || state.currency;
+    const direction = tx.direction || state.direction;
+
+    return {
+        requestId: tx.request_id || tx.requestId || '',
+        status: tx.status || 'PENDING',
+        payAmount: tx.payAmount || `${amount} ${direction === 'buy' ? currency : 'USDT'}`,
+        receiveAmount: tx.receiveAmount || `${Number.isFinite(result) ? result.toFixed(2) : '—'} ${direction === 'buy' ? 'USDT' : currency}`,
+        timestamp: tx.timestamp || tx.created_at || new Date().toISOString(),
+        direction,
+        dealType: tx.deal_type || tx.dealType || state.exchangeType,
+        currency,
+        clientConfirmed: Number(tx.client_confirmed ?? tx.clientConfirmed ?? 0) === 1
+    };
+}
+
+function isActiveUnconfirmed(r) {
+    return !r.clientConfirmed && ['PENDING', 'PROCESSING'].includes(r.status);
+}
+
+function visibleRequests(list) {
+    if (!isHistoryDisabled()) return list;
+    return list.filter(isActiveUnconfirmed);
+}
+
+async function loadRemoteRequests() {
+    const data = await apiFetch(API.myRequests, { method: 'GET' });
+    const requests = Array.isArray(data.requests) ? data.requests : [];
+    renderRemoteRequests(visibleRequests(requests.map(normalizeServerRequest)));
+    return requests;
+}
+
+async function confirmRequest(requestId) {
+    if (!requestId || !tg?.initData) {
+        showToast(t('requests.confirmError'), 'error');
+        return;
+    }
+
+    const button = elements.requestsBody?.querySelector(`[data-role="confirm"][data-request-id="${CSS.escape(requestId)}"]`);
+    if (button) button.disabled = true;
+
+    try {
+        await apiFetch(API.confirmRequest, {
+            method: 'POST',
+            body: JSON.stringify({ requestId })
+        });
+
+        showToast(t('requests.thanks'), 'success');
+        await loadRemoteRequests();
+    } catch (error) {
+        console.warn('Failed to confirm request:', error);
+        showToast(error.status === 403 ? t('requests.noAccess') : t('requests.confirmReceiptFailed'), 'error');
+        if (button) button.disabled = false;
+    }
+}
+
+function syncHistoryToggle() {
+    if (!elements.historyToggle) {
+        return;
+    }
+    elements.historyToggle.checked = isHistoryDisabled();
+    if (elements.privacySection && isHistoryDisabled()) {
+        elements.privacySection.style.display = 'block';
+    }
+}
+
+function isHistoryDisabled() {
+    return localStorage.getItem('historyDisabled') === 'true';
+}
+
+function saveLastRequest(data) {
+    if (!isHistoryDisabled()) {
+        try {
+            localStorage.setItem('lastRequestSnapshot', JSON.stringify(data));
+        } catch (error) {
+            console.warn('Failed to save request snapshot', error);
+        }
+    }
+
+    updateRequestsModal();
+}
+
+function updateRequestsModal() {
+    if (!elements.requestsBody) return;
+
+    elements.requestsBody.replaceChildren();
+
+    const loading = document.createElement('p');
+    loading.textContent = t('requests.loading');
+    elements.requestsBody.appendChild(loading);
+
+    loadRemoteRequests().catch((error) => {
+        console.error('Failed to load requests:', error);
+        elements.requestsBody.replaceChildren();
+
+        const fallback = readLocalRequestSnapshot();
+        if (fallback) {
+            renderRemoteRequests(visibleRequests([fallback]));
+            return;
+        }
+
+        const errorEl = document.createElement('p');
+        errorEl.textContent = t('requests.loadFailed');
+        errorEl.style.color = 'var(--secondary-color)';
+        elements.requestsBody.appendChild(errorEl);
+    });
+}
+
+function readLocalRequestSnapshot() {
+    try {
+        const raw = localStorage.getItem('lastRequestSnapshot');
+        return raw ? normalizeServerRequest(JSON.parse(raw)) : null;
+    } catch (_) {
+        return null;
+    }
+}
+
+function renderRemoteRequests(history) {
+    if (!elements.requestsBody) return;
+    elements.requestsBody.replaceChildren();
+
+    if (!history.length) {
+        const empty = document.createElement('p');
+        empty.textContent = t('requests.empty');
+        elements.requestsBody.appendChild(empty);
+        return;
+    }
+
+    history.forEach((payload) => {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'form-group';
+
+        const idLabel = document.createElement('label');
+        idLabel.textContent = t('requests.idLabel');
+        wrapper.appendChild(idLabel);
+
+        const idRow = document.createElement('div');
+        idRow.className = 'setting-option compact';
+        idRow.dataset.role = 'copy-id';
+        idRow.dataset.requestId = payload.requestId;
+        idRow.style.cursor = 'pointer';
+
+        const idMain = document.createElement('div');
+        idMain.className = 'setting-option-label';
+        const strongId = document.createElement('strong');
+        strongId.textContent = payload.requestId || '—';
+        idMain.appendChild(strongId);
+        idRow.appendChild(idMain);
+
+        const copyValue = document.createElement('div');
+        copyValue.className = 'setting-option-value';
+        copyValue.textContent = '⧉';
+        idRow.appendChild(copyValue);
+        wrapper.appendChild(idRow);
+        elements.requestsBody.appendChild(wrapper);
+
+        const statusWrap = document.createElement('div');
+        statusWrap.className = 'form-group';
+        const statusLabel = document.createElement('label');
+        statusLabel.textContent = t('requests.statusLabel');
+        statusWrap.appendChild(statusLabel);
+
+        const statusRow = document.createElement('div');
+        statusRow.className = 'setting-option compact';
+        statusRow.dataset.role = 'status';
+        statusRow.dataset.requestId = payload.requestId;
+        statusRow.style.cursor = 'pointer';
+
+        const statusMain = document.createElement('div');
+        statusMain.className = 'setting-option-label';
+        const statusStrong = document.createElement('strong');
+        statusStrong.appendChild(buildStatusBadge(payload.status));
+        const timeSmall = document.createElement('small');
+        const parsedDate = new Date(payload.timestamp);
+        timeSmall.textContent = Number.isNaN(parsedDate.getTime()) ? '' : parsedDate.toLocaleString('ru-RU');
+        statusMain.appendChild(statusStrong);
+        if (timeSmall.textContent) statusMain.appendChild(timeSmall);
+        statusRow.appendChild(statusMain);
+
+        const chevron = document.createElement('span');
+        chevron.className = 'request-chevron';
+        chevron.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>';
+        statusRow.appendChild(chevron);
+
+        statusWrap.appendChild(statusRow);
+        elements.requestsBody.appendChild(statusWrap);
+
+        const details = document.createElement('div');
+        details.className = 'request-details-container';
+        details.dataset.requestId = payload.requestId;
+        details.style.display = 'none';
+
+        details.appendChild(makeReadOnlyDetail(t('requests.payLabel'), payload.payAmount));
+        details.appendChild(makeReadOnlyDetail(t('requests.receiveLabel'), payload.receiveAmount));
+        details.appendChild(makeReadOnlyDetail(t('requests.support'), t('requests.supportAction'), 'support'));
+
+        const kind = statusMeta(payload.status).kind;
+        const finished = ['completed', 'rejected', 'cancelled'].includes(kind);
+        if (!finished) {
+            const actionWrap = document.createElement('div');
+            actionWrap.className = 'form-group';
+            const confirmBtn = document.createElement('button');
+            confirmBtn.type = 'button';
+            confirmBtn.className = 'submit-btn';
+            confirmBtn.dataset.role = 'confirm';
+            confirmBtn.dataset.requestId = payload.requestId;
+            if (payload.clientConfirmed) {
+                confirmBtn.textContent = t('requests.confirmedBadge') + ' ✅';
+                confirmBtn.disabled = true;
+            } else {
+                confirmBtn.textContent = t('requests.confirm');
+            }
+            actionWrap.appendChild(confirmBtn);
+            details.appendChild(actionWrap);
+        }
+
+        elements.requestsBody.appendChild(details);
+
+        const hr = document.createElement('hr');
+        hr.style.cssText = 'border:none;border-top:1px solid var(--border-color);margin:8px 0;';
+        elements.requestsBody.appendChild(hr);
+    });
+
+    bindRequestListHandlers();
+}
+
+function makeReadOnlyDetail(label, value, role = null) {
+    const wrap = document.createElement('div');
+    wrap.className = 'form-group';
+    const labelEl = document.createElement('label');
+    labelEl.textContent = label;
+    wrap.appendChild(labelEl);
+
+    const row = document.createElement('div');
+    row.className = 'setting-option compact';
+    if (role) row.dataset.role = role;
+
+    const inner = document.createElement('div');
+    inner.className = 'setting-option-label';
+    const strong = document.createElement('strong');
+    strong.textContent = String(value ?? '—');
+    inner.appendChild(strong);
+    row.appendChild(inner);
+    wrap.appendChild(row);
+    return wrap;
+}
+
+function bindRequestListHandlers() {
+    elements.requestsBody.querySelectorAll('[data-role="support"]').forEach((btn) => {
+        btn.addEventListener('click', () => openSupport());
+    });
+    elements.requestsBody.querySelectorAll('[data-role="confirm"]').forEach((btn) => {
+        btn.addEventListener('click', () => confirmRequest(btn.dataset.requestId));
+    });
+    elements.requestsBody.querySelectorAll('[data-role="status"]').forEach((btn) => {
+        btn.addEventListener('click', () => toggleRequestDetails(btn.dataset.requestId));
+    });
+    elements.requestsBody.querySelectorAll('[data-role="copy-id"]').forEach((btn) => {
+        btn.addEventListener('click', () => copyRequestId(btn.dataset.requestId));
+    });
+}
+
+const STATUS_META = {
+    PENDING: { kind: 'pending', i18n: 'status.pending' },
+    PROCESSING: { kind: 'processing', i18n: 'status.processing' },
+    COMPLETED: { kind: 'completed', i18n: 'status.completed' },
+    CANCELLED: { kind: 'cancelled', i18n: 'status.cancelled' },
+    REJECTED: { kind: 'rejected', i18n: 'status.rejected' }
+};
+
+const STATUS_RU_LABELS = {
+    'В обработке': 'PENDING',
+    'В работе': 'PROCESSING',
+    'Исполнено': 'COMPLETED',
+    'Отменено': 'CANCELLED',
+    'Отклонено': 'REJECTED'
+};
+
+function statusMeta(status) {
+    let key = STATUS_META[status] ? status : STATUS_RU_LABELS[String(status || '').replace(/[✅✕✓]/g, '').trim()];
+    if (key && STATUS_META[key]) {
+        const m = STATUS_META[key];
+        return { kind: m.kind, label: t(m.i18n) };
+    }
+    return { kind: 'pending', label: status || '—' };
+}
+
+function humanStatus(status) {
+    return statusMeta(status).label;
+}
+
+function buildStatusBadge(status) {
+    const meta = statusMeta(status);
+    const badge = document.createElement('span');
+    badge.className = `status-badge status-badge--${meta.kind}`;
+
+    const icon = document.createElement('span');
+    icon.className = 'status-badge__icon';
+    if (meta.kind === 'pending' || meta.kind === 'processing') {
+        icon.classList.add('status-badge__spin');
+    } else if (meta.kind === 'completed') {
+        icon.textContent = '✓';
+    } else {
+        icon.textContent = '✕';
+    }
+
+    const text = document.createElement('span');
+    text.textContent = meta.label;
+
+    badge.append(icon, text);
+    return badge;
+}
+
+function isCompletedStatus(status) {
+    return statusMeta(status).kind === 'completed';
+}
+
+function toggleRequestDetails(requestId) {
+    const detail = elements.requestsBody.querySelector(`.request-details-container[data-request-id="${CSS.escape(requestId)}"]`);
+    if (!detail) return;
+    const willOpen = detail.style.display === 'none';
+    detail.style.display = willOpen ? 'block' : 'none';
+    const row = elements.requestsBody.querySelector(`.setting-option[data-role="status"][data-request-id="${CSS.escape(requestId)}"]`);
+    if (row) row.classList.toggle('is-expanded', willOpen);
+}
+
+let managerModalWired = false;
+
+function setupManagerModal() {
+    const modal = elements.managerModal;
+    if (!modal || managerModalWired) return;
+    managerModalWired = true;
+
+    elements.closeManagerModal?.addEventListener('click', closeManagerModal);
+    elements.managerRefreshBtn?.addEventListener('click', () => loadManagerTab());
+    elements.managerTabs?.forEach((btn) => {
+        btn.addEventListener('click', () => switchManagerTab(btn.dataset.managerTab));
+    });
+    modal.addEventListener('click', (event) => {
+        if (event.target === modal) closeManagerModal();
+    });
+}
+
+function switchManagerTab(tab) {
+    if (!tab || state.manager.loading) return;
+    state.manager.tab = tab;
+    elements.managerTabs?.forEach((btn) => {
+        btn.classList.toggle('active', btn.dataset.managerTab === tab);
+    });
+    if (elements.managerRequests) elements.managerRequests.hidden = tab !== 'requests';
+    if (elements.managerWithdrawals) elements.managerWithdrawals.hidden = tab !== 'withdrawals';
+    loadManagerTab();
+}
+
+function loadManagerTab() {
+    if (state.manager.tab === 'withdrawals') {
+        loadManagerWithdrawals();
+    } else {
+        loadManagerRequests();
+    }
+}
+
+function openManagerModal() {
+    if (!elements.managerModal) return;
+    setupManagerModal();
+    elements.managerModal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    switchManagerTab('requests');
+}
+
+function revealManagerEntry() {
+    if (elements.managerBtn) elements.managerBtn.style.display = '';
+}
+
+function initializeManagerMode() {
+    if (window.location.hash === '#manager') openManagerModal();
+}
+
+function closeManagerModal() {
+    if (elements.managerModal) elements.managerModal.classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+async function loadManagerRequests() {
+    if (!elements.managerRequests || !elements.managerStatus) return;
+
+    state.manager.loading = true;
+    elements.managerStatus.textContent = t('manager.loadingAccess');
+    elements.managerRequests.replaceChildren();
+
+    try {
+        const data = await apiFetch(API.managerRequests, { method: 'GET' });
+        state.manager.authorized = true;
+        const n = Array.isArray(data.requests) ? data.requests.length : 0;
+        elements.managerStatus.textContent = `${t('manager.accessGranted')} • ${n} ${t('manager.requestsWord')}`;
+        renderManagerRequests(Array.isArray(data.requests) ? data.requests : []);
+    } catch (error) {
+        state.manager.authorized = false;
+        elements.managerStatus.textContent = t('manager.noAccessShort');
+        const errorEl = document.createElement('div');
+        errorEl.className = 'manager-error';
+        errorEl.textContent = error.status === 403
+            ? t('manager.onlyForManager')
+            : t('manager.panelLoadFailed');
+        elements.managerRequests.appendChild(errorEl);
+    } finally {
+        state.manager.loading = false;
+    }
+}
+
+function renderManagerRequests(requests) {
+    elements.managerRequests.replaceChildren();
+
+    if (!requests.length) {
+        const empty = document.createElement('div');
+        empty.className = 'manager-empty';
+        empty.textContent = t('manager.noNewRequests');
+        elements.managerRequests.appendChild(empty);
+        return;
+    }
+
+    requests.forEach((tx) => {
+        const card = document.createElement('div');
+        card.className = 'manager-card';
+        card.dataset.requestId = tx.request_id || tx.requestId || '';
+
+        const top = document.createElement('div');
+        top.className = 'manager-card__top';
+        const id = document.createElement('div');
+        id.className = 'manager-card__id';
+        id.textContent = tx.request_id || tx.requestId || '—';
+        const status = document.createElement('div');
+        status.className = 'manager-card__status';
+        status.appendChild(buildStatusBadge(tx.status));
+        top.append(id, status);
+
+        const grid = document.createElement('div');
+        grid.className = 'manager-card__grid';
+        appendManagerField(grid, t('manager.fieldClient'), tx.username ? `@${String(tx.username).replace(/^@/, '')}` : '—');
+        appendManagerField(grid, t('manager.fieldDirection'), tx.direction === 'buy' ? t('manager.buyUsdt') : t('manager.sellUsdt'));
+        appendManagerField(grid, t('manager.fieldGives'), `${tx.client_amount ?? '—'} ${tx.direction === 'buy' ? (tx.currency || 'RUB') : 'USDT'}`);
+        appendManagerField(grid, t('manager.fieldReceives'), `${tx.result_amount ?? '—'} ${tx.direction === 'buy' ? 'USDT' : (tx.currency || 'RUB')}`);
+        appendManagerField(grid, t('manager.fieldRate'), tx.rate ?? '—');
+        appendManagerField(grid, t('manager.fieldReferrer'), tx.referrer_username ? `@${String(tx.referrer_username).replace(/^@/, '')}` : (tx.referred_by ? String(tx.referred_by) : '—'));
+
+        const clientConfirmed = Number(tx.client_confirmed) === 1;
+        appendManagerField(grid, t('manager.fieldClientConfirmed'), clientConfirmed ? `${t('manager.yes')} ✅` : `${t('manager.waiting')} ⏳`);
+
+        const actions = document.createElement('div');
+        actions.className = 'manager-actions';
+
+        const complete = document.createElement('button');
+        complete.type = 'button';
+        complete.className = 'submit-btn';
+        complete.textContent = t('manager.complete');
+        complete.dataset.managerAction = 'complete';
+        complete.dataset.requestId = tx.request_id || tx.requestId || '';
+
+        const reject = document.createElement('button');
+        reject.type = 'button';
+        reject.className = 'submit-btn';
+        reject.style.background = 'var(--border-color)';
+        reject.style.color = 'var(--text-primary)';
+        reject.textContent = t('manager.reject');
+        reject.dataset.managerAction = 'reject';
+        reject.dataset.requestId = tx.request_id || tx.requestId || '';
+
+        actions.append(complete, reject);
+        card.append(top, grid, actions);
+        elements.managerRequests.appendChild(card);
+    });
+
+    elements.managerRequests.querySelectorAll('[data-manager-action="complete"]').forEach(btn => {
+        btn.addEventListener('click', () => managerComplete(btn));
+    });
+    elements.managerRequests.querySelectorAll('[data-manager-action="reject"]').forEach(btn => {
+        btn.addEventListener('click', () => managerReject(btn));
+    });
+}
+
+function appendManagerField(parent, label, value) {
+    const field = document.createElement('div');
+    field.className = 'manager-card__field';
+    const small = document.createElement('small');
+    small.textContent = label;
+    const strong = document.createElement('strong');
+    strong.textContent = String(value ?? '—');
+    field.append(small, strong);
+    parent.appendChild(field);
+}
+
+async function managerComplete(button) {
+    const requestId = button?.dataset.requestId;
+    if (!requestId || state.manager.loading) return;
+
+    if (!window.confirm(t('manager.confirmComplete'))) return;
+
+    button.disabled = true;
+    try {
+        await apiFetch(API.managerComplete, {
+            method: 'POST',
+            body: JSON.stringify({ requestId })
+        });
+        showToast(t('manager.completedToast'), 'success');
+        await loadManagerRequests();
+    } catch (error) {
+        console.error('Manager complete failed:', error);
+        showToast(error.status === 409 ? t('manager.alreadyProcessed') : t('manager.completeFailed'), 'error');
+        button.disabled = false;
+    }
+}
+
+async function managerReject(button) {
+    const requestId = button?.dataset.requestId;
+    if (!requestId || state.manager.loading) return;
+
+    if (!window.confirm(t('manager.confirmReject'))) return;
+
+    button.disabled = true;
+    try {
+        await apiFetch(API.managerReject, {
+            method: 'POST',
+            body: JSON.stringify({ requestId })
+        });
+        showToast(t('manager.rejectedToast'), 'success');
+        await loadManagerRequests();
+    } catch (error) {
+        console.error('Manager reject failed:', error);
+        showToast(t('manager.rejectFailed'), 'error');
+        button.disabled = false;
+    }
+}
+
+async function loadManagerWithdrawals() {
+    if (!elements.managerWithdrawals || !elements.managerStatus) return;
+
+    state.manager.loading = true;
+    elements.managerStatus.textContent = t('manager.loadingWithdrawals');
+    elements.managerWithdrawals.replaceChildren();
+
+    try {
+        const data = await apiFetch(API.managerWithdrawals, { method: 'GET' });
+        state.manager.authorized = true;
+        const list = Array.isArray(data.withdrawals) ? data.withdrawals : [];
+        const pending = list.filter((w) => w.status === 'REQUESTED').length;
+        elements.managerStatus.textContent = `${t('manager.accessGranted')} • ${pending} ${t('manager.wdPendingWord')}`;
+        renderManagerWithdrawals(list);
+    } catch (error) {
+        state.manager.authorized = false;
+        elements.managerStatus.textContent = t('manager.noAccessShort');
+        const errorEl = document.createElement('div');
+        errorEl.className = 'manager-error';
+        errorEl.textContent = error.status === 403 ? t('manager.onlyForManager') : t('manager.panelLoadFailed');
+        elements.managerWithdrawals.appendChild(errorEl);
+    } finally {
+        state.manager.loading = false;
+    }
+}
+
+function wdStatusLabel(status) {
+    if (status === 'PAID') return t('manager.wdStatusPaid');
+    if (status === 'REJECTED') return t('manager.wdStatusRejected');
+    return t('manager.wdStatusRequested');
+}
+
+function renderManagerWithdrawals(list) {
+    elements.managerWithdrawals.replaceChildren();
+
+    if (!list.length) {
+        const empty = document.createElement('div');
+        empty.className = 'manager-empty';
+        empty.textContent = t('manager.wdEmpty');
+        elements.managerWithdrawals.appendChild(empty);
+        return;
+    }
+
+    list.forEach((w) => {
+        const card = document.createElement('div');
+        card.className = 'wd-card';
+
+        const top = document.createElement('div');
+        top.className = 'wd-card__top';
+        const amount = document.createElement('div');
+        amount.className = 'wd-card__amount';
+        amount.textContent = `${Number(w.amount_usdt).toFixed(2)} USDT`;
+        const badge = document.createElement('div');
+        const kind = w.status === 'PAID' ? 'paid' : w.status === 'REJECTED' ? 'rejected' : 'requested';
+        badge.className = `wd-card__badge wd-badge--${kind}`;
+        badge.textContent = wdStatusLabel(w.status);
+        top.append(amount, badge);
+
+        const meta = document.createElement('div');
+        meta.className = 'wd-card__meta';
+        const uname = w.username ? `@${String(w.username).replace(/^@/, '')}` : `ID ${w.user_id}`;
+        const created = new Date(w.created_at);
+        const createdStr = Number.isNaN(created.getTime()) ? String(w.created_at || '') : created.toLocaleString('ru-RU');
+
+        const metaLine = (parts) => {
+            const row = document.createElement('div');
+            parts.forEach((p) => {
+                if (p && typeof p === 'object' && 'bold' in p) {
+                    const b = document.createElement('b');
+                    b.textContent = String(p.bold);
+                    row.appendChild(b);
+                } else {
+                    row.appendChild(document.createTextNode(String(p)));
+                }
+            });
+            return row;
+        };
+
+        meta.append(
+            metaLine([`${t('manager.fieldClient')}: `, { bold: uname }, ` (ID ${w.user_id})`]),
+            metaLine([
+                `${t('manager.wdEarned')}: `,
+                { bold: `${Number(w.total_earned || 0).toFixed(2)} USDT` },
+                ` · ${t('manager.wdReferrals')}: `,
+                { bold: String(Number(w.referrals || 0)) }
+            ]),
+            metaLine([`${t('manager.wdRequestedAt')}: `, { bold: createdStr }])
+        );
+
+        if (w.processed_at) {
+            meta.append(
+                metaLine([
+                    `${t('manager.wdProcessedAt')}: `,
+                    { bold: new Date(w.processed_at).toLocaleString('ru-RU') }
+                ])
+            );
+        }
+
+        card.append(top, meta);
+
+        if (w.status === 'REQUESTED') {
+            const actions = document.createElement('div');
+            actions.className = 'manager-actions';
+
+            const paid = document.createElement('button');
+            paid.type = 'button';
+            paid.className = 'submit-btn';
+            paid.textContent = t('manager.wdMarkPaid');
+            paid.dataset.wdAction = 'complete';
+            paid.dataset.wdId = String(w.id);
+
+            const rej = document.createElement('button');
+            rej.type = 'button';
+            rej.className = 'submit-btn';
+            rej.style.background = 'var(--border-color)';
+            rej.style.color = 'var(--text-primary)';
+            rej.textContent = t('manager.wdRejectBtn');
+            rej.dataset.wdAction = 'reject';
+            rej.dataset.wdId = String(w.id);
+
+            actions.append(paid, rej);
+            card.appendChild(actions);
+        }
+
+        elements.managerWithdrawals.appendChild(card);
+    });
+
+    elements.managerWithdrawals.querySelectorAll('[data-wd-action]').forEach((btn) => {
+        btn.addEventListener('click', () => managerWithdrawAction(btn));
+    });
+}
+
+async function managerWithdrawAction(button) {
+    const id = Number(button?.dataset.wdId);
+    const action = button?.dataset.wdAction;
+    if (!id || !action || state.manager.loading) return;
+
+    const confirmMsg = action === 'complete' ? t('manager.wdConfirmPaid') : t('manager.wdConfirmReject');
+    if (!window.confirm(confirmMsg)) return;
+
+    button.disabled = true;
+    try {
+        const res = await apiFetch(API.managerWithdrawProcess, {
+            method: 'POST',
+            body: JSON.stringify({ id, action })
+        });
+        if (res && res.alreadyProcessed) {
+            showToast(t('manager.wdAlreadyDone'), 'error');
+        } else {
+            showToast(action === 'complete' ? t('manager.wdPaidToast') : t('manager.wdRejectedToast'), 'success');
+        }
+        await loadManagerWithdrawals();
+    } catch (error) {
+        console.error('Withdrawal action failed:', error);
+        showToast(error.status === 409 ? t('manager.wdAlreadyDone') : t('manager.wdActionFailed'), 'error');
+        button.disabled = false;
+    }
+}
+
+async function clearHistory() {
+    try {
+        localStorage.removeItem('lastRequestSnapshot');
+    } catch (error) {
+        console.warn('Failed to clear local request snapshot', error);
+    }
+
+    if (isTelegramMiniApp) {
+        try {
+            await apiFetch(API.clearHistory, { method: 'POST', body: JSON.stringify({}) });
+            showToast(t('confirm.cleared') || 'История скрыта', 'success');
+        } catch (error) {
+            console.error('Failed to clear deal history:', error);
+            showToast(t('history.deleteFailed'), 'error');
+        }
+    } else {
+        showToast(t('confirm.cleared') || 'История скрыта', 'success');
+    }
+
+    updateRequestsModal();
+}
+
+function openConfirmClearModal() {
+    if (!elements.confirmClearModal) return;
+    closeAllModals();
+    elements.confirmClearModal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeConfirmClearModal() {
+    if (!elements.confirmClearModal) return;
+    elements.confirmClearModal.classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+function generateRequestId() {
+    const now = new Date();
+    const pad = (num) => String(num).padStart(2, '0');
+    const stamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+
+    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    const bytes = crypto.getRandomValues(new Uint8Array(10));
+    const rand = Array.from(bytes, (b) => alphabet[b % alphabet.length]).join('');
+
+    return `FTX-${stamp}-${rand}`;
+}
+
+function copyRequestId(requestId) {
+    if (!requestId) { return; }
+
+    const showCopiedToast = () => {
+        const copiedText = translations[state.language]['requests.copied'] || 'Номер заявки скопирован';
+        showToast(copiedText, 'success');
+    };
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(requestId).then(showCopiedToast).catch(() => {
+            fallbackCopy(requestId, showCopiedToast);
+        });
+    } else {
+        fallbackCopy(requestId, showCopiedToast);
+    }
+}
+
+function fallbackCopy(text, onSuccess) {
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+    try {
+        document.execCommand('copy');
+        onSuccess();
+    } catch (error) {
+        console.warn('Copy failed', error);
+    }
+    document.body.removeChild(textarea);
+}
+
+function validateForm(data) {
+    if (state.currency === 'EUR') {
+        showToast(t('exchange.pairUnavailable'), 'error');
+        return false;
+    }
+    if (!data.clientName || data.clientName.trim().length < 2) {
+        showToast(t('validate.name'), 'error');
+        return false;
+    }
+    if (!data.clientPhone || data.clientPhone.trim().length < 2) {
+        showToast(t('validate.username'), 'error');
+        return false;
+    }
+    if (data.clientAmount <= 0) {
+        showToast(t('validate.amount'), 'error');
+        return false;
+    }
+
+    const amountStatus = validateAmountField();
+    if (amountStatus === 'min' || amountStatus === 'max') {
+        const limits = getAmountLimits();
+        if (limits) {
+            const label = amountStatus === 'min'
+                ? t('validate.amountMin')
+                : t('validate.amountMax');
+            const value = amountStatus === 'min' ? limits.min : limits.max;
+            showToast(`${label}: ${formatLimit(value)} ${getAmountUnit()}`, 'error');
+        }
+        return false;
+    }
+
+    return true;
+}
+
+function sendToTelegram(data) {
+    const user = tg.initDataUnsafe?.user;
+    const dealTypeLabel = data.dealType === 'cashless' ? 'Безналичный' : 'Наличный';
+    const message = `🔄 Новая заявка на обмен валюты\n\n💼 Тип сделки: ${dealTypeLabel}\n📊 Направление: ${data.direction === 'buy' ? 'Покупка USDT' : 'Продажа USDT'}\n💰 Отдает: ${data.clientAmount} ${data.direction === 'buy' ? 'RUB' : 'USDT'}\n💵 Получает: ${data.resultAmount.toFixed(2)} ${data.direction === 'buy' ? 'USDT' : 'RUB'}\n📈 Курс: ${data.rate} ₽\n\n👤 Имя: ${data.clientName}\n📱 Юзернейм: ${data.clientPhone}${data.clientComment ? `\n💬 Комментарий: ${data.clientComment}` : ''}\n\n${user ? `👤 Telegram: @${user.username || user.first_name}` : ''}\n🕐 Время: ${new Date().toLocaleString('ru-RU')}`;
+    tg.sendData(JSON.stringify({ type: 'exchange_request', data: data }));
+    console.log('Отправка заявки:', message);
+}
+
+function showToast(message, type = 'success') {
+    elements.toastMessage.textContent = message;
+    elements.toast.className = 'toast show';
+    elements.toast.style.background = type === 'error' ? 'var(--secondary-color)' : 'var(--success-color)';
+    setTimeout(() => elements.toast.classList.remove('show'), 3000);
+}
+
+function resetForm() {
+    elements.exchangeForm.reset();
+    elements.clientAmount.value = '';
+    state.clientAmount = 0;
+    state.resultAmount = 0;
+    updateResultDisplay(0);
+    setDirection('buy');
+    setCurrency('USD');
+}
+
+function getUsdRubRate() {
+    const usdRub = Number(state.baseRates.USD);
+    return Number.isFinite(usdRub) ? usdRub : NaN;
+}
+
+function getCurrencyRubRate() {
+    const currencyRub = Number(state.baseRates[state.currency]);
+    return Number.isFinite(currencyRub) ? currencyRub : NaN;
+}
+
+function updateCurrencyTexts() {
+    const code = state.currency;
+    if (elements.buySubtitle) {
+        elements.buySubtitle.textContent = t('rates.buySubtitle');
+    }
+    if (elements.sellSubtitle) {
+        elements.sellSubtitle.textContent = t('rates.sellSubtitle');
+    }
+    if (elements.directionBuyDesc) {
+        elements.directionBuyDesc.textContent = t('exchange.buyDescTpl').replace('{code}', code);
+    }
+    if (elements.directionSellDesc) {
+        elements.directionSellDesc.textContent = t('exchange.sellDescTpl').replace('{code}', code);
+    }
+    syncRateDuplicates();
+}
+
+function syncRateDuplicates() {
+    document.querySelectorAll('[data-dup]').forEach((el) => {
+        const sourceId = el.getAttribute('data-dup');
+        const source = sourceId ? document.getElementById(sourceId) : null;
+        if (source) {
+            el.textContent = source.textContent;
+        }
+    });
+}
+    </script>
+    <script>
+    (function () {
+        var track = document.getElementById('tipsCarousel');
+        var dotsWrap = document.getElementById('tipsDots');
+        if (!track || !dotsWrap) return;
+
+        var cards = Array.prototype.slice.call(track.children);
+        cards.forEach(function (_, i) {
+            var dot = document.createElement('div');
+            dot.className = 'tips-dot' + (i === 0 ? ' active' : '');
+            dot.addEventListener('click', function () {
+                cards[i].scrollIntoView({ behavior: 'smooth', inline: 'start', block: 'nearest' });
+            });
+            dotsWrap.appendChild(dot);
+        });
+        var dots = Array.prototype.slice.call(dotsWrap.children);
+
+        var ticking = false;
+        track.addEventListener('scroll', function () {
+            if (ticking) return;
+            ticking = true;
+            requestAnimationFrame(function () {
+                var idx = Math.round(track.scrollLeft / track.clientWidth);
+                dots.forEach(function (d, i) {
+                    d.classList.toggle('active', i === idx);
+                });
+                ticking = false;
+            });
+        });
+    })();
+    </script>
+</body>
+</html>

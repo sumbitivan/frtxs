@@ -1,0 +1,105 @@
+#!/bin/sh
+#
+# Блокирует коммит, если в него попало то, чему не место в публичном
+# репозитории: секрет или слово из локального стоп-листа.
+#
+# Появился после того, как BOT_TOKEN восемь месяцев пролежал в публичной
+# истории: файл с ним удалили, но `git log -p` отдавал его любому, а вся
+# авторизация воркера — HMAC от этого токена. Удаление из HEAD не лечит,
+# отзыв токена лечит; дешевле не допускать.
+#
+# GitHub Secret Scanning + Push Protection включены, но ловят только
+# секреты известных форматов и только после пуша. Этот хук работает до.
+#
+# Установка (один раз на каждый клон):
+#   git config core.hooksPath scripts
+#
+# Обойти осознанно:  git commit --no-verify
+
+set -e
+
+staged=$(git diff --cached --name-only --diff-filter=ACM)
+[ -z "$staged" ] && exit 0
+
+# ──────────────────────────────────────────────────────────────────
+# Стоп-лист. Лежит в .git/ — git его не отслеживает, на GitHub он не
+# уезжает. Здесь его быть не может: этот файл публичный, и список слов
+# сам по себе рассказывал бы то, что должен скрывать.
+#
+# Формат: по строке на слово или regexp, # — комментарий, регистр не
+# важен. Файл не переживает свежий клон — тогда хук об этом скажет.
+# ──────────────────────────────────────────────────────────────────
+blocklist_file="$(git rev-parse --git-dir)/fortexis-blocklist"
+blocklist_re=""
+
+if [ -f "$blocklist_file" ]; then
+  blocklist_re=$(
+    grep -vE '^[[:space:]]*(#|$)' "$blocklist_file" 2>/dev/null |
+      sed 's/[[:space:]]*$//' |
+      grep -v '^$' |
+      paste -sd'|' -
+  )
+fi
+
+if [ -z "$blocklist_re" ]; then
+  printf '%s\n' \
+    'pre-commit: стоп-лист не найден — проверка по нему пропущена.' \
+    "  создать: $blocklist_file" >&2
+fi
+
+fail=0
+
+report() {
+  printf '  %s: %s\n' "$1" "$2" >&2
+  fail=1
+}
+
+for f in $staged; do
+  # Бинарники и удалённые файлы пропускаем.
+  [ -f "$f" ] || continue
+  git diff --cached --numstat -- "$f" | grep -q '^-' && continue
+
+  added=$(git diff --cached -U0 -- "$f" | grep '^+' | grep -v '^+++' || true)
+  [ -z "$added" ] && continue
+
+  # Токен бота Telegram: 8-10 цифр, двоеточие, 35 символов.
+  printf '%s' "$added" | grep -qE '[0-9]{8,10}:AA[A-Za-z0-9_-]{30,}' &&
+    report "$f" 'похоже на токен бота Telegram'
+
+  # Приватные ключи.
+  printf '%s' "$added" | grep -qE 'BEGIN (RSA|EC|OPENSSH|PGP|DSA)? ?PRIVATE KEY' &&
+    report "$f" 'приватный ключ'
+
+  # Presigned-ключи облаков.
+  printf '%s' "$added" | grep -qE '\b(AKIA|ASIA)[A-Z0-9]{16}\b' &&
+    report "$f" 'ключ AWS'
+
+  # Присваивание секрета литералом: token/secret/api_key = "…"
+  printf '%s' "$added" |
+    grep -qiE '(bot_?token|api_?key|secret|password|passwd)[[:space:]]*[:=][[:space:]]*['"'"'"][A-Za-z0-9_\-]{16,}['"'"'"]' &&
+    report "$f" 'секрет присвоен литералом в коде'
+
+  # Слова из локального стоп-листа.
+  if [ -n "$blocklist_re" ]; then
+    printf '%s' "$added" | grep -qiE "$blocklist_re" &&
+      report "$f" 'слово из локального стоп-листа'
+  fi
+done
+
+if [ "$fail" -ne 0 ]; then
+  cat >&2 <<'MSG'
+
+Коммит остановлен: в него попало то, чему не место в публичном репозитории.
+
+Секретам место в `wrangler secret put`, а здесь — только имена переменных.
+Всему, что относится к внутренней кухне, место в приватном репозитории
+воркера: этот репозиторий публичен целиком, вместе с комментариями.
+
+Если это ложное срабатывание (пример в документации, тестовая
+заглушка), коммить с --no-verify.
+
+MSG
+  exit 1
+fi
+
+exit 0
