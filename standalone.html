@@ -22,6 +22,10 @@
     box-sizing: border-box;
 }
 
+[hidden] {
+    display: none !important;
+}
+
 :root {
     --primary-color: #3f7ca6;
     --primary-dark: #2c5770;
@@ -1718,7 +1722,6 @@ textarea {
                 </div>
 
                 <button type="button" class="submit-btn" id="withdrawBtn" style="margin-top:12px;" data-i18n="referral.withdraw">Вывести USDT</button>
-                <div id="withdrawHint" style="margin-top:6px;font-size:12px;color:var(--text-secondary);text-align:center;">Доступно к выводу: 0.00 USDT</div>
 
                 <div class="referral-list-title" data-i18n="referral.listTitle">Ваши рефералы</div>
                 <div class="referral-list-empty" data-i18n="referral.listEmpty">Пока никого нет</div>
@@ -2016,7 +2019,6 @@ const translations = {
         'referral.linkCopied': 'Ссылка скопирована',
         'referral.linkLoading': 'Реферальная ссылка загружается…',
         'referral.withdraw': 'Вывести USDT',
-        'referral.available': 'Доступно к выводу',
         'referral.dealsOne': 'сделка',
         'referral.dealsFew': 'сделки',
         'referral.dealsMany': 'сделок',
@@ -2220,7 +2222,6 @@ const translations = {
         'referral.linkCopied': 'Link copied',
         'referral.linkLoading': 'Loading referral link…',
         'referral.withdraw': 'Withdraw USDT',
-        'referral.available': 'Available to withdraw',
         'referral.dealsOne': 'deal',
         'referral.dealsFew': 'deals',
         'referral.dealsMany': 'deals',
@@ -2424,7 +2425,6 @@ const translations = {
         'referral.linkCopied': '链接已复制',
         'referral.linkLoading': '正在加载推荐链接…',
         'referral.withdraw': '提现 USDT',
-        'referral.available': '可提现金额',
         'referral.dealsOne': '笔交易',
         'referral.dealsFew': '笔交易',
         'referral.dealsMany': '笔交易',
@@ -2641,7 +2641,6 @@ const elements = {
     appNoticeText: document.getElementById('appNoticeText'),
     referralCard: document.getElementById('referralCard'),
     withdrawBtn: document.getElementById('withdrawBtn'),
-    withdrawHint: document.getElementById('withdrawHint'),
     withdrawAmount: document.getElementById('withdrawAmount'),
     withdrawMaxBtn: document.getElementById('withdrawMaxBtn'),
     withdrawAmountError: document.getElementById('withdrawAmountError'),
@@ -2825,9 +2824,6 @@ function applyReferralStats(stats) {
 
     if (elements.referralBalanceValue) {
         elements.referralBalanceValue.textContent = formatUsdt(available);
-    }
-    if (elements.withdrawHint) {
-        elements.withdrawHint.textContent = `${t('referral.available')}: ${formatUsdt(available)}`;
     }
     if (elements.withdrawBtn) {
         elements.withdrawBtn.disabled = available < 1;
