@@ -1663,16 +1663,6 @@ textarea {
                 </div>
 
                 <div class="form-group">
-                    <div class="setting-option compact" id="reviewsBtn">
-                        <div class="setting-option-label">
-                            <strong data-i18n="info.reviews">Отзывы клиентов</strong>
-                            <small data-i18n="settings.reviewsHint">Оставить отзыв</small>
-                        </div>
-                        <div class="setting-option-value">⭐</div>
-                    </div>
-                </div>
-
-                <div class="form-group">
     <div class="setting-option compact" id="aboutSettingsBtn">
         <div class="setting-option-label">
             <strong data-i18n="info.about">О нас</strong>
@@ -2001,7 +1991,6 @@ const translations = {
         'exchange.submit': 'Отправить заявку',
         'settings.title': 'Настройки профиля',
         'settings.supportHint': 'Написать в поддержку',
-        'settings.reviewsHint': 'Оставить отзыв',
         'settings.aboutHint': 'Информация о сервисе',
         'settings.securityHint': 'Подробнее о безопасности',
         'about.openHint': 'Открыть подробности',
@@ -2021,7 +2010,6 @@ const translations = {
         'info.about': 'О нас',
         'info.secure': 'Безопасность',
         'info.support': 'Задать вопрос',
-        'info.reviews': 'Отзывы клиентов',
         'info.settings': 'Профиль',
         'info.requests': 'Операции',
         'about.title': 'О нас',
@@ -2207,7 +2195,6 @@ const translations = {
         'exchange.submit': 'Submit Request',
         'settings.title': 'Profile settings',
         'settings.supportHint': 'Contact support',
-        'settings.reviewsHint': 'Leave a review',
         'settings.aboutHint': 'About the service',
         'settings.securityHint': 'More about security',
         'about.openHint': 'Open details',
@@ -2227,7 +2214,6 @@ const translations = {
         'info.about': 'About Us',
         'info.secure': 'Security',
         'info.support': 'Ask a question',
-        'info.reviews': 'Customer reviews',
         'info.settings': 'Profile',
         'info.requests': 'Operations',
         'about.title': 'About Us',
@@ -2413,7 +2399,6 @@ const translations = {
         'exchange.submit': '提交申请',
         'settings.title': '个人资料设置',
         'settings.supportHint': '联系支持',
-        'settings.reviewsHint': '留下评价',
         'settings.aboutHint': '关于服务',
         'settings.securityHint': '了解安全信息',
         'about.openHint': '查看详情',
@@ -2433,7 +2418,6 @@ const translations = {
         'info.about': '关于我们',
         'info.secure': '安全',
         'info.support': '提问',
-        'info.reviews': '客户评价',
         'info.settings': '个人资料',
         'info.requests': '操作',
         'about.title': '关于我们',
@@ -2667,7 +2651,6 @@ const elements = {
     securityModal: document.getElementById('securityModal'),
     closeSecurityModal: document.getElementById('closeSecurityModal'),
     supportBtn: document.getElementById('supportBtn'),
-    reviewsBtn: document.getElementById('reviewsBtn'),
     aboutSettingsBtn: document.getElementById('aboutSettingsBtn'),
     securitySettingsBtn: document.getElementById('securitySettingsBtn'),
     historyToggle: document.getElementById('historyToggle'),
@@ -3261,12 +3244,6 @@ function setupEventListeners() {
     if (elements.requestsModal) {
         elements.requestsModal.addEventListener('click', (e) => {
             if (e.target === elements.requestsModal) closeRequestsModal();
-        });
-    }
-
-    if (elements.reviewsBtn) {
-        elements.reviewsBtn.addEventListener('click', () => {
-            openTgLink('https://t.me/FortexisEx');
         });
     }
 
