@@ -2057,6 +2057,9 @@ const translations = {
         'status.completed': 'Исполнено',
         'status.cancelled': 'Отменено',
         'status.rejected': 'Отклонено',
+        'status.requested': 'На рассмотрении',
+        'status.paid': 'Выплачено',
+        'requests.withdrawal': 'Вывод реферального баланса',
         'rate.loading': 'Загрузка курса…',
         'rate.updated': 'Курс обновлён',
         'rate.unavailable': 'Курс недоступен',
@@ -2260,6 +2263,9 @@ const translations = {
         'status.completed': 'Completed',
         'status.cancelled': 'Cancelled',
         'status.rejected': 'Rejected',
+        'status.requested': 'Under review',
+        'status.paid': 'Paid',
+        'requests.withdrawal': 'Referral balance withdrawal',
         'rate.loading': 'Loading rate…',
         'rate.updated': 'Rate updated',
         'rate.unavailable': 'Rate unavailable',
@@ -2463,6 +2469,9 @@ const translations = {
         'status.completed': '已完成',
         'status.cancelled': '已取消',
         'status.rejected': '已拒绝',
+        'status.requested': '审核中',
+        'status.paid': '已支付',
+        'requests.withdrawal': '推荐余额提现',
         'rate.loading': '正在加载汇率…',
         'rate.updated': '汇率已更新',
         'rate.unavailable': '汇率不可用',
@@ -3911,6 +3920,7 @@ function normalizeServerRequest(item) {
     const direction = tx.direction || state.direction;
 
     return {
+        kind: 'deal',
         requestId: tx.request_id || tx.requestId || '',
         status: tx.status || 'PENDING',
         payAmount: tx.payAmount || `${amount} ${direction === 'buy' ? currency : 'USDT'}`,
@@ -3923,7 +3933,20 @@ function normalizeServerRequest(item) {
     };
 }
 
+function normalizeWithdrawal(item) {
+    const w = item || {};
+
+    return {
+        kind: 'withdrawal',
+        requestId: `WD-${w.id ?? ''}`,
+        status: w.status || 'REQUESTED',
+        amount: Number(w.amount_usdt ?? 0),
+        timestamp: w.created_at || new Date().toISOString()
+    };
+}
+
 function isActiveUnconfirmed(r) {
+    if (r.kind === 'withdrawal') return r.status === 'REQUESTED';
     return !r.clientConfirmed && ['PENDING', 'PROCESSING'].includes(r.status);
 }
 
@@ -3935,7 +3958,14 @@ function visibleRequests(list) {
 async function loadRemoteRequests() {
     const data = await apiFetch(API.myRequests, { method: 'GET' });
     const requests = Array.isArray(data.requests) ? data.requests : [];
-    renderRemoteRequests(visibleRequests(requests.map(normalizeServerRequest)));
+    const withdrawals = Array.isArray(data.withdrawals) ? data.withdrawals : [];
+
+    const merged = [
+        ...requests.map(normalizeServerRequest),
+        ...withdrawals.map(normalizeWithdrawal)
+    ].sort((a, b) => Date.parse(b.timestamp) - Date.parse(a.timestamp));
+
+    renderRemoteRequests(visibleRequests(merged));
     return requests;
 }
 
@@ -4036,6 +4066,11 @@ function renderRemoteRequests(history) {
     }
 
     history.forEach((payload) => {
+        if (payload.kind === 'withdrawal') {
+            renderWithdrawalCard(payload);
+            return;
+        }
+
         const wrapper = document.createElement('div');
         wrapper.className = 'form-group';
 
@@ -4133,6 +4168,44 @@ function renderRemoteRequests(history) {
     bindRequestListHandlers();
 }
 
+function renderWithdrawalCard(payload) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'form-group';
+
+    const label = document.createElement('label');
+    label.textContent = t('requests.withdrawal');
+    wrapper.appendChild(label);
+
+    const row = document.createElement('div');
+    row.className = 'setting-option compact';
+
+    const main = document.createElement('div');
+    main.className = 'setting-option-label';
+
+    const amount = document.createElement('strong');
+    amount.textContent = formatUsdt(payload.amount);
+    main.appendChild(amount);
+
+    const time = document.createElement('small');
+    const parsed = new Date(payload.timestamp);
+    time.textContent = Number.isNaN(parsed.getTime()) ? '' : parsed.toLocaleString('ru-RU');
+    if (time.textContent) main.appendChild(time);
+
+    row.appendChild(main);
+
+    const status = document.createElement('div');
+    status.className = 'setting-option-value';
+    status.appendChild(buildStatusBadge(payload.status));
+    row.appendChild(status);
+
+    wrapper.appendChild(row);
+    elements.requestsBody.appendChild(wrapper);
+
+    const hr = document.createElement('hr');
+    hr.style.cssText = 'border:none;border-top:1px solid var(--border-color);margin:8px 0;';
+    elements.requestsBody.appendChild(hr);
+}
+
 function makeReadOnlyDetail(label, value, role = null) {
     const wrap = document.createElement('div');
     wrap.className = 'form-group';
@@ -4174,7 +4247,9 @@ const STATUS_META = {
     PROCESSING: { kind: 'processing', i18n: 'status.processing' },
     COMPLETED: { kind: 'completed', i18n: 'status.completed' },
     CANCELLED: { kind: 'cancelled', i18n: 'status.cancelled' },
-    REJECTED: { kind: 'rejected', i18n: 'status.rejected' }
+    REJECTED: { kind: 'rejected', i18n: 'status.rejected' },
+    REQUESTED: { kind: 'pending', i18n: 'status.requested' },
+    PAID: { kind: 'completed', i18n: 'status.paid' }
 };
 
 const STATUS_RU_LABELS = {
