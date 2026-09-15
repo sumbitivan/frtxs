@@ -1638,12 +1638,12 @@ textarea {
                 </div>
 
                 <div class="form-group">
-    <div class="setting-option compact" id="aboutSettingsBtn">
+    <div class="setting-option compact" id="channelBtn">
         <div class="setting-option-label">
-            <strong data-i18n="info.about">О нас</strong>
-            <small data-i18n="settings.aboutHint">Информация о сервисе</small>
+            <strong data-i18n="info.channel">Наш канал</strong>
+            <small data-i18n="settings.channelHint">Новости и условия обмена</small>
         </div>
-        <div class="setting-option-value">ℹ️</div>
+        <div class="setting-option-value">📣</div>
     </div>
 </div>
 
@@ -1966,7 +1966,7 @@ const translations = {
         'exchange.submit': 'Отправить заявку',
         'settings.title': 'Настройки профиля',
         'settings.supportHint': 'Написать в поддержку',
-        'settings.aboutHint': 'Информация о сервисе',
+        'settings.channelHint': 'Новости и условия обмена',
         'settings.securityHint': 'Подробнее о безопасности',
         'about.openHint': 'Открыть подробности',
         'settings.privacyTitle': 'Настройки приватности',
@@ -1982,7 +1982,7 @@ const translations = {
         'settings.russian': 'Русский',
         'settings.english': 'English',
         'settings.chinese': '中文',
-        'info.about': 'О нас',
+        'info.channel': 'Наш канал',
         'info.secure': 'Безопасность',
         'info.support': 'Задать вопрос',
         'info.settings': 'Профиль',
@@ -2170,7 +2170,7 @@ const translations = {
         'exchange.submit': 'Submit Request',
         'settings.title': 'Profile settings',
         'settings.supportHint': 'Contact support',
-        'settings.aboutHint': 'About the service',
+        'settings.channelHint': 'News and exchange terms',
         'settings.securityHint': 'More about security',
         'about.openHint': 'Open details',
         'settings.privacyTitle': 'Privacy settings',
@@ -2186,7 +2186,7 @@ const translations = {
         'settings.russian': 'Русский',
         'settings.english': 'English',
         'settings.chinese': '中文',
-        'info.about': 'About Us',
+        'info.channel': 'Our channel',
         'info.secure': 'Security',
         'info.support': 'Ask a question',
         'info.settings': 'Profile',
@@ -2374,7 +2374,7 @@ const translations = {
         'exchange.submit': '提交申请',
         'settings.title': '个人资料设置',
         'settings.supportHint': '联系支持',
-        'settings.aboutHint': '关于服务',
+        'settings.channelHint': '资讯与兑换条件',
         'settings.securityHint': '了解安全信息',
         'about.openHint': '查看详情',
         'settings.privacyTitle': '隐私设置',
@@ -2390,7 +2390,7 @@ const translations = {
         'settings.russian': 'Русский',
         'settings.english': 'English',
         'settings.chinese': '中文',
-        'info.about': '关于我们',
+        'info.channel': '我们的频道',
         'info.secure': '安全',
         'info.support': '提问',
         'info.settings': '个人资料',
@@ -2626,7 +2626,7 @@ const elements = {
     securityModal: document.getElementById('securityModal'),
     closeSecurityModal: document.getElementById('closeSecurityModal'),
     supportBtn: document.getElementById('supportBtn'),
-    aboutSettingsBtn: document.getElementById('aboutSettingsBtn'),
+    channelBtn: document.getElementById('channelBtn'),
     securitySettingsBtn: document.getElementById('securitySettingsBtn'),
     historyToggle: document.getElementById('historyToggle'),
     privacyBtn: document.getElementById('privacyBtn'),
@@ -3194,15 +3194,9 @@ function setupEventListeners() {
 
     elements.supportBtn.addEventListener('click', () => openSupport());
 
-    if (elements.aboutSettingsBtn) {
-        elements.aboutSettingsBtn.addEventListener('click', () => {
-            openTgLink('https://t.me/fortexisExchange/22');
-        });
-    }
-
-    if (elements.aboutSettingsOpen) {
-        elements.aboutSettingsOpen.addEventListener('click', () => {
-            openTgLink('https://t.me/FortexisExchange');
+    if (elements.channelBtn) {
+        elements.channelBtn.addEventListener('click', () => {
+            openTgLink('https://t.me/fortexisExchange');
         });
     }
 
