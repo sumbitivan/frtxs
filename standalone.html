@@ -45,7 +45,6 @@
     --steel-gradient: linear-gradient(135deg, #324a5e 0%, #7c97ac 22%, #dbe6ee 38%, #8ea5b8 52%, #3f5b71 70%, #26394a 100%);
     --steel-text: #0c1319;
     --bg-glow: #1c2b3a;
-    --logo-shadow: rgba(0, 0, 0, 0.4);
     --input-bg: var(--card-bg);
     --tint-surface: rgba(111, 179, 224, 0.05);
     --tint-card: rgba(111, 179, 224, 0.06);
@@ -91,7 +90,6 @@
     --shadow-soft: 0 1px 3px rgba(22, 34, 44, 0.08);
     --shadow-modal: 0 8px 32px rgba(22, 34, 44, 0.18);
     --steel-gradient: linear-gradient(135deg, #9fb0bf 0%, #ccd8e2 22%, #f4f8fb 38%, #c3d1dc 52%, #93a7b8 70%, #7c91a3 100%);
-    --logo-shadow: rgba(22, 34, 44, 0.22);
     --input-bg: #ffffff;
     --tint-surface: rgba(58, 86, 110, 0.07);
     --tint-card: rgba(58, 86, 110, 0.05);
@@ -153,17 +151,10 @@ body {
     padding: 2px 2px 0;
 }
 
-.brand-logo {
-    width: 26px;
-    height: 30px;
-    flex-shrink: 0;
-    filter: drop-shadow(0 2px 4px var(--logo-shadow));
-}
-
 .brand-name {
-    font-size: 18px;
-    font-weight: 700;
-    letter-spacing: 2.5px;
+    font-size: 17px;
+    font-weight: 500;
+    letter-spacing: 5px;
     color: var(--text-primary);
 }
 
@@ -1348,22 +1339,6 @@ textarea {
             <span class="app-notice__text" id="appNoticeText"></span>
         </div>
         <div class="brand-header">
-            <svg class="brand-logo" viewBox="0 0 28 32" aria-hidden="true">
-                <defs>
-                    <linearGradient id="brandSteel" x1="15%" y1="0%" x2="85%" y2="100%">
-                        <stop offset="0%" stop-color="#324a5e"/>
-                        <stop offset="22%" stop-color="#7c97ac"/>
-                        <stop offset="38%" stop-color="#dbe6ee"/>
-                        <stop offset="52%" stop-color="#8ea5b8"/>
-                        <stop offset="70%" stop-color="#3f5b71"/>
-                        <stop offset="100%" stop-color="#26394a"/>
-                    </linearGradient>
-                </defs>
-                <path d="M 6 14 A 8 8 0 0 1 22 14" fill="none" stroke="url(#brandSteel)" stroke-width="4.5" stroke-linecap="round"/>
-                <rect x="0" y="12" width="28" height="20" rx="4" fill="url(#brandSteel)"/>
-                <circle cx="14" cy="21" r="2.6" fill="#0c1319"/>
-                <path d="M 12 23 L 16 23 L 15 28 L 13 28 Z" fill="#0c1319"/>
-            </svg>
             <span class="brand-name">FORTEXIS</span>
         </div>
         <div class="rates-banner">
