@@ -744,6 +744,46 @@ body {
     color: white;
 }
 
+.amount-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.amount-head label {
+    margin-bottom: 0;
+}
+
+.amount-mode {
+    display: flex;
+    gap: 4px;
+    flex: 0 0 auto;
+    padding: 2px;
+    background: var(--bg-color);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+}
+
+.amount-mode__btn {
+    background: transparent;
+    border: 0;
+    border-radius: 8px;
+    padding: 5px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.amount-mode__btn.active {
+    background: var(--primary-color);
+    color: #fff;
+}
+
 .direction-btn {
     background: var(--bg-color);
     border: 2px solid var(--border-color);
@@ -1507,7 +1547,13 @@ textarea {
                     </div>
 
                     <div class="form-group">
-                        <label for="clientAmount" data-i18n="exchange.amount">Сумма, которую отдаёте</label>
+                        <div class="amount-head">
+                            <label for="clientAmount" id="amountLabel" data-i18n="exchange.amount">Сумма, которую отдаёте</label>
+                            <div class="amount-mode">
+                                <button type="button" class="amount-mode__btn active" data-amount-mode="give" data-i18n="exchange.modeGive">Отдаю</button>
+                                <button type="button" class="amount-mode__btn" data-amount-mode="receive" data-i18n="exchange.modeReceive">Получаю</button>
+                            </div>
+                        </div>
                         <div class="input-wrapper">
                             <input
                                 type="number"
@@ -1523,7 +1569,7 @@ textarea {
                     </div>
 
                     <div class="form-group compact">
-                        <label data-i18n="exchange.result">Сумма к получению</label>
+                        <label id="resultLabel" data-i18n="exchange.result">Сумма к получению</label>
                         <div class="result-amount" id="resultAmount">
                             <span class="result-value">0.00</span>
                             <span class="result-currency" id="resultCurrency">RUB</span>
@@ -1952,7 +1998,11 @@ const translations = {
         'exchange.sell': 'Продажа USDT',
         'exchange.sellDesc': 'Отдаёте USDT, получаете RUB',
         'exchange.amount': 'Сумма, которую отдаёте',
+        'exchange.amountReceive': 'Сумма, которую хотите получить',
         'exchange.result': 'Сумма к получению',
+        'exchange.resultGive': 'Сумма к оплате',
+        'exchange.modeGive': 'Отдаю',
+        'exchange.modeReceive': 'Получаю',
         'exchange.rate': 'Курс',
         'exchange.name': 'Ваше имя',
         'exchange.namePlaceholder': 'Введите ваше имя',
@@ -2156,7 +2206,11 @@ const translations = {
         'exchange.sell': 'Sell USDT',
         'exchange.sellDesc': 'You give USDT, receive RUB',
         'exchange.amount': 'Amount you give',
+        'exchange.amountReceive': 'Amount you want to receive',
         'exchange.result': 'Amount to receive',
+        'exchange.resultGive': 'Amount to pay',
+        'exchange.modeGive': 'I give',
+        'exchange.modeReceive': 'I receive',
         'exchange.rate': 'Rate',
         'exchange.name': 'Your name',
         'exchange.namePlaceholder': 'Enter your name',
@@ -2360,7 +2414,11 @@ const translations = {
         'exchange.sell': '卖出美元',
         'exchange.sellDesc': '您支付美元，获得卢布',
         'exchange.amount': '您支付的金额',
+        'exchange.amountReceive': '您希望收到的金额',
         'exchange.result': '将收到的金额',
+        'exchange.resultGive': '应付金额',
+        'exchange.modeGive': '我支付',
+        'exchange.modeReceive': '我收到',
         'exchange.rate': '汇率',
         'exchange.name': '您的姓名',
         'exchange.namePlaceholder': '请输入您的姓名',
@@ -2552,6 +2610,7 @@ const state = {
     buyRate: 95.50,
     sellRate: 96.00,
     clientAmount: 0,
+    amountMode: 'give',
     amountLimits: null,
     cashlessRub: null,
     notice: null,
@@ -2601,6 +2660,9 @@ const elements = {
     closeModal: document.getElementById('closeModal'),
     exchangeForm: document.getElementById('exchangeForm'),
     clientAmount: document.getElementById('clientAmount'),
+    amountLabel: document.getElementById('amountLabel'),
+    resultLabel: document.getElementById('resultLabel'),
+    amountModeBtns: document.querySelectorAll('.amount-mode__btn[data-amount-mode]'),
     amountError: document.getElementById('amountError'),
     clientCurrency: document.getElementById('clientCurrency'),
     resultAmount: document.getElementById('resultAmount'),
@@ -3283,6 +3345,12 @@ function setupEventListeners() {
         });
     });
 
+    elements.amountModeBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            setAmountMode(btn.dataset.amountMode);
+        });
+    });
+
     elements.clientAmount.addEventListener('input', () => calculateResult());
     elements.exchangeForm.addEventListener('submit', handleFormSubmit);
 }
@@ -3558,13 +3626,62 @@ function setDirection(direction) {
             btn.classList.remove('active');
         }
     });
-    if (direction === 'buy') {
-        elements.clientCurrency.textContent = state.currency;
-        elements.resultCurrency.textContent = 'USDT';
-    } else {
-        elements.clientCurrency.textContent = 'USDT';
-        elements.resultCurrency.textContent = state.currency;
+    updateAmountModeTexts();
+    calculateResult();
+}
+
+/*
+  Подписи полей и единицы зависят и от направления, и от режима ввода.
+  data-i18n переставляем вместе с текстом: переключение языка читает
+  атрибут из DOM, иначе подпись после смены языка вернётся к чужой.
+*/
+function updateAmountModeTexts() {
+    const receive = state.amountMode === 'receive';
+
+    if (elements.amountLabel) {
+        const key = receive ? 'exchange.amountReceive' : 'exchange.amount';
+        elements.amountLabel.setAttribute('data-i18n', key);
+        elements.amountLabel.textContent = t(key);
     }
+
+    if (elements.resultLabel) {
+        const key = receive ? 'exchange.resultGive' : 'exchange.result';
+        elements.resultLabel.setAttribute('data-i18n', key);
+        elements.resultLabel.textContent = t(key);
+    }
+
+    elements.clientCurrency.textContent = getAmountUnit();
+    elements.resultCurrency.textContent = getResultUnit();
+
+    elements.amountModeBtns.forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.amountMode === state.amountMode);
+    });
+}
+
+function setAmountMode(mode) {
+    if (mode !== 'give' && mode !== 'receive') return;
+    if (state.amountMode === mode) return;
+
+    /*
+      Поле меняет единицу, поэтому введённое число переводим во вторую
+      ногу. Оставить его как есть значит прочитать 764 915 ₽ как
+      764 915 USDT; обнулить — заставить клиента набирать заново.
+    */
+    const current = parseFloat(elements.clientAmount.value);
+    const rate = getSelectedRateValue();
+    const buy = state.direction === 'buy';
+
+    state.amountMode = mode;
+
+    if (Number.isFinite(current) && current > 0 && Number.isFinite(rate) && rate > 0) {
+        const converted = mode === 'receive'
+            ? (buy ? current / rate : current * rate)
+            : (buy ? current * rate : current / rate);
+
+        elements.clientAmount.value = String(floorToCents(converted));
+    }
+
+    updateAmountModeTexts();
     calculateResult();
 }
 
@@ -3635,17 +3752,48 @@ const AMOUNT_LIMITS_FALLBACK = {
     USDT: { min: 10, max: 5000000 }
 };
 
+/*
+  Единица введённой суммы. Клиент вписывает одну из двух ног сделки, а
+  режим решает какую: «отдаю столько» или «хочу получить ровно столько».
+*/
 function getAmountUnit() {
+    const givesUsdt = state.direction === 'sell';
+    const typedIsUsdt = state.amountMode === 'receive' ? !givesUsdt : givesUsdt;
+    return typedIsUsdt ? 'USDT' : state.currency;
+}
+
+/* Вторая нога — та, что показана в блоке результата. */
+function getResultUnit() {
+    return getAmountUnit() === 'USDT' ? state.currency : 'USDT';
+}
+
+/* Нога, которую клиент отдаёт: на ней заданы лимиты суммы. */
+function getGiveUnit() {
     return state.direction === 'sell' ? 'USDT' : state.currency;
 }
 
+/* Округление копеек в обе стороны — ровно как на сервере. */
+function floorToCents(value) {
+    return Math.floor(Number((value * 100).toPrecision(12))) / 100;
+}
+
+function ceilToCents(value) {
+    return Math.ceil(Number((value * 100).toPrecision(12))) / 100;
+}
+
+/*
+  Потолок безнала стоит на рублёвой ноге перевода. Вводит клиент её
+  саму — лимит прямой; вводит вторую — пересчитываем курсом, иначе поле
+  либо пропустит лишнее, либо ругнётся зря. Во всех случаях, когда ввод
+  в USDT, рублёвая нога равна вводу, умноженному на курс.
+*/
 function getCashlessLimits() {
     const src = state.cashlessRub || CASHLESS_RUB_FALLBACK;
     const min = Number(src.min);
     const max = Number(src.max);
     if (!Number.isFinite(min) || !Number.isFinite(max)) return null;
 
-    if (state.direction === 'buy') return { min, max };
+    if (getAmountUnit() !== 'USDT') return { min, max };
 
     const rate = getSelectedRateValue();
     if (!Number.isFinite(rate) || rate <= 0) return null;
@@ -3656,15 +3804,60 @@ function getCashlessLimits() {
     };
 }
 
-function getAmountLimits() {
-    if (state.exchangeType === 'cashless') return getCashlessLimits();
-
+function tableLimits(unit) {
     const table = state.amountLimits || AMOUNT_LIMITS_FALLBACK;
-    const limits = table[getAmountUnit()];
+    const limits = table[unit];
     if (!limits) return null;
     const min = Number(limits.min);
     const max = Number(limits.max);
     if (!Number.isFinite(min) || !Number.isFinite(max)) return null;
+    return { min, max };
+}
+
+/*
+  Лимиты заданы на ноге, которую клиент отдаёт. Если вводит он её же —
+  берём как есть; если вторую — переводим курсом в единицы ввода.
+*/
+function giveLegLimits() {
+    const limits = tableLimits(getGiveUnit());
+    if (!limits) return null;
+    if (state.amountMode !== 'receive') return limits;
+
+    const rate = getSelectedRateValue();
+    if (!Number.isFinite(rate) || rate <= 0) return null;
+
+    const k = state.direction === 'buy' ? 1 / rate : rate;
+
+    return {
+        min: Math.ceil(limits.min * k * 100) / 100,
+        max: Math.floor(limits.max * k * 100) / 100
+    };
+}
+
+/*
+  Сервер проверяет и введённое число, и посчитанную ногу. Форма должна
+  показывать ту границу, которая связывает первой, иначе она пропустит
+  заявку, а воркер её отвергнет. Неизвестную часть пропускаем: решает
+  всё равно сервер.
+*/
+function getAmountLimits() {
+    const parts = [tableLimits(getAmountUnit()), giveLegLimits()];
+
+    if (state.exchangeType === 'cashless') parts.push(getCashlessLimits());
+
+    let min = -Infinity;
+    let max = Infinity;
+    let known = false;
+
+    for (const part of parts) {
+        if (!part) continue;
+        known = true;
+        if (part.min > min) min = part.min;
+        if (part.max < max) max = part.max;
+    }
+
+    if (!known || !Number.isFinite(min) || !Number.isFinite(max)) return null;
+
     return { min, max };
 }
 
@@ -3757,10 +3950,19 @@ function calculateResult() {
         updateRateInfo('—');
         return;
     }
-    if (state.direction === 'buy') {
-        result = amount / usdtRubRate;
+    /*
+      Та же арифметика и то же округление, что в воркере: сумму к выдаче
+      режем вниз, сумму к оплате добираем вверх. Разойдись они хотя бы в
+      копейке — в форме встанет одно число, а в заявке другое.
+    */
+    if (state.amountMode === 'receive') {
+        result = ceilToCents(
+            state.direction === 'buy' ? amount * usdtRubRate : amount / usdtRubRate
+        );
     } else {
-        result = amount * usdtRubRate;
+        result = floorToCents(
+            state.direction === 'buy' ? amount / usdtRubRate : amount * usdtRubRate
+        );
     }
     state.currentRate = usdtRubRate;
     state.resultAmount = result;
@@ -3789,8 +3991,7 @@ function updateRateInfo(rate) {
 
 function formatAmount(amount) {
     if (amount === 0) return '0.00';
-    const scaled = Number((amount * 100).toPrecision(12));
-    return (Math.floor(scaled) / 100).toFixed(2);
+    return amount.toFixed(2);
 }
 
 function submitErrorMessage(error) {
@@ -3840,6 +4041,7 @@ async function handleFormSubmit(e) {
         dealType: state.exchangeType,
         currency: state.currency,
         amount: Number(elements.clientAmount.value),
+        amountMode: state.amountMode,
         clientName: document.getElementById('clientName').value.trim(),
         clientPhone: document.getElementById('clientPhone').value.trim(),
         clientComment: document.getElementById('clientComment').value.trim()
