@@ -3789,7 +3789,8 @@ function updateRateInfo(rate) {
 
 function formatAmount(amount) {
     if (amount === 0) return '0.00';
-    return amount.toFixed(2);
+    const scaled = Number((amount * 100).toPrecision(12));
+    return (Math.floor(scaled) / 100).toFixed(2);
 }
 
 function submitErrorMessage(error) {
