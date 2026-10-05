@@ -1538,7 +1538,7 @@ textarea {
                     </div>
 
                     <div class="form-group">
-                        <label data-i18n="exchange.currencyTitle">Выберите валюту к получению</label>
+                        <label data-i18n="exchange.currencyTitle">Выберите валюту расчёта</label>
                         <div class="currency-selector">
                             <button type="button" class="currency-btn" data-currency="RUB" data-i18n="exchange.currencyRub">Рубль</button>
                             <button type="button" class="currency-btn active" data-currency="USD" data-i18n="exchange.currencyUsd">Доллар</button>
@@ -1988,7 +1988,7 @@ const translations = {
         'exchange.typeTitle': 'Тип обмена',
         'exchange.typeCash': 'Наличный',
         'exchange.typeCashless': 'Безналичный',
-        'exchange.currencyTitle': 'Выберите валюту к получению',
+        'exchange.currencyTitle': 'Выберите валюту расчёта',
         'exchange.currencyUsd': 'Доллар',
         'exchange.currencyEur': 'Евро',
         'exchange.currencyRub': 'Рубль',
@@ -2000,7 +2000,6 @@ const translations = {
         'exchange.amount': 'Сумма, которую отдаёте',
         'exchange.amountReceive': 'Сумма, которую хотите получить',
         'exchange.result': 'Сумма к получению',
-        'exchange.resultGive': 'Сумма к оплате',
         'exchange.modeGive': 'Отдаю',
         'exchange.modeReceive': 'Получаю',
         'exchange.rate': 'Курс',
@@ -2208,7 +2207,6 @@ const translations = {
         'exchange.amount': 'Amount you give',
         'exchange.amountReceive': 'Amount you want to receive',
         'exchange.result': 'Amount to receive',
-        'exchange.resultGive': 'Amount to pay',
         'exchange.modeGive': 'I give',
         'exchange.modeReceive': 'I receive',
         'exchange.rate': 'Rate',
@@ -2416,7 +2414,6 @@ const translations = {
         'exchange.amount': '您支付的金额',
         'exchange.amountReceive': '您希望收到的金额',
         'exchange.result': '将收到的金额',
-        'exchange.resultGive': '应付金额',
         'exchange.modeGive': '我支付',
         'exchange.modeReceive': '我收到',
         'exchange.rate': '汇率',
@@ -2982,6 +2979,10 @@ function getReferralDisplayLink() {
     return t('referral.linkLoading');
 }
 
+/* Время последней УДАЧНОЙ загрузки курса: по нему решаем, нужен ли
+   новый запрос при открытии формы. */
+let lastRateFetchAt = 0;
+
 async function loadExchangeRates() {
     try {
        
@@ -3019,12 +3020,38 @@ async function loadExchangeRates() {
             calculateResult();
         }
 
+        lastRateFetchAt = Date.now();
         setUpdateStatus(t('rate.updated'));
+        return true;
     } catch (error) {
         console.error('Ошибка загрузки курсов:', error);
         updateRatesDisplay();
         setUpdateStatus(t('rate.unavailable'), true);
+        return false;
     }
+}
+
+/*
+  Курс по таймеру живёт до пяти минут, а заявка оценивается сервером в
+  момент отправки. Клиент, открывший форму на остывшем курсе, увидел бы
+  одно число, а расчёт получил по другому — в режиме «хочу получить
+  ровно столько» это особенно заметно, потому что рубли к оплате
+  считаются от заказанного объёма.
+
+  Поэтому при открытии формы курс забираем заново, а отсчёт до
+  следующего обновления начинаем с этого момента. Открытую и тут же
+  закрытую форму вторым запросом не обслуживаем: за эти секунды на
+  рынке ничего не происходит, а воркер всё равно держит свой кэш.
+*/
+const RATE_REFRESH_ON_OPEN_MS = 5000;
+
+function refreshRatesForForm() {
+    if (Date.now() - lastRateFetchAt < RATE_REFRESH_ON_OPEN_MS) return;
+
+    /* Ответа не ждём: форма открывается сразу, курс подтянется сам. */
+    loadExchangeRates().then((ok) => {
+        if (ok) resetRateCountdown();
+    });
 }
 
 function updateRatesDisplay() {
@@ -3362,6 +3389,8 @@ function openModal() {
 
     submittingRequest = false;
 
+    refreshRatesForForm();
+
     const submitBtn = elements.exchangeForm?.querySelector('.submit-btn');
     if (submitBtn) {
         submitBtn.disabled = state.currency === 'EUR' || acceptingPaused();
@@ -3645,7 +3674,7 @@ function updateAmountModeTexts() {
     }
 
     if (elements.resultLabel) {
-        const key = receive ? 'exchange.resultGive' : 'exchange.result';
+        const key = receive ? 'exchange.amount' : 'exchange.result';
         elements.resultLabel.setAttribute('data-i18n', key);
         elements.resultLabel.textContent = t(key);
     }
@@ -3939,17 +3968,24 @@ function calculateResult() {
         updateRateInfo(null);
         return;
     }
+    const usdtRubRate = getSelectedRateValue();
+
+    /*
+      Курс показываем до проверки суммы. Иначе после смены валюты в
+      строке висит прежний — клиент выбирает рубль, а видит долларовый,
+      пока не начнёт печатать.
+    */
+    updateRateInfo(Number.isFinite(usdtRubRate) ? usdtRubRate : '—');
+
     if (amount <= 0) {
         updateResultDisplay(0);
         return;
     }
-    let result = 0;
-    const usdtRubRate = getSelectedRateValue();
     if (!Number.isFinite(usdtRubRate)) {
         updateResultDisplay(0);
-        updateRateInfo('—');
         return;
     }
+    let result = 0;
     /*
       Та же арифметика и то же округление, что в воркере: сумму к выдаче
       режем вниз, сумму к оплате добираем вверх. Разойдись они хотя бы в
