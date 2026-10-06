@@ -1878,11 +1878,24 @@ function visibleViewportHeight() {
     return window.innerHeight;
 }
 
+let activeInputElement = null;
+let viewportFrame = 0;
+let fieldRevealTimer = 0;
+let lastViewportHeight = 0;
+
+/*
+  Клавиатура выезжает анимацией, и visualViewport сыплет событиями весь
+  её путь. Пишем --vh только при реальном изменении высоты: свойство
+  участвует в max-height модалки, и переписывать его на каждое событие
+  значит пересчитывать раскладку каждый кадр анимации.
+*/
 function updateViewportHeight() {
-    document.documentElement.style.setProperty(
-        '--vh',
-        `${visibleViewportHeight() * 0.01}px`
-    );
+    const height = visibleViewportHeight();
+
+    if (Math.abs(height - lastViewportHeight) < 1) { return; }
+
+    lastViewportHeight = height;
+    document.documentElement.style.setProperty('--vh', `${height * 0.01}px`);
 }
 
 function activeModalContent() {
@@ -1891,7 +1904,35 @@ function activeModalContent() {
     return modal ? modal.querySelector('.modal-content') : null;
 }
 
+/* Запас между полем и краем видимой области. */
+const FIELD_REVEAL_MARGIN = 16;
+
+/*
+  Пауза, после которой считаем, что клавиатура доехала. Подводить поле
+  на каждое событие — значит гнаться за движущейся целью, и это видно
+  как дрожь.
+*/
+const KEYBOARD_SETTLE_MS = 120;
+
+function scheduleFieldReveal() {
+    clearTimeout(fieldRevealTimer);
+
+    fieldRevealTimer = setTimeout(() => {
+        if (activeInputElement) { scrollFieldIntoView(activeInputElement); }
+    }, KEYBOARD_SETTLE_MS);
+}
+
+/* Событий много, работы — один раз за кадр. */
 function onViewportChange() {
+    if (viewportFrame) { return; }
+
+    viewportFrame = requestAnimationFrame(() => {
+        viewportFrame = 0;
+        applyViewportChange();
+    });
+}
+
+function applyViewportChange() {
     updateViewportHeight();
 
     const modalContent = activeModalContent();
@@ -1902,17 +1943,17 @@ function onViewportChange() {
 
     modalContent.classList.toggle('keyboard-open', keyboardOpen);
 
-    if (keyboardOpen && activeInputElement) {
-        requestAnimationFrame(() => {
-            scrollFieldIntoView(activeInputElement);
-        });
-    }
+    if (keyboardOpen && activeInputElement) { scheduleFieldReveal(); }
 }
 
 function bindKeyboardHandlers() {
     if (window.visualViewport) {
+        /*
+          Только resize. На scroll обработчик реагировал и на наше
+          собственное подведение поля, то есть гонялся за собой; высота
+          от прокрутки всё равно не меняется.
+        */
         window.visualViewport.addEventListener('resize', onViewportChange);
-        window.visualViewport.addEventListener('scroll', onViewportChange);
     }
 
     if (typeof tg.onEvent === 'function') {
@@ -1922,13 +1963,30 @@ function bindKeyboardHandlers() {
     onViewportChange();
 }
 
+/*
+  Двигаем ровно настолько, чтобы поле влезло с запасом, и только если
+  оно действительно не видно. Прежний вариант центрировал поле в
+  модалке: высота модалки во время анимации меняется каждый кадр, центр
+  уезжает вместе с ней, и прокрутка не могла успокоиться.
+*/
 function scrollFieldIntoView(el) {
     const container = el.closest('.modal-content');
     if (!container) { return; }
-    const containerRect = container.getBoundingClientRect();
-    const elRect = el.getBoundingClientRect();
-    const offset = elRect.top - containerRect.top - (containerRect.height / 2) + (elRect.height / 2);
-    container.scrollTop += offset;
+
+    const box = container.getBoundingClientRect();
+    const field = el.getBoundingClientRect();
+
+    const below = field.bottom + FIELD_REVEAL_MARGIN - box.bottom;
+    const above = box.top + FIELD_REVEAL_MARGIN - field.top;
+
+    let delta = 0;
+    if (below > 0) { delta = below; }
+    else if (above > 0) { delta = -above; }
+
+    /* Меньше двух пикселей — это не «не видно», а шум округления. */
+    if (Math.abs(delta) < 2) { return; }
+
+    container.scrollTop += delta;
 }
 
 updateViewportHeight();
@@ -1943,14 +2001,19 @@ document.addEventListener('focusin', (event) => {
     const modalContent = target.closest('.modal-content');
     if (!modalContent) { return; }
     activeInputElement = target;
-    [50, 200, 400, 600].forEach((delay) => {
-        setTimeout(() => {
-            if (activeInputElement === target) { scrollFieldIntoView(target); }
-        }, delay);
-    });
+
+    /*
+      Одно подведение после того, как всё успокоится, вместо четырёх по
+      таймерам: каждое из них дёргало прокрутку на своём этапе выезда
+      клавиатуры, и это читалось как рывки.
+    */
+    scheduleFieldReveal();
 });
 document.addEventListener('focusout', (event) => {
-    if (event.target === activeInputElement) { activeInputElement = null; }
+    if (event.target === activeInputElement) {
+        activeInputElement = null;
+        clearTimeout(fieldRevealTimer);
+    }
 });
 
 const REQUESTS_WEBHOOK_URL = 'https://patient-brook-3cd1.syedwang789.workers.dev';
@@ -2628,8 +2691,6 @@ const state = {
         tab: 'requests'
     }
 };
-
-let activeInputElement = null;
 
 let submittingRequest = false;
 let countdownTimer = null;
