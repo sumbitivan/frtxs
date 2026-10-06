@@ -756,6 +756,31 @@ body {
     color: white;
 }
 
+.rate-lock-hint {
+    margin-top: 6px;
+    font-size: 12px;
+    line-height: 1.4;
+    text-align: center;
+    color: var(--text-secondary);
+}
+
+.rate-lock {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin: 8px 0 0;
+    padding: 8px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: 10px;
+    background: var(--bg-color);
+    color: var(--text-secondary);
+}
+
+.rate-lock--expired {
+    color: var(--danger-color, #e5484d);
+}
+
 .amount-head {
     display: flex;
     align-items: center;
@@ -1589,6 +1614,7 @@ textarea {
                         <div class="rate-info" id="rateInfo">
                             <span data-i18n="exchange.rate">Курс</span>: <span id="currentRate">—</span>
                         </div>
+                        <div class="rate-lock-hint" id="rateLockHint" hidden></div>
                     </div>
 
                     <div class="form-group">
@@ -2144,6 +2170,9 @@ const translations = {
         'exchange.sellDesc': 'Отдаёте USDT, получаете RUB',
         'exchange.amount': 'Сумма к расчёту',
         'exchange.amountReceive': 'Сумма, которую хотите получить',
+        'exchange.rateLockHint': 'Курс закрепляется на {min} мин с момента заявки',
+        'requests.rateLockLeft': 'Курс закреплён ещё',
+        'requests.rateLockExpired': 'Срок фиксации курса истёк',
         'exchange.result': 'Сумма к получению',
         'exchange.modeGive': 'Отдаю',
         'exchange.modeReceive': 'Получаю',
@@ -2351,6 +2380,9 @@ const translations = {
         'exchange.sellDesc': 'You give USDT, receive RUB',
         'exchange.amount': 'Amount you give',
         'exchange.amountReceive': 'Amount you want to receive',
+        'exchange.rateLockHint': 'The rate is held for {min} min from the request',
+        'requests.rateLockLeft': 'Rate held for',
+        'requests.rateLockExpired': 'The rate hold has expired',
         'exchange.result': 'Amount to receive',
         'exchange.modeGive': 'I give',
         'exchange.modeReceive': 'I receive',
@@ -2558,6 +2590,9 @@ const translations = {
         'exchange.sellDesc': '您支付美元，获得卢布',
         'exchange.amount': '您支付的金额',
         'exchange.amountReceive': '您希望收到的金额',
+        'exchange.rateLockHint': '汇率自申请起保留 {min} 分钟',
+        'requests.rateLockLeft': '汇率保留剩余',
+        'requests.rateLockExpired': '汇率保留已过期',
         'exchange.result': '将收到的金额',
         'exchange.modeGive': '我支付',
         'exchange.modeReceive': '我收到',
@@ -2754,6 +2789,7 @@ const state = {
     clientAmount: 0,
     amountMode: 'give',
     amountLimits: null,
+    rateLockMinutes: null,
     cashlessRub: null,
     notice: null,
     resultAmount: 0,
@@ -2804,6 +2840,7 @@ const elements = {
     resultLabel: document.getElementById('resultLabel'),
     amountModeBtns: document.querySelectorAll('.amount-mode__btn[data-amount-mode]'),
     amountError: document.getElementById('amountError'),
+    rateLockHint: document.getElementById('rateLockHint'),
     clientCurrency: document.getElementById('clientCurrency'),
     resultAmount: document.getElementById('resultAmount'),
     resultCurrency: document.getElementById('resultCurrency'),
@@ -3145,6 +3182,12 @@ async function loadExchangeRates() {
             state.amountLimits = data.limits;
         }
 
+        const lockMinutes = Number(data?.rateLockMinutes);
+        state.rateLockMinutes = Number.isFinite(lockMinutes) && lockMinutes > 0
+            ? lockMinutes
+            : null;
+        renderRateLockHint();
+
         if (data?.cashlessRub && typeof data.cashlessRub === 'object') {
             state.cashlessRub = data.cashlessRub;
         }
@@ -3230,6 +3273,7 @@ function startRateCountdown() {
         clearInterval(countdownTimer);
     }
     countdownTimer = setInterval(tickRateCountdown, 1000);
+    setInterval(tickRateLocks, 1000);
 }
 
 function resetRateCountdown() {
@@ -3328,6 +3372,9 @@ function applyLanguage(lang) {
     if (elements.managerModal && elements.managerModal.classList.contains('active') && state.manager.authorized) {
         loadManagerTab();
     }
+
+    /* Подпись со сроком собирается подстановкой, data-i18n её не ловит. */
+    renderRateLockHint();
 }
 
 function openTgLink(url) {
@@ -4168,6 +4215,62 @@ function updateRateInfo(rate) {
     elements.currentRate.textContent = numericRate;
 }
 
+/*
+  Подпись под курсом: клиент должен знать про окно ДО того, как создаст
+  заявку, иначе срок станет для него новостью. Число берём с сервера —
+  обещание и расчёт должны быть одной константой.
+*/
+function renderRateLockHint() {
+    const box = elements.rateLockHint;
+    if (!box) return;
+
+    if (!state.rateLockMinutes) {
+        box.hidden = true;
+        box.textContent = '';
+        return;
+    }
+
+    box.textContent = t('exchange.rateLockHint')
+        .replace('{min}', String(state.rateLockMinutes));
+    box.hidden = false;
+}
+
+function formatLockLeft(ms) {
+    const total = Math.max(0, Math.floor(ms / 1000));
+    const mm = String(Math.floor(total / 60)).padStart(2, '0');
+    const ss = String(total % 60).padStart(2, '0');
+    return `${mm}:${ss}`;
+}
+
+/*
+  Один таймер на все карточки: заявок в списке может быть много, и
+  заводить интервал на каждую — лишняя работа каждую секунду.
+*/
+function tickRateLocks() {
+    const nodes = document.querySelectorAll('[data-role="rate-lock-value"]');
+    if (!nodes.length) return;
+
+    nodes.forEach((node) => {
+        const until = Date.parse(node.dataset.until || '');
+        if (!Number.isFinite(until)) return;
+
+        const left = until - Date.now();
+        const row = node.closest('.rate-lock');
+
+        if (left <= 0) {
+            node.textContent = '';
+            if (row) {
+                row.classList.add('rate-lock--expired');
+                const label = row.querySelector('[data-role="rate-lock-label"]');
+                if (label) label.textContent = t('requests.rateLockExpired');
+            }
+            return;
+        }
+
+        node.textContent = formatLockLeft(left);
+    });
+}
+
 function formatAmount(amount) {
     if (amount === 0) return '0.00';
     return amount.toFixed(2);
@@ -4297,7 +4400,8 @@ function normalizeServerRequest(item) {
         direction,
         dealType: tx.deal_type || tx.dealType || state.exchangeType,
         currency,
-        clientConfirmed: Number(tx.client_confirmed ?? tx.clientConfirmed ?? 0) === 1
+        clientConfirmed: Number(tx.client_confirmed ?? tx.clientConfirmed ?? 0) === 1,
+        rateLockedUntil: tx.rate_locked_until || tx.rateLockedUntil || null
     };
 }
 
@@ -4497,6 +4601,30 @@ function renderRemoteRequests(history) {
         statusWrap.appendChild(statusRow);
         elements.requestsBody.appendChild(statusWrap);
 
+        /*
+          Окно показываем только у незакрытых заявок и не пряча в
+          подробности: это то, на что клиенту надо успеть.
+        */
+        const lockKind = statusMeta(payload.status).kind;
+        const lockFinished = ['completed', 'rejected', 'cancelled'].includes(lockKind);
+
+        if (!lockFinished && payload.rateLockedUntil) {
+            const lock = document.createElement('div');
+            lock.className = 'rate-lock';
+
+            const label = document.createElement('span');
+            label.dataset.role = 'rate-lock-label';
+            label.textContent = t('requests.rateLockLeft');
+            lock.appendChild(label);
+
+            const value = document.createElement('span');
+            value.dataset.role = 'rate-lock-value';
+            value.dataset.until = payload.rateLockedUntil;
+            lock.appendChild(value);
+
+            elements.requestsBody.appendChild(lock);
+        }
+
         const details = document.createElement('div');
         details.className = 'request-details-container';
         details.dataset.requestId = payload.requestId;
@@ -4534,6 +4662,7 @@ function renderRemoteRequests(history) {
     });
 
     bindRequestListHandlers();
+    tickRateLocks();
 }
 
 function renderWithdrawalCard(payload) {
