@@ -622,6 +622,12 @@ body {
     background: rgba(0, 0, 0, 0.5);
     z-index: 1000;
     overflow-y: auto;
+    /*
+      Прокрутка не должна утекать на страницу под модалкой: иначе при
+      фокусе на поле браузер подкручивает фон, и сквозь полупрозрачную
+      подложку видно, как карточки за диалогом едут сами по себе.
+    */
+    overscroll-behavior: contain;
     animation: fadeIn 0.3s ease;
 }
 
@@ -639,6 +645,7 @@ body {
     max-width: 500px;
     max-height: calc(var(--vh, 1vh) * 90);
     overflow-y: auto;
+    overscroll-behavior: contain;
     box-shadow: var(--shadow-modal);
     animation: slideUp 0.3s ease;
     margin-top: 20px;
@@ -682,7 +689,12 @@ body {
 
 .modal-body {
     padding: 20px;
-    padding-bottom: 80px;
+    /*
+      --keyboard-pad подставляется на время ввода. Без него нижние поля
+      формы физически некуда прокрутить: контейнер упирается в конец
+      содержимого, и поле остаётся под клавиатурой.
+    */
+    padding-bottom: calc(80px + var(--keyboard-pad, 0px));
 }
 
 .modal-content.keyboard-open {
@@ -1943,7 +1955,10 @@ function applyViewportChange() {
 
     modalContent.classList.toggle('keyboard-open', keyboardOpen);
 
-    if (keyboardOpen && activeInputElement) { scheduleFieldReveal(); }
+    if (activeInputElement) {
+        setKeyboardPadding(true);
+        scheduleFieldReveal();
+    }
 }
 
 function bindKeyboardHandlers() {
@@ -1964,20 +1979,84 @@ function bindKeyboardHandlers() {
 }
 
 /*
-  Двигаем ровно настолько, чтобы поле влезло с запасом, и только если
-  оно действительно не видно. Прежний вариант центрировал поле в
-  модалке: высота модалки во время анимации меняется каждый кадр, центр
-  уезжает вместе с ней, и прокрутка не могла успокоиться.
+  Доля экрана, которую считаем занятой клавиатурой, когда платформа об
+  этом не сообщила. Telegram в вебвью уменьшает видимую область не
+  всегда, а поднять поле выше нужного безобиднее, чем оставить его под
+  клавиатурой.
+*/
+const ASSUMED_KEYBOARD_PART = 0.45;
+
+/*
+  Сколько снизу занято клавиатурой. Платформа сообщает это уменьшением
+  видимой области; если молчит — берём долю экрана.
+*/
+function keyboardInset() {
+    const reported = visibleViewportHeight();
+
+    if (reported < window.innerHeight * 0.8) {
+        return window.innerHeight - reported;
+    }
+
+    return window.innerHeight * ASSUMED_KEYBOARD_PART;
+}
+
+/*
+  Пустое место снизу формы на время ввода — чтобы последним полям было
+  куда прокручиваться. Снимается, когда поле теряет фокус.
+*/
+function setKeyboardPadding(on) {
+    const root = document.documentElement.style;
+
+    if (on) {
+        root.setProperty('--keyboard-pad', `${Math.round(keyboardInset())}px`);
+    } else {
+        root.removeProperty('--keyboard-pad');
+    }
+}
+
+/*
+  Полоса, в которой поле реально видно: контейнер, обрезанный тем, что
+  не закрыто клавиатурой.
+
+  Сравнивать поле с одним лишь контейнером нельзя — именно на этом
+  подведение и перестало работать. Низ модалки уходит под клавиатуру,
+  поле формально «внутри контейнера», проверка считает его видимым и
+  не двигает ничего.
+*/
+function visibleBand(container) {
+    const box = container.getBoundingClientRect();
+
+    const viewTop = window.visualViewport
+        ? window.visualViewport.offsetTop
+        : 0;
+
+    const reported = visibleViewportHeight();
+    const platformToldUs = reported < window.innerHeight * 0.8;
+
+    const viewBottom = viewTop + (platformToldUs
+        ? reported
+        : window.innerHeight * (1 - ASSUMED_KEYBOARD_PART));
+
+    return {
+        top: Math.max(box.top, viewTop),
+        bottom: Math.min(box.bottom, viewBottom)
+    };
+}
+
+/*
+  Двигаем ровно настолько, чтобы поле влезло в видимую полосу с
+  запасом. Цель не зависит от текущей прокрутки, поэтому повторный
+  вызов ничего не сдвигает и раскачки не возникает.
 */
 function scrollFieldIntoView(el) {
     const container = el.closest('.modal-content');
     if (!container) { return; }
 
-    const box = container.getBoundingClientRect();
+    const band = visibleBand(container);
     const field = el.getBoundingClientRect();
 
-    const below = field.bottom + FIELD_REVEAL_MARGIN - box.bottom;
-    const above = box.top + FIELD_REVEAL_MARGIN - field.top;
+    const below = field.bottom + FIELD_REVEAL_MARGIN - band.bottom;
+    const above = band.top + FIELD_REVEAL_MARGIN - field.top;
 
     let delta = 0;
     if (below > 0) { delta = below; }
@@ -2003,16 +2082,19 @@ document.addEventListener('focusin', (event) => {
     activeInputElement = target;
 
     /*
-      Одно подведение после того, как всё успокоится, вместо четырёх по
-      таймерам: каждое из них дёргало прокрутку на своём этапе выезда
-      клавиатуры, и это читалось как рывки.
+      Сначала добавляем место снизу, иначе подводить будет некуда, и
+      только потом — одно подведение, когда всё успокоится. Четыре
+      таймера, как было раньше, дёргали прокрутку каждый на своём этапе
+      выезда клавиатуры, и это читалось как рывки.
     */
+    setKeyboardPadding(true);
     scheduleFieldReveal();
 });
 document.addEventListener('focusout', (event) => {
     if (event.target === activeInputElement) {
         activeInputElement = null;
         clearTimeout(fieldRevealTimer);
+        setKeyboardPadding(false);
     }
 });
 
