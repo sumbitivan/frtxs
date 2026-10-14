@@ -856,6 +856,11 @@ body {
     color: white;
 }
 
+.direction-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
 .input-wrapper {
     position: relative;
     display: flex;
@@ -1543,9 +1548,11 @@ textarea {
                 <div class="exchange-direction">
                     <button type="button" class="direction-btn" id="cashTypeBtn">
                         <span data-i18n="exchange.typeCash">Наличный</span>
+                        <small data-i18n="exchange.typePaused" hidden>Временно недоступен</small>
                     </button>
                     <button type="button" class="direction-btn" id="cashlessTypeBtn">
                         <span data-i18n="exchange.typeCashless">Безналичный</span>
+                        <small data-i18n="exchange.typePaused" hidden>Временно недоступен</small>
                     </button>
                 </div>
             </div>
@@ -2183,6 +2190,7 @@ const translations = {
         'exchange.phonePlaceholder': 'Пример: @username',
         'exchange.acceptingPaused': 'Приём заявок временно приостановлен',
         'exchange.pairUnavailable': 'Пара временно недоступна',
+        'exchange.typePaused': 'Временно недоступен',
         'result.tba': 'Скоро появится, узнавайте у менеджера',
         'exchange.comment': 'Комментарий (необязательно)',
         'exchange.commentPlaceholder': 'Дополнительная информация...',
@@ -2393,6 +2401,7 @@ const translations = {
         'exchange.phonePlaceholder': 'Example: @username',
         'exchange.acceptingPaused': 'New requests are paused for now',
         'exchange.pairUnavailable': 'This pair is temporarily unavailable',
+        'exchange.typePaused': 'Temporarily unavailable',
         'result.tba': 'Coming soon — ask the manager',
         'exchange.comment': 'Comment (optional)',
         'exchange.commentPlaceholder': 'Additional information...',
@@ -2603,6 +2612,7 @@ const translations = {
         'exchange.phonePlaceholder': '示例： @username',
         'exchange.acceptingPaused': '暂停接收新申请',
         'exchange.pairUnavailable': '该货币对暂时不可用',
+        'exchange.typePaused': '暂时不可用',
         'result.tba': '即将推出，请咨询客服',
         'exchange.comment': '评论（可选）',
         'exchange.commentPlaceholder': '附加信息...',
@@ -2782,6 +2792,8 @@ const state = {
     exchangeType: 'cash',
     currency: 'USD',
         rates: { cash: { buy: null, sell: null }, cashless: { buy: null, sell: null }, usd: { buy: null, sell: null } },
+    /* Типы, которые сервер временно отключил: курса у них нет, заявку не отправить. */
+    paused: { cash: false, cashless: false, usd: false },
     baseRates: { USD: 95.50, EUR: 0, RUB: 1 },
     currentRate: 0,
     buyRate: 95.50,
@@ -3178,6 +3190,13 @@ async function loadExchangeRates() {
             state.rates.usd.sell = Number(data.usd.sell);
         }
 
+        state.paused = {
+            cash: data?.cash?.paused === true,
+            cashless: data?.cashless?.paused === true,
+            usd: data?.usd?.paused === true
+        };
+        renderPausedTypes();
+
         if (data?.limits && typeof data.limits === 'object') {
             state.amountLimits = data.limits;
         }
@@ -3194,6 +3213,7 @@ async function loadExchangeRates() {
 
         state.notice = data?.notice || null;
         renderAppNotice();
+        syncSubmitAvailability();
 
         state.lastUpdatedAt = data?.updatedAt || null;
 
@@ -3246,16 +3266,17 @@ function updateRatesDisplay() {
         return;
     }
     const fmt = (val) => Number.isFinite(val) ? `${val.toFixed(2)} ₽` : '—';
-    const applyRate = (el, val) => {
+    /* Отключённый тип — ровный прочерк: это не загрузка, ждать нечего. */
+    const applyRate = (el, val, paused) => {
         if (!el) return;
-        el.textContent = fmt(val);
-        el.classList.toggle('rate-value--pulse', !Number.isFinite(val));
+        el.textContent = paused ? '—' : fmt(val);
+        el.classList.toggle('rate-value--pulse', !paused && !Number.isFinite(val));
     };
 
-    applyRate(elements.buyRate, state.rates.cash.buy);
-    applyRate(elements.sellRate, state.rates.cash.sell);
-    applyRate(elements.buyRateCashless, state.rates.cashless.buy);
-    applyRate(elements.sellRateCashless, state.rates.cashless.sell);
+    applyRate(elements.buyRate, state.rates.cash.buy, state.paused.cash);
+    applyRate(elements.sellRate, state.rates.cash.sell, state.paused.cash);
+    applyRate(elements.buyRateCashless, state.rates.cashless.buy, state.paused.cashless);
+    applyRate(elements.sellRateCashless, state.rates.cashless.sell, state.paused.cashless);
     syncRateDuplicates();
 }
 
@@ -3581,22 +3602,32 @@ function openModal() {
 
     refreshRatesForForm();
 
-    const submitBtn = elements.exchangeForm?.querySelector('.submit-btn');
-    if (submitBtn) {
-        submitBtn.disabled = state.currency === 'EUR' || acceptingPaused();
-        const label = submitBtn.querySelector('[data-i18n="exchange.submit"]');
-        if (label && state.currency !== 'EUR') {
-            label.textContent = t('exchange.submit');
-        }
-    }
+    syncSubmitAvailability();
 
     onViewportChange();
 
     setTimeout(() => elements.clientAmount.focus(), 350);
 }
 
+/*
+  Кнопки выбора типа. Наличный гаснет, только если отключены и рубль, и
+  доллар: в наличной форме есть обе валюты, и живую из них выбрать можно.
+*/
+function renderPausedTypes() {
+    const apply = (btn, off) => {
+        if (!btn) return;
+        btn.disabled = off;
+        const note = btn.querySelector('[data-i18n="exchange.typePaused"]');
+        if (note) note.hidden = !off;
+    };
+
+    apply(elements.cashTypeBtn, state.paused.cash && state.paused.usd);
+    apply(elements.cashlessTypeBtn, state.paused.cashless);
+}
+
 function openExchangeTypeModal() {
     closeAllModals();
+    renderPausedTypes();
     if (elements.exchangeTypeModal) {
         elements.exchangeTypeModal.classList.add('active');
         document.body.style.overflow = 'hidden';
@@ -3909,6 +3940,44 @@ function setExchangeType(type) {
     toggleCurrencyOptions(type);
     updateRateInfo(getSelectedRateValue());
     calculateResult();
+    syncSubmitAvailability();
+}
+
+/* Выбранная пара отключена сервером: рубль — по типу сделки, доллар — свой. */
+function pairPaused() {
+    if (state.currency === 'USD') return state.paused.usd === true;
+    return state.paused[state.exchangeType] === true;
+}
+
+function pairUnavailable() {
+    return state.currency === 'EUR' || pairPaused();
+}
+
+/*
+  Кнопка отправки в одном месте: недоступная пара, закрытый приём или
+  обычное «Отправить». Раньше эта логика повторялась в трёх местах и
+  знала только про евро.
+*/
+function syncSubmitAvailability() {
+    const submitBtn = elements.exchangeForm?.querySelector('.submit-btn');
+    if (!submitBtn || submittingRequest) return;
+
+    const unavailable = pairUnavailable();
+    const paused = acceptingPaused();
+
+    submitBtn.disabled = unavailable || paused;
+
+    if (unavailable || paused) {
+        submitBtn.textContent = unavailable
+            ? t('exchange.pairUnavailable')
+            : t('exchange.acceptingPaused');
+        return;
+    }
+
+    const label = document.createElement('span');
+    label.setAttribute('data-i18n', 'exchange.submit');
+    label.textContent = t('exchange.submit');
+    submitBtn.replaceChildren(label);
 }
 
 function toggleCurrencyOptions(type) {
@@ -3947,22 +4016,8 @@ function setCurrency(currency) {
     updateRatesDisplay();
     setDirection(state.direction);
 
-    const isEurDisabled = currency === 'EUR';
-    elements.clientAmount.disabled = isEurDisabled;
-    const submitBtn = elements.exchangeForm.querySelector('.submit-btn');
-    if (submitBtn) {
-        const paused = acceptingPaused();
-        submitBtn.disabled = isEurDisabled || paused;
-        submitBtn.textContent = isEurDisabled
-            ? t('exchange.pairUnavailable')
-            : (paused ? t('exchange.acceptingPaused') : '');
-        if (!isEurDisabled && !paused) {
-            const label = document.createElement('span');
-            label.setAttribute('data-i18n', 'exchange.submit');
-            label.textContent = t('exchange.submit');
-            submitBtn.replaceChildren(label);
-        }
-    }
+    elements.clientAmount.disabled = currency === 'EUR';
+    syncSubmitAvailability();
 }
 const CASHLESS_RUB_FALLBACK = { min: 10000, max: 80000 };
 const AMOUNT_LIMITS_FALLBACK = {
@@ -4284,6 +4339,11 @@ function submitErrorMessage(error) {
     if (code === 'accepting_paused') {
         return t('exchange.acceptingPaused');
     }
+    if (code === 'deal_paused') {
+        /* Курс в аппке устарел: подтягиваем свежий, чтобы погасить пару. */
+        loadExchangeRates();
+        return t('exchange.pairUnavailable');
+    }
     if (code === 'rate_limited' || error.status === 429) {
         return t('exchange.tooManyRequests');
     }
@@ -4372,13 +4432,7 @@ async function handleFormSubmit(e) {
         if (!succeeded) {
             submittingRequest = false;
 
-            if (submitBtn) {
-                submitBtn.disabled = state.currency === 'EUR' || acceptingPaused();
-                const label = submitBtn.querySelector('[data-i18n="exchange.submit"]');
-                if (label && state.currency !== 'EUR') {
-                    label.textContent = t('exchange.submit');
-                }
-            }
+            syncSubmitAvailability();
         }
     }
 }
@@ -5253,7 +5307,7 @@ function fallbackCopy(text, onSuccess) {
 }
 
 function validateForm(data) {
-    if (state.currency === 'EUR') {
+    if (pairUnavailable()) {
         showToast(t('exchange.pairUnavailable'), 'error');
         return false;
     }
