@@ -2275,6 +2275,7 @@ const translations = {
         'tips.5.text': 'Хранение истории сделок можно в любой момент отключить в настройках профиля.',
         'requests.supportAction': 'Написать в поддержку',
         'requests.confirmedBadge': 'Получение подтверждено',
+        'requests.repeat': 'Повторить заявку',
         'requests.loading': 'Загрузка…',
         'requests.loadFailed': 'Не удалось загрузить операции',
         'requests.confirmError': 'Не удалось подтвердить заявку',
@@ -2486,6 +2487,7 @@ const translations = {
         'tips.5.text': 'You can disable storing deal history at any time in your profile settings.',
         'requests.supportAction': 'Contact support',
         'requests.confirmedBadge': 'Receipt confirmed',
+        'requests.repeat': 'Repeat request',
         'requests.loading': 'Loading…',
         'requests.loadFailed': 'Failed to load operations',
         'requests.confirmError': 'Failed to confirm the request',
@@ -2697,6 +2699,7 @@ const translations = {
         'tips.5.text': '您可以随时在个人资料设置中关闭交易历史保存。',
         'requests.supportAction': '联系客服',
         'requests.confirmedBadge': '已确认收款',
+        'requests.repeat': '再次申请',
         'requests.loading': '加载中…',
         'requests.loadFailed': '无法加载操作记录',
         'requests.confirmError': '无法确认申请',
@@ -3554,6 +3557,7 @@ function setupEventListeners() {
             }
             if (disabled) {
                 try { localStorage.removeItem('lastRequestSnapshot'); } catch (_) {}
+                clearRequisites();
             }
             updateRequestsModal();
         });
@@ -3599,6 +3603,8 @@ function openModal() {
     document.body.style.overflow = 'hidden';
 
     submittingRequest = false;
+
+    prefillRequisites();
 
     refreshRatesForForm();
 
@@ -4421,6 +4427,7 @@ async function handleFormSubmit(e) {
 
         const serverRequest = normalizeServerRequest(created.request || created);
         saveLastRequest(serverRequest);
+        saveRequisites(formData.clientName, formData.clientPhone);
 
         succeeded = true;
         showToast(t('exchange.accepted'), 'success');
@@ -4448,7 +4455,9 @@ function normalizeServerRequest(item) {
         kind: 'deal',
         requestId: tx.request_id || tx.requestId || '',
         status: tx.status || 'PENDING',
-        payAmount: tx.payAmount || `${amount} ${direction === 'buy' ? currency : 'USDT'}`,
+        /* Число отдельно от строки: «Повторить» подставляет его в форму. */
+        giveAmount: amount,
+        payAmount: tx.payAmount ||`${amount} ${direction === 'buy' ? currency : 'USDT'}`,
         receiveAmount: tx.receiveAmount || `${Number.isFinite(result) ? result.toFixed(2) : '—'} ${direction === 'buy' ? 'USDT' : currency}`,
         timestamp: tx.timestamp || tx.created_at || new Date().toISOString(),
         direction,
@@ -4580,9 +4589,16 @@ function readLocalRequestSnapshot() {
     }
 }
 
+/* Отрисованные сделки по номеру — откуда «Повторить» берёт параметры. */
+const renderedDeals = new Map();
+
 function renderRemoteRequests(history) {
     if (!elements.requestsBody) return;
     elements.requestsBody.replaceChildren();
+    renderedDeals.clear();
+    history.forEach((p) => {
+        if (p.kind === 'deal' && p.requestId) renderedDeals.set(p.requestId, p);
+    });
 
     if (!history.length) {
         const empty = document.createElement('p');
@@ -4706,6 +4722,17 @@ function renderRemoteRequests(history) {
             }
             actionWrap.appendChild(confirmBtn);
             details.appendChild(actionWrap);
+        } else if (payload.giveAmount > 0) {
+            const actionWrap = document.createElement('div');
+            actionWrap.className = 'form-group';
+            const repeatBtn = document.createElement('button');
+            repeatBtn.type = 'button';
+            repeatBtn.className = 'submit-btn';
+            repeatBtn.dataset.role = 'repeat';
+            repeatBtn.dataset.requestId = payload.requestId;
+            repeatBtn.textContent = t('requests.repeat');
+            actionWrap.appendChild(repeatBtn);
+            details.appendChild(actionWrap);
         }
 
         elements.requestsBody.appendChild(details);
@@ -4785,6 +4812,9 @@ function bindRequestListHandlers() {
     elements.requestsBody.querySelectorAll('[data-role="confirm"]').forEach((btn) => {
         btn.addEventListener('click', () => confirmRequest(btn.dataset.requestId));
     });
+    elements.requestsBody.querySelectorAll('[data-role="repeat"]').forEach((btn) => {
+        btn.addEventListener('click', () => repeatRequest(btn.dataset.requestId));
+    });
     elements.requestsBody.querySelectorAll('[data-role="status"]').forEach((btn) => {
         btn.addEventListener('click', () => toggleRequestDetails(btn.dataset.requestId));
     });
@@ -4857,6 +4887,73 @@ function toggleRequestDetails(requestId) {
     detail.style.display = willOpen ? 'block' : 'none';
     const row = elements.requestsBody.querySelector(`.setting-option[data-role="status"][data-request-id="${CSS.escape(requestId)}"]`);
     if (row) row.classList.toggle('is-expanded', willOpen);
+}
+
+/*
+  «Повторить» переносит в форму параметры прошлой сделки, но не её курс:
+  курс берётся текущий, и итог клиент видит заново до отправки. Сумма —
+  та, что он тогда отдал. Режим «получаю» в заявке не хранится, поэтому
+  повтор всегда «отдаю столько же».
+*/
+function repeatRequest(requestId) {
+    const deal = renderedDeals.get(requestId);
+    if (!deal) return;
+
+    closeRequestsModal();
+
+    elements.clientAmount.value = '';
+    setExchangeType(deal.dealType === 'cashless' ? 'cashless' : 'cash');
+    setCurrency(deal.currency);
+    setDirection(deal.direction);
+    setAmountMode('give');
+    elements.clientAmount.value = String(deal.giveAmount);
+
+    openModal();
+    calculateResult();
+}
+
+/*
+  Имя и юзернейм подставляются в форму сами: в обменник почти всегда
+  приходят с теми же. Комментарий не храним, он про конкретную сделку.
+  При отключённой истории не запоминаем ничего, а «Удалить историю»
+  стирает и это. Пока своих нет, берём из профиля Telegram.
+*/
+const REQUISITES_KEY = 'savedRequisites';
+
+function saveRequisites(name, username) {
+    if (isHistoryDisabled()) return;
+    try {
+        localStorage.setItem(REQUISITES_KEY, JSON.stringify({ name, username }));
+    } catch (_) {}
+}
+
+function readRequisites() {
+    try {
+        const saved = JSON.parse(localStorage.getItem(REQUISITES_KEY) || 'null');
+        return saved && typeof saved === 'object' ? saved : {};
+    } catch (_) {
+        return {};
+    }
+}
+
+function clearRequisites() {
+    try { localStorage.removeItem(REQUISITES_KEY); } catch (_) {}
+}
+
+function prefillRequisites() {
+    const saved = isHistoryDisabled() ? {} : readRequisites();
+    const tgUser = tg?.initDataUnsafe?.user || {};
+
+    const nameEl = document.getElementById('clientName');
+    const usernameEl = document.getElementById('clientPhone');
+
+    if (nameEl && !nameEl.value) {
+        nameEl.value = String(saved.name || tgUser.first_name || '').trim();
+    }
+    if (usernameEl && !usernameEl.value) {
+        const fromTg = tgUser.username ? `@${tgUser.username}` : '';
+        usernameEl.value = String(saved.username || fromTg).trim();
+    }
 }
 
 let managerModalWired = false;
@@ -5231,6 +5328,7 @@ async function clearHistory() {
     } catch (error) {
         console.warn('Failed to clear local request snapshot', error);
     }
+    clearRequisites();
 
     if (isTelegramMiniApp) {
         try {
